@@ -11,6 +11,9 @@ import Forms from "./pages/Forms";
 import ThemeSettings from "./pages/ThemeSettings";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import CreateUser from "./pages/CreateUser";
+import ClientOnboarding from "./pages/ClientOnboarding";
+import JobRequest from "./pages/JobRequest";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +59,21 @@ const App = () => (
             <Route path="/settings" element={
               <DashboardLayout>
                 <ThemeSettings />
+              </DashboardLayout>
+            } />
+            <Route path="/create-user" element={
+              <DashboardLayout>
+                <CreateUser />
+              </DashboardLayout>
+            } />
+            <Route path="/client-onboarding" element={
+              <DashboardLayout>
+                <ClientOnboarding />
+              </DashboardLayout>
+            } />
+            <Route path="/job-request" element={
+              <DashboardLayout>
+                <JobRequest />
               </DashboardLayout>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
