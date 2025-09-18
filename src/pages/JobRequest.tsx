@@ -5,7 +5,7 @@ import { ClientsTable, Client } from "@/components/tables/ClientsTable";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus, List } from "lucide-react";
 
 export default function JobRequestPage() {
   // Sample clients data
@@ -115,6 +115,7 @@ export default function JobRequestPage() {
   const [editingJobRequest, setEditingJobRequest] = useState<JobRequest | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [showClientSelection, setShowClientSelection] = useState(true);
+  const [currentView, setCurrentView] = useState<"form" | "list">("form");
 
   const handleClientSelect = (client: Client) => {
     setSelectedClient(client);
@@ -207,39 +208,61 @@ export default function JobRequestPage() {
             <p className="text-muted-foreground mt-2">Create and manage job requests</p>
           </div>
         </div>
+        <div className="flex gap-2">
+          <Button
+            variant={currentView === "form" ? "default" : "outline"}
+            onClick={() => setCurrentView("form")}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            New Request
+          </Button>
+          <Button
+            variant={currentView === "list" ? "default" : "outline"}
+            onClick={() => setCurrentView("list")}
+            className="flex items-center gap-2"
+          >
+            <List className="h-4 w-4" />
+            View Requests
+          </Button>
+        </div>
       </div>
 
-      <div className="space-y-8">
-        <JobRequestForm 
-          onSubmit={handleJobRequestSubmit}
-          selectedClient={selectedClient || undefined}
-        />
+      {currentView === "form" && (
+        <div className="space-y-8">
+          <JobRequestForm 
+            onSubmit={handleJobRequestSubmit}
+            selectedClient={selectedClient || undefined}
+          />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-primary/10 rounded-lg p-4">
-            <div className="text-2xl font-bold text-primary">{jobRequests.length}</div>
-            <div className="text-sm text-muted-foreground">Total Job Requests</div>
-          </div>
-          <div className="bg-yellow-500/10 rounded-lg p-4">
-            <div className="text-2xl font-bold text-yellow-600">
-              {jobRequests.filter(j => j.status === 'pending').length}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-primary/10 rounded-lg p-4">
+              <div className="text-2xl font-bold text-primary">{jobRequests.length}</div>
+              <div className="text-sm text-muted-foreground">Total Job Requests</div>
             </div>
-            <div className="text-sm text-muted-foreground">Pending</div>
-          </div>
-          <div className="bg-green-500/10 rounded-lg p-4">
-            <div className="text-2xl font-bold text-green-600">
-              {jobRequests.filter(j => j.status === 'completed').length}
+            <div className="bg-yellow-500/10 rounded-lg p-4">
+              <div className="text-2xl font-bold text-yellow-600">
+                {jobRequests.filter(j => j.status === 'pending').length}
+              </div>
+              <div className="text-sm text-muted-foreground">Pending</div>
             </div>
-            <div className="text-sm text-muted-foreground">Completed</div>
+            <div className="bg-green-500/10 rounded-lg p-4">
+              <div className="text-2xl font-bold text-green-600">
+                {jobRequests.filter(j => j.status === 'completed').length}
+              </div>
+              <div className="text-sm text-muted-foreground">Completed</div>
+            </div>
           </div>
         </div>
+      )}
 
+      {currentView === "list" && (
         <JobRequestsTable 
           jobRequests={jobRequests} 
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
-      </div>
+      )}
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { ClientForm } from "@/components/forms/ClientForm";
 import { ClientsTable, Client } from "@/components/tables/ClientsTable";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Plus, List } from "lucide-react";
 
 export default function ClientOnboarding() {
   const [clients, setClients] = useState<Client[]>([
@@ -52,6 +54,7 @@ export default function ClientOnboarding() {
 
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [currentView, setCurrentView] = useState<"form" | "list">("form");
 
   const handleSubmit = (clientData: Omit<Client, "id" | "createdAt">) => {
     const newClient: Client = {
@@ -90,43 +93,65 @@ export default function ClientOnboarding() {
           <h1 className="text-3xl font-bold text-foreground">Client Onboarding</h1>
           <p className="text-muted-foreground mt-2">Register and manage clients</p>
         </div>
+        <div className="flex gap-2">
+          <Button
+            variant={currentView === "form" ? "default" : "outline"}
+            onClick={() => setCurrentView("form")}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Client
+          </Button>
+          <Button
+            variant={currentView === "list" ? "default" : "outline"}
+            onClick={() => setCurrentView("list")}
+            className="flex items-center gap-2"
+          >
+            <List className="h-4 w-4" />
+            View Clients
+          </Button>
+        </div>
       </div>
 
-      <div className="flex flex-col xl:flex-row gap-8">
-        <div className="xl:w-2/3">
-          <ClientForm onSubmit={handleSubmit} />
-        </div>
-        
-        <div className="xl:w-1/3">
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-foreground">Client Overview</h2>
-            <div className="grid grid-cols-1 gap-4">
-              <div className="bg-primary/10 rounded-lg p-4">
-                <div className="text-2xl font-bold text-primary">{clients.length}</div>
-                <div className="text-sm text-muted-foreground">Total Clients</div>
-              </div>
-              <div className="bg-accent/10 rounded-lg p-4">
-                <div className="text-2xl font-bold text-accent-foreground">
-                  {clients.filter(c => c.createdAt > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length}
+      {currentView === "form" && (
+        <div className="flex flex-col xl:flex-row gap-8">
+          <div className="xl:w-2/3">
+            <ClientForm onSubmit={handleSubmit} />
+          </div>
+          
+          <div className="xl:w-1/3">
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold text-foreground">Client Overview</h2>
+              <div className="grid grid-cols-1 gap-4">
+                <div className="bg-primary/10 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-primary">{clients.length}</div>
+                  <div className="text-sm text-muted-foreground">Total Clients</div>
                 </div>
-                <div className="text-sm text-muted-foreground">New This Month</div>
-              </div>
-              <div className="bg-secondary/10 rounded-lg p-4">
-                <div className="text-2xl font-bold text-secondary-foreground">
-                  {new Set(clients.map(c => c.businessAddress.split(',').pop()?.trim())).size}
+                <div className="bg-accent/10 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-accent-foreground">
+                    {clients.filter(c => c.createdAt > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length}
+                  </div>
+                  <div className="text-sm text-muted-foreground">New This Month</div>
                 </div>
-                <div className="text-sm text-muted-foreground">Unique Locations</div>
+                <div className="bg-secondary/10 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-secondary-foreground">
+                    {new Set(clients.map(c => c.businessAddress.split(',').pop()?.trim())).size}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Unique Locations</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <ClientsTable 
-        clients={clients} 
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      {currentView === "list" && (
+        <ClientsTable 
+          clients={clients} 
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
