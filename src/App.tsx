@@ -19,6 +19,8 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const CreateUser = lazy(() => import("./pages/CreateUser"));
 const ClientOnboarding = lazy(() => import("./pages/ClientOnboarding"));
 const JobRequest = lazy(() => import("./pages/JobRequest"));
+const WorksheetListing = lazy(() => import("./pages/WorksheetListing"));
+const WorksheetBuilder = lazy(() => import("./pages/WorksheetBuilder"));
 
 const queryClient = new QueryClient();
 
@@ -145,6 +147,36 @@ const App = () => {
                   <DashboardLayout>
                     <Suspense fallback={<SkeletonLoader config={skeletonConfigs.form} />}>
                       <JobRequest />
+                    </Suspense>
+                  </DashboardLayout>
+                } 
+              />
+              <Route 
+                path="/worksheets" 
+                element={
+                  <DashboardLayout>
+                    <Suspense fallback={<SkeletonLoader config={skeletonConfigs.table} />}>
+                      <WorksheetListing />
+                    </Suspense>
+                  </DashboardLayout>
+                } 
+              />
+              <Route 
+                path="/worksheets/new" 
+                element={
+                  <DashboardLayout>
+                    <Suspense fallback={<SkeletonLoader config={skeletonConfigs.form} />}>
+                      <WorksheetBuilder />
+                    </Suspense>
+                  </DashboardLayout>
+                } 
+              />
+              <Route 
+                path="/worksheets/edit/:id" 
+                element={
+                  <DashboardLayout>
+                    <Suspense fallback={<SkeletonLoader config={skeletonConfigs.form} />}>
+                      <WorksheetBuilder />
                     </Suspense>
                   </DashboardLayout>
                 } 

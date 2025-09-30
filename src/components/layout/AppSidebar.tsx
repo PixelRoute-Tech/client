@@ -10,7 +10,8 @@ import {
   Palette,
   UserPlus,
   Building2,
-  ClipboardList
+  ClipboardList,
+  FileSpreadsheet
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -34,6 +35,7 @@ const mainItems = [
   { title: "Create User", url: "/create-user", icon: UserPlus },
   { title: "Client Onboarding", url: "/client-onboarding", icon: Building2 },
   { title: "Job Request", url: "/job-request", icon: ClipboardList },
+  { title: "Worksheet Master", url: "/worksheets", icon: FileSpreadsheet },
   { title: "Users", url: "/users", icon: Users },
 ];
 
