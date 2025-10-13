@@ -151,15 +151,15 @@ const Login = () => {
       </Card>
 
       {/* Footer */}
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
+      {/* <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
         <p className="text-sm text-muted-foreground text-center">
           © Made with love by Team{" "}
           <span className="text-primary font-medium">CodedThemes</span>
         </p>
-      </div>
+      </div> */}
 
       {/* New Release Notification */}
-      <div className="fixed bottom-6 right-6 max-w-sm">
+      {/* <div className="fixed bottom-6 right-6 max-w-sm">
         <Card className="bg-success/10 border-success/20">
           <CardContent className="flex items-start gap-3 p-4">
             <div className="w-10 h-10 bg-success/20 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -174,7 +174,7 @@ const Login = () => {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
     </div>
   );
 };
