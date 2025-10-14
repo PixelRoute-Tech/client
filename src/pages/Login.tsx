@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Link } from "react-router-dom";
+import { Link, redirect, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn } from "lucide-react";
+import { setItem, storageKeys } from "@/utils/storage";
+import routes from "@/routes/routeList";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -15,10 +17,14 @@ const Login = () => {
     rememberMe: false,
   });
 
+  const navigate = useNavigate()
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle login logic here
     console.log("Login attempt with:", formData);
+    setItem(storageKeys.user,formData)
+    navigate(routes.root)
   };
 
   return (
