@@ -13,12 +13,27 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import routes from "@/routes/routeList";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const navigate = useNavigate()
+  const {signout,startLoading,user} = useAuth()
+  const handleSignOut = ()=>{
+     startLoading()
+     signout(true)
+  }
+  const handleNavigateProfile = ()=>{
+     navigate(routes.userProfile)
+  }
+  const handleNavigateSettings = ()=>{
+     navigate(routes.settings)
+  }
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-background">
@@ -57,29 +72,29 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2 hover:bg-muted/50">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src="/api/placeholder/32/32" />
+                      <AvatarImage src={user?.avatarUrl ?? ""} />
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        JD
+                        {user.shortName}
                       </AvatarFallback>
                     </Avatar>
                     <div className="hidden md:block text-left">
-                      <p className="text-sm font-medium">John Doe</p>
-                      <p className="text-xs text-muted-foreground">Admin</p>
+                      <p className="text-sm font-medium">{user.userName}</p>
+                      <p className="text-xs text-muted-foreground">{user.userRole}</p>
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleNavigateProfile}>
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleNavigateSettings}>
                     <span>Settings</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-red-600">
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
                     <span>Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>

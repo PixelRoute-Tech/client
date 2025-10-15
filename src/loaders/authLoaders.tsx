@@ -1,3 +1,4 @@
+import { Popover } from "@/components/ui/popover"
 import routes from "@/routes/routeList"
 import { getItem, storageKeys } from "@/utils/storage"
 import { redirect } from "react-router-dom"
@@ -8,6 +9,6 @@ export const authenticatedLoader = ()=>{
     if(Boolean(data)){
         return data
     }else{
-       throw redirect(`/${routes.login}`)
+       throw redirect(localStorage.length == 0 ? `${routes.login}` : `${routes.signout}`)
     }
 }

@@ -20,3 +20,14 @@ export const getItem = (key:keyof typeof storageKeys | string):any|false=>{
         return false
     }
 }
+
+export const clearStorage = ()=>{
+     try {
+        [storageKeys.user].map(key=>{
+         localStorage.removeItem(key)
+        })
+        return true
+     } catch (error) {
+        return false
+     }
+}
