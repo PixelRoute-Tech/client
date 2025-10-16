@@ -8,8 +8,9 @@ import {
 } from "@/components/ui/skeleton-loader";
 import { authenticatedLoader } from "@/loaders/authLoaders";
 import ErrorBoundary from "@/components/ErrorPage/ErrorBoundary";
+import ErrorPage from "@/components/ErrorPage/ErrorPage";
 const SessionExpired = lazy(() => import("@/pages/SessionExpired"));
-const NotFound = lazy(() => import("@/pages/NotFound"));
+const PageNotFound = lazy(() => import("@/pages/PageNotFound"));
 const Login = lazy(() => import("@/pages/Login"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const JobRequest = lazy(() => import("@/pages/JobRequest"));
@@ -30,7 +31,7 @@ const router = createBrowserRouter([
         <Outlet />
       </ErrorBoundary>
     ),
-    errorElement: <p>Error </p>,
+    errorElement: <ErrorPage/>,
     children: [
       {
         path: "",
@@ -115,7 +116,7 @@ const router = createBrowserRouter([
             path: routes.worksheet,
             element: (
               <Suspense
-                fallback={<SkeletonLoader config={skeletonConfigs.form} />}
+                fallback={<SkeletonLoader config={skeletonConfigs.table} />}
               >
                 <WorksheetListing />
               </Suspense>
@@ -186,7 +187,7 @@ const router = createBrowserRouter([
     path: routes.pageNotFound,
     element: (
       <Suspense fallback={<SkeletonLoader config={skeletonConfigs.login} />}>
-        <NotFound />
+        <PageNotFound />
       </Suspense>
     ),
   },

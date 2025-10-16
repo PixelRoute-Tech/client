@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { FileQuestion, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const NotFound = () => {
+const PageNotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
@@ -39,4 +39,4 @@ const NotFound = () => {
   );
 };
 
-export default NotFound;
+export default PageNotFound;
