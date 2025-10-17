@@ -44,6 +44,7 @@ const router = createBrowserRouter([
         children: [
           {
             index: true,
+            loader: authenticatedLoader,
             element: (
               <Suspense
                 fallback={<SkeletonLoader config={skeletonConfigs.dashboard} />}
@@ -54,6 +55,7 @@ const router = createBrowserRouter([
           },
           {
             path: routes.datatables,
+            loader: authenticatedLoader,
             element: (
               <Suspense
                 fallback={<SkeletonLoader config={skeletonConfigs.table} />}
@@ -64,6 +66,7 @@ const router = createBrowserRouter([
           },
           {
             path: routes.users,
+            loader: authenticatedLoader,
             element: (
               <Suspense
                 fallback={<SkeletonLoader config={skeletonConfigs.table} />}
@@ -74,6 +77,7 @@ const router = createBrowserRouter([
           },
           {
             path: routes.forms,
+            loader: authenticatedLoader,
             element: (
               <Suspense
                 fallback={<SkeletonLoader config={skeletonConfigs.form} />}
@@ -84,6 +88,7 @@ const router = createBrowserRouter([
           },
           {
             path: routes.jobRequest,
+            loader: authenticatedLoader,
             element: (
               <Suspense
                 fallback={<SkeletonLoader config={skeletonConfigs.form} />}
@@ -94,6 +99,7 @@ const router = createBrowserRouter([
           },
           {
             path: routes.createUser,
+            loader: authenticatedLoader,
             element: (
               <Suspense
                 fallback={<SkeletonLoader config={skeletonConfigs.form} />}
@@ -104,6 +110,7 @@ const router = createBrowserRouter([
           },
           {
             path: routes.clientOnBoarding,
+            loader: authenticatedLoader,
             element: (
               <Suspense
                 fallback={<SkeletonLoader config={skeletonConfigs.form} />}
@@ -114,6 +121,7 @@ const router = createBrowserRouter([
           },
           {
             path: routes.worksheet,
+            loader: authenticatedLoader,
             element: (
               <Suspense
                 fallback={<SkeletonLoader config={skeletonConfigs.table} />}
@@ -124,6 +132,7 @@ const router = createBrowserRouter([
           },
           {
             path: routes.worksheetEdit,
+            loader: authenticatedLoader,
             element: (
               <Suspense
                 fallback={<SkeletonLoader config={skeletonConfigs.form} />}
@@ -134,6 +143,7 @@ const router = createBrowserRouter([
           },
           {
             path: routes.userProfile,
+            loader: authenticatedLoader,
             element: (
               <Suspense
                 fallback={<SkeletonLoader config={skeletonConfigs.form} />}
@@ -145,6 +155,7 @@ const router = createBrowserRouter([
           //settings
           {
             path: routes.settings,
+            loader: authenticatedLoader,
             element: (
               <Suspense
                 fallback={<SkeletonLoader config={skeletonConfigs.form} />}
@@ -155,6 +166,7 @@ const router = createBrowserRouter([
           },
           {
             path: routes.themeSettings,
+            loader: authenticatedLoader,
             element: (
               <Suspense
                 fallback={<SkeletonLoader config={skeletonConfigs.form} />}

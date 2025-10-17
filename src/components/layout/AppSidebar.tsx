@@ -71,20 +71,22 @@ export function AppSidebar() {
       }`}
       collapsible="icon"
     >
-      {/* Logo */}
-      <div className={`flex items-center gap-2 p-4 border-b border-sidebar-border ${state === "collapsed" ? 'justify-center' : ''}`}>
-        <div className="w-8 h-8 bg-primary text-primary-foreground rounded-lg flex items-center justify-center font-bold text-lg">
+        {/* Logo */}
+      <div className="flex items-center gap-2 p-4 border-b border-sidebar-border transition-all duration-300 group-data-[state=collapsed]:justify-center">
+        <div className="w-8 h-8 bg-primary text-primary-foreground rounded-lg flex items-center justify-center font-bold text-lg shrink-0">
           M
         </div>
-        {state !== "collapsed" && (
-          <div>
-            <h1 className="text-xl font-bold text-sidebar-foreground">Mantis</h1>
-            <p className="text-xs text-sidebar-foreground/60">ERP System</p>
-          </div>
-        )}
+        <div className="overflow-hidden transition-all duration-300 group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
+          <h1 className="text-xl font-bold text-sidebar-foreground whitespace-nowrap">
+            Mantis
+          </h1>
+          <p className="text-xs text-sidebar-foreground/60 whitespace-nowrap">
+            ERP System
+          </p>
+        </div>
       </div>
 
-      <SidebarContent className="p-4">
+      <SidebarContent className={state === "collapsed" ? "py-1" : "p-4"}>
         <SidebarGroup>
           <SidebarGroupLabel className={state === "collapsed" ? 'hidden' : ''}>
             Main Navigation
