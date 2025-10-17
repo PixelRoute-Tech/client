@@ -16,35 +16,36 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import routes from "@/routes/routeList";
+import { NotificationList } from "../ui/notification-list";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const navigate = useNavigate()
-  const {signout,startLoading,user} = useAuth()
-  const handleSignOut = ()=>{
-     startLoading()
-     signout(true)
-  }
-  const handleNavigateProfile = ()=>{
-     navigate(routes.userProfile)
-  }
-  const handleNavigateSettings = ()=>{
-     navigate(routes.settings)
-  }
+  const navigate = useNavigate();
+  const { signout, startLoading, user } = useAuth();
+  const handleSignOut = () => {
+    startLoading();
+    signout(true);
+  };
+  const handleNavigateProfile = () => {
+    navigate(routes.userProfile);
+  };
+  const handleNavigateSettings = () => {
+    navigate(routes.settings);
+  };
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
-        
+
         <div className="flex-1 flex flex-col">
           {/* Header */}
           <header className="h-16 border-b border-border bg-surface flex items-center justify-between px-6 sticky top-0 z-50">
             <div className="flex items-center gap-4">
               <SidebarTrigger className="text-sidebar-foreground hover:bg-sidebar-accent" />
-              
+
               {/* Search */}
               <div className="relative hidden md:block">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -57,20 +58,41 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
             <div className="flex items-center gap-4">
               {/* Notifications */}
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                >
-                  3
-                </Badge>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="h-5 w-5" />
+                    <Badge
+                      variant="destructive"
+                      className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                    >
+                      3
+                    </Badge>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-fit">
+                  <NotificationList
+                    notifications={[
+                      {
+                        id: "test1",
+                        title: "Test notification",
+                        message: "Test notification message",
+                        type: "success",
+                        isRead: false,
+                        timestamp: new Date(),
+                      },
+                    ]}
+                  />
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2 hover:bg-muted/50">
+                  <Button
+                    variant="ghost"
+                    className="flex items-center gap-2 hover:bg-muted/50"
+                  >
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user?.avatarUrl ?? ""} />
                       <AvatarFallback className="bg-primary text-primary-foreground">
@@ -79,7 +101,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     </Avatar>
                     <div className="hidden md:block text-left">
                       <p className="text-sm font-medium">{user.userName}</p>
-                      <p className="text-xs text-muted-foreground">{user.userRole}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {user.userRole}
+                      </p>
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
@@ -94,7 +118,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     <span>Settings</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                  <DropdownMenuItem
+                    onClick={handleSignOut}
+                    className="text-red-600"
+                  >
                     <span>Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -103,9 +130,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 overflow-auto">
-            {children}
-          </main>
+          <main className="flex-1 overflow-auto">{children}</main>
         </div>
       </div>
     </SidebarProvider>
