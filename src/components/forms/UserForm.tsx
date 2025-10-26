@@ -65,6 +65,25 @@ export function UserForm({ onSubmit, initialData, isEditing = false }: UserFormP
     });
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setAvatarPreview(result);
+        form.setValue("avatar", result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader>
