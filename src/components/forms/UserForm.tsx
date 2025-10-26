@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Camera } from "lucide-react";
 
 const userSchema = z.object({
   userName: z.string().min(2, "User name must be at least 2 characters"),
@@ -73,6 +75,36 @@ export function UserForm({ onSubmit, initialData, isEditing = false }: UserFormP
       <CardContent>
         <Form methods={form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+             <div className="flex flex-col items-center gap-4 pb-4">
+              <div className="relative">
+                <Avatar 
+                  className="h-24 w-24 cursor-pointer hover:opacity-80 transition-opacity border-2 border-primary"
+                  onClick={handleAvatarClick}
+                >
+                  <AvatarImage src={avatarPreview} alt="User avatar" />
+                  <AvatarFallback className="bg-primary/10 text-primary text-2xl">
+                    {form.watch("userName")?.charAt(0)?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="secondary"
+                  className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full shadow-lg"
+                  onClick={handleAvatarClick}
+                >
+                  <Camera className="h-4 w-4" />
+                </Button>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <p className="text-xs text-muted-foreground">Click avatar to upload image</p>
+            </div>
             <FormField
               control={form.control}
               name="userName"
