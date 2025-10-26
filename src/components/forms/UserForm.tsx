@@ -44,7 +44,8 @@ export function UserForm({ onSubmit, initialData, isEditing = false }: UserFormP
   });
 
   const handleSubmit = (data: UserFormData) => {
-    onSubmit(data);
+    console.log("form data",data)
+    // onSubmit(data);
     if (!isEditing) {
       form.reset();
     }
@@ -70,7 +71,7 @@ export function UserForm({ onSubmit, initialData, isEditing = false }: UserFormP
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
+        <Form methods={form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
               control={form.control}

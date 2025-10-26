@@ -162,13 +162,7 @@ export default function UserProfile() {
           </DialogHeader>
           <UserForm 
             onSubmit={handleEditSubmit}
-            initialData={{
-              userName: user.userName,
-              userRole: user.userRole,
-              designation: user.designation,
-              department: user.department,
-              email: user.email,
-            }}
+            initialData={user}
             isEditing={true}
           />
         </DialogContent>
