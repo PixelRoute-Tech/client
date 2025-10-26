@@ -94,7 +94,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     className="flex items-center gap-2 hover:bg-muted/50"
                   >
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user?.avatarUrl ?? ""} />
+                      <AvatarImage src={`${import.meta.env.VITE_API_URL}${user?.imageUrl ?? ""}`} />
                       <AvatarFallback className="bg-primary text-primary-foreground">
                         {user.shortName}
                       </AvatarFallback>

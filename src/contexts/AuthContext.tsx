@@ -3,10 +3,10 @@ import router from "@/routes/routes";
 import { AuthContextType, UserType } from "@/types/auth";
 import { clearStorage, getItem, setItem, storageKeys } from "@/utils/storage";
 import { createContext, FC, PropsWithChildren, useEffect, useState } from "react";
-import { redirect } from "react-router-dom";
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
+  setUser:()=>{},
   signin: () => {},
   signout: () => {},
   startLoading:()=>{},
@@ -17,10 +17,15 @@ export const AuthContext = createContext<AuthContextType>({
 const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const [user, setUser] = useState<UserType | null>(null);
   const [loading,setLoading] = useState(true)
-  const signin = (user: any) => {
-    setUser(user);
-    setItem(storageKeys.user, user);
-    router.navigate(routes.root,{replace:true})
+  const signin = (data: {token:string,user:UserType}) => {
+    setUser(data.user);
+    setItem(storageKeys.user, data.user);
+    setItem(storageKeys.token, data.token);
+    setLoading(true)
+    setTimeout(()=>{
+      setLoading(false)
+      router.navigate(routes.root,{replace:true})
+    },2000)
   };
 
   const signout = (isLogout?: boolean) => {
@@ -43,7 +48,7 @@ const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   },[])
 
   return (
-    <AuthContext.Provider value={{ user, signin, signout,startLoading,stopLoading,loading }}>
+    <AuthContext.Provider value={{ user,setUser, signin, signout,startLoading,stopLoading,loading }}>
       {children}
     </AuthContext.Provider>
   );

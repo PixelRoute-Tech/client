@@ -21,15 +21,6 @@ export default function UserProfile() {
     setIsEditDialogOpen(false);
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   const getRoleBadgeVariant = (role: string) => {
     switch (role.toLowerCase()) {
       case "admin":
@@ -51,9 +42,9 @@ export default function UserProfile() {
               {/* Avatar Section */}
               <div className="relative">
                 <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
-                  <AvatarImage src={user?.avatarUrl ?? ""} alt={user.userName} />
+                  <AvatarImage src={`${import.meta.env.VITE_API_URL}${user?.imageUrl ?? ""}`} alt={user.userName} />
                   <AvatarFallback className="text-3xl font-bold bg-primary/10 text-primary">
-                    {getInitials(user.userName)}
+                    {user.shortName}
                   </AvatarFallback>
                 </Avatar>
               </div>

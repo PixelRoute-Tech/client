@@ -3,22 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { LogOut, Clock, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
 
 const SessionExpired = () => {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    localStorage.clear();
-    sessionStorage.clear();
-  }, []);
-
+  const {setUser} = useAuth()
   const handleBackToLogin = () => {
     navigate("/login");
   };
 
-  // const handleGoHome = () => {
-  //   navigate("/");
-  // };
+  useEffect(() => {
+    setUser(null)
+    localStorage.clear();
+    sessionStorage.clear();
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">

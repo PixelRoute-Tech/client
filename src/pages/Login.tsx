@@ -11,30 +11,41 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, Loader, LogIn } from "lucide-react";
 import { setItem, storageKeys } from "@/utils/storage";
 import { useAuth } from "@/hooks/useAuth";
+import FormInput from "@/components/forms/fields/FormInput";
+import { useForm } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
+import { loginServices } from "@/services/user.services";
+import FormCheckbox from "@/components/forms/fields/FormCheckbox";
+import { useToast } from "@/hooks/use-toast";
+import { AxiosError } from "axios";
 
 const Login = () => {
   const { signin } = useAuth();
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    id: "1",
-    userName: "John Doe",
-    shortName:"JD",
-    password:"123456",
-    userRole: "Admin",
-    designation: "Software Engineer",
-    department: "IT",
-    email: "john.doe@company.com",
-    joinDate: new Date("2024-01-15"),
-    rememberMe: true,
-    avatarUrl:"https://static.vecteezy.com/system/resources/thumbnails/051/767/450/small/3d-cartoon-man-with-glasses-and-beard-illustration-free-png.png"
+  const { control, handleSubmit } = useForm<{email:string,password:string}>({
+    defaultValues:{
+      email:null,
+      password:null
+    }
   });
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Login attempt with:", formData);
-    signin(formData);
+  const { toast } = useToast();
+  const { mutate, isPending } = useMutation({
+    mutationFn: loginServices,
+    onSuccess: (result) => {
+      signin(result.data);
+    },
+    onError: (e) => {
+      toast({
+        title: "",
+        description: e?.message,
+        className: "bg-red-500 text-white",
+      });
+    },
+  });
+  const onSubmit = (e: {email:string,password:string}) => {
+    mutate(e);
   };
 
   return (
@@ -58,71 +69,35 @@ const Login = () => {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email */}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
+              <FormInput
+                control={control}
+                name="email"
+                label="Email"
+                placeholder="Enter Email"
                 type="email"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="h-12"
-                required
+                rules={{ required: "Email required" }}
               />
             </div>
-
-            {/* Password */}
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
-                  className="h-12 pr-12"
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
+              <FormInput
+                control={control}
+                name="password"
+                label="Password"
+                placeholder="Enter password"
+                type="password"
+                rules={{ required: "Password required" }}
+              />
             </div>
 
             {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="remember"
-                  checked={formData.rememberMe}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, rememberMe: !!checked })
-                  }
-                />
-                <Label
-                  htmlFor="remember"
-                  className="text-sm text-muted-foreground"
-                >
-                  Keep me signed in
-                </Label>
-              </div>
+              {/* <FormCheckbox
+                control={control}
+                name="rememberMe"
+                label="Keep me signed in"
+              /> */}
               <Link
                 to="/forgot-password"
                 className="text-sm text-primary hover:text-primary/80 transition-colors"
@@ -132,9 +107,14 @@ const Login = () => {
             </div>
 
             {/* Login Button */}
-            <Button type="submit" className="w-full h-12 text-base font-medium">
+            <Button
+              disabled={isPending}
+              type="submit"
+              className="w-full h-12 text-base font-medium"
+            >
               <LogIn className="h-5 w-5 mr-2" />
               Sign In
+              {/* <Loader /> */}
             </Button>
 
             {/* Divider */}

@@ -1,5 +1,6 @@
 export const storageKeys = {
-    user:"USER"
+    user:"USER",
+    token:"TOKEN"
 }
 
 export const setItem = (key:keyof typeof storageKeys | string,data:any):boolean=>{

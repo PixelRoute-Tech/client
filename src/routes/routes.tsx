@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/skeleton-loader";
 import { authenticatedLoader } from "@/loaders/authLoaders";
 import ErrorBoundary from "@/components/ErrorPage/ErrorBoundary";
-import ErrorPage from "@/components/ErrorPage/ErrorPage";
+const ErrorPage = lazy(() => import("@/components/ErrorPage/ErrorPage"));
 const SessionExpired = lazy(() => import("@/pages/SessionExpired"));
 const PageNotFound = lazy(() => import("@/pages/PageNotFound"));
 const Login = lazy(() => import("@/pages/Login"));
@@ -31,7 +31,13 @@ const router = createBrowserRouter([
         <Outlet />
       </ErrorBoundary>
     ),
-    errorElement: <ErrorPage/>,
+    errorElement: (
+      <Suspense
+        fallback={<SkeletonLoader config={skeletonConfigs.dashboard} />}
+      >
+        <ErrorPage />
+      </Suspense>
+    ),
     children: [
       {
         path: "",

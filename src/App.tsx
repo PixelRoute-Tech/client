@@ -9,7 +9,6 @@ import { SplashScreen } from "@/components/ui/splash-screen";
 import router from "./routes/routes";
 import AuthProvider from "./contexts/AuthContext";
 import MainRoute from "./routes/MainRoute";
-
 const queryClient = new QueryClient();
 
 const App = () => {
