@@ -8,10 +8,10 @@ const network = axios.create({
 
 network.interceptors.request.use(
   (config) => {
-    const details = getItem(storageKeys.user);
-    if (details && details.token) {
+    const token = getItem(storageKeys.token);
+    if (token) {
       // Attach token to custom header
-      config.headers["x-auth-token"] = details.token;
+      config.headers["x-auth-token"] = token;
     }
     return config;
   },

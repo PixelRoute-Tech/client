@@ -162,7 +162,6 @@ export default function UserProfile() {
           </DialogHeader>
           <UserForm 
             onSubmit={handleEditSubmit}
-            initialData={user}
             isEditing={true}
           />
         </DialogContent>

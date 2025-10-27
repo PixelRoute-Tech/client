@@ -10,6 +10,38 @@ export const loginServices = async (payload: {
   try {
     return (await network.post(apis.login, payload)).data;
   } catch (error) {
-    throw new Error(error.response.data.message)
+    throw new Error(error.response.data.message);
+  }
+};
+
+export const userRegistration = async (
+  payload: FormData
+): ApiResponseType<UserType> => {
+  try {
+    return (
+      await network.post(apis.userRegistration, payload, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+    ).data;
+  } catch (error) {
+    throw new Error(error.response.data.message);
+  }
+};
+
+export const userUpdation = async (
+  payload:FormData 
+): ApiResponseType<UserType> => {
+  try {
+    return (
+      await network.put(apis.userUpdation, payload, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+    ).data;
+  } catch (error) {
+    throw new Error(error.response.data.message);
   }
 };
