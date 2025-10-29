@@ -31,16 +31,32 @@ export const userRegistration = async (
 };
 
 export const userUpdation = async (
-  payload:FormData 
+  payload: FormData
 ): ApiResponseType<UserType> => {
   try {
     return (
-      await network.put(apis.userUpdation, payload, {
+      await network.put(apis.usersApi, payload, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       })
     ).data;
+  } catch (error) {
+    throw new Error(error.response.data.message);
+  }
+};
+
+export const getUsers = async (): ApiResponseType<UserType[]> => {
+  try {
+    return (await network.get(apis.usersApi)).data;
+  } catch (error) {
+    throw new Error(error.response.data.message);
+  }
+};
+
+export const deleteUser = async (id:string): ApiResponseType<UserType[]> => {
+  try {
+    return (await network.delete(`${apis.usersApi}/${id}`)).data;
   } catch (error) {
     throw new Error(error.response.data.message);
   }

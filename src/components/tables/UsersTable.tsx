@@ -3,10 +3,30 @@ import { Edit, Trash2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { UserType } from "@/types/auth";
+import moment from "moment";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 export interface User {
   id: string;
@@ -19,12 +39,18 @@ export interface User {
 }
 
 interface UsersTableProps {
-  users: User[];
-  onEdit: (user: User) => void;
-  onDelete: (userId: string) => void;
+  users: UserType[];
+  loading?: boolean;
+  onEdit?: (user: UserType) => void;
+  onDelete?: (userId: string) => void;
 }
 
-export function UsersTable({ users, onEdit, onDelete }: UsersTableProps) {
+export function UsersTable({
+  users,
+  loading,
+  onEdit,
+  onDelete,
+}: UsersTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
@@ -78,84 +104,138 @@ export function UsersTable({ users, onEdit, onDelete }: UsersTableProps) {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Id</TableHead>
+                <TableHead>Photo</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Designation</TableHead>
                 <TableHead>Department</TableHead>
                 <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                {Boolean(onEdit || onDelete) && (
+                  <TableHead className="text-right">Actions</TableHead>
+                )}
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {filteredUsers.length === 0 ? (
+            {loading ? (
+              <TableBody>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                    {searchTerm ? "No users found matching your search." : "No users available."}
+                  <TableCell
+                    colSpan={7}
+                    className="text-center text-muted-foreground py-8"
+                  >
+                    Loading ....
                   </TableCell>
                 </TableRow>
-              ) : (
-                filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.userName}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={getRoleBadgeVariant(user.userRole)}>
-                        {user.userRole}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{user.designation}</TableCell>
-                    <TableCell>{user.department}</TableCell>
-                    <TableCell>{user.createdAt.toLocaleDateString()}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onEdit(user)}
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Delete
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the user
-                                "{user.userName}" from the system.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(user.id, user.userName)}
-                                className="bg-destructive text-destructive-foreground"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
+              </TableBody>
+            ) : (
+              <TableBody>
+                {filteredUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={7}
+                      className="text-center text-muted-foreground py-8"
+                    >
+                      {searchTerm
+                        ? "No users found matching your search."
+                        : "No users available."}
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="text-xs text-foreground font-mono">
+                        {user.id}
+                      </TableCell>
+                      <TableCell className="text-xs text-foreground font-mono">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage
+                            src={`${import.meta.env.VITE_API_URL}${
+                              user?.imageUrl ?? ""
+                            }`}
+                          />
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            {user.shortName}
+                          </AvatarFallback>
+                        </Avatar>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {user.userName}
+                      </TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        <Badge variant={getRoleBadgeVariant(user.userRole)}>
+                          {user.userRole}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{user.designation}</TableCell>
+                      <TableCell>{user.department}</TableCell>
+                      <TableCell>
+                        {moment(user.joinDate).format("DD-MM-YYYY")}
+                      </TableCell>
+                      {Boolean(onEdit || onDelete) && (
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {Boolean(onEdit) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => onEdit(user)}
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                Edit
+                              </Button>
+                            )}
+                            {Boolean(onDelete) && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="outline" size="sm">
+                                    <Trash2 className="h-4 w-4 mr-1" />
+                                    Delete
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                      Are you sure?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This action cannot be undone. This will
+                                      permanently delete the user "
+                                      {user.userName}" from the system.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>
+                                      Cancel
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() =>
+                                        handleDelete(user.id, user.userName)
+                                      }
+                                      className="bg-destructive text-destructive-foreground"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </div>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            )}
           </Table>
         </div>
-        
-        {filteredUsers.length > 0 && (
+
+        {filteredUsers?.length > 0 && (
           <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
             <p>
-              Showing {filteredUsers.length} of {users.length} users
+              Showing {filteredUsers?.length} of {users?.length} users
             </p>
           </div>
         )}

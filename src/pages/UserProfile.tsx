@@ -9,6 +9,8 @@ import { UserForm } from "@/components/forms/UserForm";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import moment from "moment"
+import { useNavigate } from "react-router-dom";
+import routes from "@/routes/routeList";
 interface UserProfile {
 
 }
@@ -16,7 +18,7 @@ interface UserProfile {
 export default function UserProfile() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const {user} = useAuth()
-
+  const navigate = useNavigate()
   const handleEditSubmit = (userData: Omit<UserProfile, "id" | "joinDate" | "avatarUrl">) => {
     setIsEditDialogOpen(false);
   };
@@ -31,6 +33,11 @@ export default function UserProfile() {
         return "outline";
     }
   };
+
+  const handleEdit = ()=>{
+    setIsEditDialogOpen(true)
+    navigate(routes.userProfile,{state:user})
+  }
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-5xl">
@@ -78,7 +85,7 @@ export default function UserProfile() {
 
               {/* Edit Button */}
               <Button 
-                onClick={() => setIsEditDialogOpen(true)}
+                onClick={handleEdit}
                 size="lg"
                 className="gap-2 shadow-lg"
               >
@@ -162,7 +169,6 @@ export default function UserProfile() {
           </DialogHeader>
           <UserForm 
             onSubmit={handleEditSubmit}
-            isEditing={true}
           />
         </DialogContent>
       </Dialog>

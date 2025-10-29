@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -20,124 +26,49 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Search, 
-  Filter, 
-  Download, 
-  MoreHorizontal, 
-  ChevronLeft, 
+import {
+  Search,
+  Filter,
+  Download,
+  MoreHorizontal,
+  ChevronLeft,
   ChevronRight,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
 } from "lucide-react";
+import { UsersTable } from "@/components/tables/UsersTable";
+import { useQuery } from "@tanstack/react-query";
+import { getUsers } from "@/services/user.services";
+import { UserType } from "@/types/auth";
 
 const DataTables = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const itemsPerPage = 10;
+  const {
+    isFetching,
+    refetch,
+    data: userData,
+  } = useQuery({
+    queryKey: ["usersList"],
+    queryFn: getUsers,
+    refetchOnWindowFocus: false,
+    onSuccess: (result) => {
+      // setUsers(result.data)
+    },
+    onError: (error) => {},
+  });
 
-  const userData = [
-    {
-      id: 1,
-      name: "Lillian Bartoletti",
-      email: "diol@gmail.com",
-      age: 63,
-      status: "Single",
-      progress: 83,
-      avatar: "/api/placeholder/40/40"
-    },
-    {
-      id: 2,
-      name: "Etta Huet",
-      email: "julgiaze@gmail.com",
-      age: 46,
-      status: "Single",
-      progress: 85,
-      avatar: "/api/placeholder/40/40"
-    },
-    {
-      id: 3,
-      name: "Martin Middleton",
-      email: "tozo@gmail.com",
-      age: 18,
-      status: "Relationship",
-      progress: 88,
-      avatar: "/api/placeholder/40/40"
-    },
-    {
-      id: 4,
-      name: "Alexander Patrick",
-      email: "wofloaga@gmail.com",
-      age: 18,
-      status: "Single",
-      progress: 59,
-      avatar: "/api/placeholder/40/40"
-    },
-    {
-      id: 5,
-      name: "Melvin Gregory",
-      email: "muso@gmail.com",
-      age: 62,
-      status: "Complicated",
-      progress: 92,
-      avatar: "/api/placeholder/40/40"
-    },
-    {
-      id: 6,
-      name: "Warren Bouman",
-      email: "juz@gmail.com",
-      age: 34,
-      status: "Single",
-      progress: 14,
-      avatar: "/api/placeholder/40/40"
-    },
-    {
-      id: 7,
-      name: "Jesse McGuire",
-      email: "jif@gmail.com",
-      age: 65,
-      status: "Single",
-      progress: 38,
-      avatar: "/api/placeholder/40/40"
-    },
-    {
-      id: 8,
-      name: "Randall Bambi",
-      email: "avpozbe@gmail.com",
-      age: 38,
-      status: "Relationship",
-      progress: 74,
-      avatar: "/api/placeholder/40/40"
-    },
-    {
-      id: 9,
-      name: "Louise Ashton",
-      email: "tihvi@gmail.com",
-      age: 65,
-      status: "Complicated",
-      progress: 66,
-      avatar: "/api/placeholder/40/40"
-    },
-    {
-      id: 10,
-      name: "Patrick Barker",
-      email: "go@gmail.com",
-      age: 45,
-      status: "Complicated",
-      progress: 42,
-      avatar: "/api/placeholder/40/40"
-    }
-  ];
-
-  const filteredData = userData.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredData = userData?.data.filter(
+    (user) =>
+      user.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredData?.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredData.slice(startIndex, endIndex);
+  const currentData = filteredData?.slice(startIndex, endIndex);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -204,14 +135,16 @@ const DataTables = () => {
                 />
               </div>
               <div className="text-sm text-muted-foreground">
-                Showing {startIndex + 1} to {Math.min(endIndex, filteredData.length)} of {filteredData.length} results
+                Showing {startIndex + 1} to{" "}
+                {Math.min(endIndex, filteredData?.length)} of{" "}
+                {filteredData?.length} results
               </div>
             </div>
           </div>
 
           {/* Table */}
           <div className="rounded-md border">
-            <Table>
+            {/* <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
@@ -271,13 +204,16 @@ const DataTables = () => {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table> */}
+            <UsersTable users={userData?.data || []} />
           </div>
 
           {/* Pagination */}
           <div className="flex items-center justify-between mt-6">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Rows per page:</span>
+              <span className="text-sm text-muted-foreground">
+                Rows per page:
+              </span>
               <select className="border border-input rounded px-2 py-1 text-sm">
                 <option value="10">10</option>
                 <option value="25">25</option>
@@ -302,14 +238,16 @@ const DataTables = () => {
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              
+
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   const pageNumber = i + 1;
                   return (
                     <Button
                       key={pageNumber}
-                      variant={currentPage === pageNumber ? "default" : "outline"}
+                      variant={
+                        currentPage === pageNumber ? "default" : "outline"
+                      }
                       size="sm"
                       onClick={() => setCurrentPage(pageNumber)}
                     >
@@ -322,7 +260,9 @@ const DataTables = () => {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                onClick={() =>
+                  setCurrentPage(Math.min(totalPages, currentPage + 1))
+                }
                 disabled={currentPage === totalPages}
               >
                 <ChevronRight className="h-4 w-4" />

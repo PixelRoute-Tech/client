@@ -1,7 +1,7 @@
 const apis = {
 login:"/api/users/login",
 userRegistration:"/api/users/register",
-userUpdation:"/api/users"
+usersApi:"/api/users",
 }
 
 export default apis 

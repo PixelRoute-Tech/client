@@ -4,71 +4,72 @@ import { UsersTable, User } from "@/components/tables/UsersTable";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Plus, List } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import routes from "@/routes/routeList";
+import { UserType } from "@/types/auth";
+// import { useQuery } from "@tanstack/react-query";
+import { deleteUser, getUsers } from "@/services/user.services";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CreateUser() {
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: "1",
-      userName: "John Doe",
-      userRole: "Admin",
-      designation: "Software Engineer",
-      department: "IT",
-      email: "john.doe@company.com",
-      createdAt: new Date("2024-01-15"),
-    },
-    {
-      id: "2",
-      userName: "Jane Smith",
-      userRole: "Manager",
-      designation: "Project Manager",
-      department: "Operations",
-      email: "jane.smith@company.com",
-      createdAt: new Date("2024-02-10"),
-    },
-    {
-      id: "3",
-      userName: "Mike Johnson",
-      userRole: "Employee",
-      designation: "Developer",
-      department: "IT",
-      email: "mike.johnson@company.com",
-      createdAt: new Date("2024-03-05"),
-    },
-  ]);
-
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<UserType[]>([]);
+  // const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentView, setCurrentView] = useState<"form" | "list">("form");
+   const { toast } = useToast();
+  const navigate = useNavigate()
+  const location = useLocation()
+  const editingUser = location.state
 
-  const handleSubmit = (userData: Omit<User, "id" | "createdAt">) => {
-    const newUser: User = {
-      ...userData,
-      id: Date.now().toString(),
-      createdAt: new Date(),
-    };
-    setUsers([...users, newUser]);
+  const {isFetching,refetch} = useQuery({queryKey:["usersList"],queryFn:getUsers,refetchOnWindowFocus:false,  onSuccess: (result) => {
+      setUsers(result.data)
+    },
+    onError: (error) => {
+      
+    },})
+
+    const {mutate:removeUser} = useMutation({mutationFn:deleteUser,onSuccess:(result)=>{
+      refetch()
+            toast({
+        title: "",
+        description: result.message,
+        className: "bg-green-500 text-white",
+      });
+    },onError:(error:any)=>{
+       toast({
+        title: "",
+        description: error?.message  || "Opps! Something went wrong",
+        className: "bg-red-500 text-white",
+      });
+    }})
+
+  const handleSubmit = (userData:UserType) => {
+       setCurrentView("list")
+       refetch()
   };
 
-  const handleEdit = (user: User) => {
-    setEditingUser(user);
+  const handleEdit = (user: UserType) => {
+    navigate(routes.createUser,{state:user});
     setIsEditDialogOpen(true);
   };
 
-  const handleEditSubmit = (userData: Omit<User, "id" | "createdAt">) => {
+  const handleEditSubmit = (userData: UserType) => {
     if (editingUser) {
-      setUsers(users.map(user => 
-        user.id === editingUser.id 
-          ? { ...editingUser, ...userData }
-          : user
-      ));
+      refetch()
       setIsEditDialogOpen(false);
-      setEditingUser(null);
+      navigate("",{state:null});
     }
   };
 
   const handleDelete = (userId: string) => {
-    setUsers(users.filter(user => user.id !== userId));
+    removeUser(userId)
   };
+
+  const handleClose = (status:boolean)=>{
+    setIsEditDialogOpen(status)
+    navigate("",{replace:true,state:null});
+  }
 
   return (
     <div className="container mx-auto px-6 py-8 space-y-8">
@@ -80,7 +81,7 @@ export default function CreateUser() {
         <div className="flex gap-2">
           <Button
             variant={currentView === "form" ? "default" : "outline"}
-            onClick={() => setCurrentView("form")}
+            onClick={() => {setCurrentView("form"),navigate("",{replace:true,state:null});}}
             className="flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
@@ -88,7 +89,7 @@ export default function CreateUser() {
           </Button>
           <Button
             variant={currentView === "list" ? "default" : "outline"}
-            onClick={() => setCurrentView("list")}
+            onClick={() => {setCurrentView("list"),navigate("",{replace:true,state:null});}}
             className="flex items-center gap-2"
           >
             <List className="h-4 w-4" />
@@ -100,7 +101,7 @@ export default function CreateUser() {
       {currentView === "form" && (
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="lg:w-1/2">
-            <UserForm onSubmit={handleSubmit} />
+            <UserForm  onSubmit={handleSubmit} />
           </div>
           
           <div className="lg:w-1/2">
@@ -131,16 +132,14 @@ export default function CreateUser() {
         />
       )}
 
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+      <Dialog open={isEditDialogOpen} onOpenChange={handleClose}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
           </DialogHeader>
           {editingUser && (
             <UserForm 
               onSubmit={handleEditSubmit}
-              initialData={editingUser}
-              isEditing={true}
             />
           )}
         </DialogContent>

@@ -29,33 +29,7 @@ import { useMutation } from "@tanstack/react-query";
 import { userRegistration, userUpdation } from "@/services/user.services";
 import { useAuth } from "@/hooks/useAuth";
 import { setItem, storageKeys } from "@/utils/storage";
-
-const userSchema = z.object({
-  userName: z.string().min(2, "User name must be at least 2 characters"),
-  userRole: z.string().min(1, "User role is required"),
-  designation: z.string().min(1, "Designation is required"),
-  department: z.string().min(1, "Department is required"),
-  email: z.string().email("Invalid email address"),
-  // file: z
-  //   .any()
-  //   .refine((files) => files?.length > 0, "Avatar file is required")
-  //   .refine(
-  //     (files) => files?.[0]?.size <= 2 * 1024 * 1024, // <= 2 MB
-  //     "File size must be less than 2MB"
-  //   )
-  //   .refine(
-  //     (files) => ["image/jpeg", "image/png"].includes(files?.[0]?.type),
-  //     "Only JPEG and PNG images are allowed"
-  //   )
-  //   .optional(),
-});
-
-type UserFormData = z.infer<typeof userSchema>;
-
-interface UserFormProps {
-  onSubmit: (data: UserType) => void;
-  isEditing?: boolean;
-}
+import { useLocation } from "react-router-dom";
 
 const userRoles = ["Admin", "Manager", "Employee", "Contractor", "Intern"];
 const designations = [
@@ -67,9 +41,26 @@ const designations = [
 ];
 const departments = ["IT", "HR", "Finance", "Marketing", "Operations", "Sales"];
 
-export function UserForm({ onSubmit, isEditing = false }: UserFormProps) {
+export function UserForm({ onSubmit }) {
+    const location = useLocation();
+  const user = location.state;
+  const userSchema = z.object({
+  userName: z.string().min(2, "User name must be at least 2 characters"),
+  userRole: z.string().min(1, "User role is required"),
+  designation: z.string().min(1, "Designation is required"),
+  department: z.string().min(1, "Department is required"),
+  email: z.string().email("Invalid email address"),
+  password:user?.id ? z.string().optional() : z.string().min(5,"Minimum 5 characters required"),
+});
+
+type UserFormData = z.infer<typeof userSchema>;
+
+interface UserFormProps {
+  onSubmit: (data: UserType) => void;
+}
   const { toast } = useToast();
-  const { user,setUser } = useAuth();
+  const { setUser } = useAuth();
+
   const [avatarPreview, setAvatarPreview] = useState<string>(
     `${import.meta.env.VITE_API_URL}${user?.imageUrl || ""}`
   );
@@ -88,40 +79,57 @@ export function UserForm({ onSubmit, isEditing = false }: UserFormProps) {
 
   const { mutate: createUser } = useMutation({
     mutationFn: userRegistration,
+    onSuccess: (result) => {
+      onSubmit(result.data);
+      toast({
+        title: "",
+        description: result.message,
+        className: "bg-green-500 text-white",
+      });
+      form.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "",
+        description: error.message  || "Opps! Something went wrong",
+        className: "bg-red-500 text-white",
+      });
+    },
   });
   const { mutate: updateUser } = useMutation({
     mutationFn: userUpdation,
     onSuccess: (result) => {
-      setItem(storageKeys.user,result.data)
-      setUser(result.data)
+      if (user.id == result.data.id) {
+        setItem(storageKeys.user, result.data);
+        setUser(result.data);
+      }
+      onSubmit(result.data);
       toast({
         title: "",
         description: result.message,
         className: "bg-green-500 text-white",
       });
     },
-    onError:(error)=>{
-    toast({
+    onError: (error: any) => {
+      toast({
         title: "",
-        description: error.message,
+        description: error.message || "Opps! Something went wrong",
         className: "bg-red-500 text-white",
       });
-    }
+    },
   });
 
   const handleSubmit = (data: UserFormData) => {
-    console.log("form data", data);
-    onSubmit(data as UserType);
     const formData = new FormData();
-    formData.append("id",user.id)
+    user?.id && formData.append("id", user?.id);
     formData.append("file", file);
     for (let key in data) {
       formData.append(key, data[key]);
     }
-    if (!isEditing) {
-      form.reset();
+    if (!Boolean(user)) {
+      createUser(formData);
     } else {
-      file && formData.append("oldImageUrl",user.imageUrl)
+      file && formData.append("oldImageUrl", user?.imageUrl);
       updateUser(formData);
     }
   };
@@ -134,6 +142,7 @@ export function UserForm({ onSubmit, isEditing = false }: UserFormProps) {
         designation: "",
         department: "",
         email: "",
+        password:""
       }
     );
     toast({
@@ -163,7 +172,7 @@ export function UserForm({ onSubmit, isEditing = false }: UserFormProps) {
     <Card className="w-full max-w-2xl">
       <CardHeader>
         <CardTitle className="text-primary">
-          {isEditing ? "Edit User" : "Create New User"}
+          {Boolean(user) ? "Edit User" : "Create New User"}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -325,10 +334,27 @@ export function UserForm({ onSubmit, isEditing = false }: UserFormProps) {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem className={user?"hidden" : ""}>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Password address"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="flex gap-4 pt-4">
               <Button type="submit" className="flex-1">
-                {isEditing ? "Update User" : "Submit"}
+                {Boolean(user) ? "Update User" : "Submit"}
               </Button>
               <Button
                 type="button"
