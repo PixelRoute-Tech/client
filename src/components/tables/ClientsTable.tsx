@@ -6,35 +6,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-
-export interface Client {
-  id: string;
-  businessName: string;
-  abnAcn: string;
-  businessAddress: string;
-  postalAddress: string;
-  phone: string;
-  email: string;
-  accountDeptContact: string;
-  accountPhone: string;
-  fax?: string;
-  accountEmail: string;
-  invoiceEmail: string;
-  createdAt: Date;
-}
+import { ClientType } from "@/types/client.type";
+import { useQuery } from "@tanstack/react-query";
+import { getClients } from "@/services/client.services";
 
 interface ClientsTableProps {
-  clients: Client[];
-  onEdit: (client: Client) => void;
+  clients:ClientType[]
+  onEdit: (client: ClientType) => void;
   onDelete: (clientId: string) => void;
-  onSelect?: (client: Client) => void;
+  onSelect?: (client: ClientType) => void;
 }
 
-export function ClientsTable({ clients, onEdit, onDelete, onSelect }: ClientsTableProps) {
+export function ClientsTable({clients, onEdit, onDelete, onSelect }: ClientsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
-
-  const filteredClients = clients.filter(
+  const filteredClients = clients?.filter(
     (client) =>
       client.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -71,6 +57,7 @@ export function ClientsTable({ clients, onEdit, onDelete, onSelect }: ClientsTab
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>id</TableHead>
                 <TableHead>Business Name</TableHead>
                 <TableHead>ABN/ACN</TableHead>
                 <TableHead>Contact</TableHead>
@@ -81,19 +68,20 @@ export function ClientsTable({ clients, onEdit, onDelete, onSelect }: ClientsTab
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredClients.length === 0 ? (
+              {filteredClients?.length === 0 || !Boolean(filteredClients?.length) ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                     {searchTerm ? "No clients found matching your search." : "No clients available."}
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredClients.map((client) => (
+                filteredClients?.map((client) => (
                   <TableRow 
-                    key={client.id}
+                    key={client.clientId}
                     className={onSelect ? "cursor-pointer hover:bg-muted/50" : ""}
                     onClick={() => onSelect?.(client)}
                   >
+                    <TableCell className="font-mono text-xs">#{client.clientId}</TableCell>
                     <TableCell className="font-medium">{client.businessName}</TableCell>
                     <TableCell>{client.abnAcn}</TableCell>
                     <TableCell>
@@ -123,7 +111,7 @@ export function ClientsTable({ clients, onEdit, onDelete, onSelect }: ClientsTab
                         <div>Invoice: {client.invoiceEmail}</div>
                       </div>
                     </TableCell>
-                    <TableCell>{client.createdAt.toLocaleDateString()}</TableCell>
+                    <TableCell>{client.createdDate}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button
@@ -159,7 +147,7 @@ export function ClientsTable({ clients, onEdit, onDelete, onSelect }: ClientsTab
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDelete(client.id, client.businessName)}
+                                onClick={() => handleDelete(client.clientId, client.businessName)}
                                 className="bg-destructive text-destructive-foreground"
                               >
                                 Delete
@@ -176,10 +164,10 @@ export function ClientsTable({ clients, onEdit, onDelete, onSelect }: ClientsTab
           </Table>
         </div>
         
-        {filteredClients.length > 0 && (
+        {filteredClients?.length > 0 && (
           <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
             <p>
-              Showing {filteredClients.length} of {clients.length} clients
+              Showing {filteredClients.length} of {clients?.length} clients
             </p>
           </div>
         )}

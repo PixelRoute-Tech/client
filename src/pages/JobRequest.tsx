@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { JobRequestForm } from "@/components/forms/JobRequestForm";
 import { JobRequestsTable, JobRequest } from "@/components/tables/JobRequestsTable";
-import { ClientsTable, Client } from "@/components/tables/ClientsTable";
+import { ClientsTable } from "@/components/tables/ClientsTable";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,122 +10,24 @@ import { WorksheetRenderer, WorksheetData } from "@/components/worksheet/Workshe
 import { worksheetStorage } from "@/utils/worksheetStorage";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { ClientType } from "@/types/client.type";
+import { useNavigate } from "react-router-dom";
+import routes from "@/routes/routeList";
 
 export default function JobRequestPage() {
-  // Sample clients data
-  const [clients] = useState<Client[]>([
-    {
-      id: "1",
-      businessName: "Acme Corporation",
-      abnAcn: "ABN123456789",
-      businessAddress: "123 Business St, City, State 12345",
-      postalAddress: "PO Box 123, City, State 12345",
-      phone: "+1234567890",
-      email: "info@acme.com",
-      accountDeptContact: "Sarah Johnson",
-      accountPhone: "+1234567891",
-      fax: "+1234567892",
-      accountEmail: "accounts@acme.com",
-      invoiceEmail: "billing@acme.com",
-      createdAt: new Date("2024-01-20"),
-    },
-    {
-      id: "2", 
-      businessName: "Tech Solutions Ltd",
-      abnAcn: "ACN987654321",
-      businessAddress: "456 Innovation Ave, Tech City, TC 67890",
-      postalAddress: "456 Innovation Ave, Tech City, TC 67890",
-      phone: "+0987654321",
-      email: "contact@techsolutions.com",
-      accountDeptContact: "Michael Chen",
-      accountPhone: "+0987654322",
-      accountEmail: "finance@techsolutions.com",
-      invoiceEmail: "invoices@techsolutions.com",
-      createdAt: new Date("2024-02-15"),
-    },
-    {
-      id: "3",
-      businessName: "Green Energy Co",
-      abnAcn: "ABN555666777",
-      businessAddress: "789 Sustainable Rd, Eco City, EC 11111",
-      postalAddress: "789 Sustainable Rd, Eco City, EC 11111",
-      phone: "+5556667777",
-      email: "hello@greenenergy.com",
-      accountDeptContact: "Emma Davis",
-      accountPhone: "+5556667778",
-      accountEmail: "accounting@greenenergy.com",
-      invoiceEmail: "bills@greenenergy.com",
-      createdAt: new Date("2024-03-10"),
-    },
-  ]);
-
-  const [jobRequests, setJobRequests] = useState<JobRequest[]>([
-    {
-      id: "1",
-      clientId: "1",
-      clientName: "Acme Corporation",
-      date: new Date("2024-03-15"),
-      summary: "Website performance testing and optimization",
-      detailsProvided: "Need comprehensive testing of website under high load conditions",
-      comment: "Priority testing for upcoming product launch",
-      dateTimeDay: new Date("2024-03-20T10:00:00"),
-      divisionRules: "Standard web testing protocols",
-      testRows: [
-        {
-          testMethod: "Load Testing",
-          testSpec: "100 concurrent users",
-          acceptanceSpec: "Response time < 2s",
-          toTable: "Performance Results",
-          testProcedure: "Gradual load increase",
-          tech: "JMeter",
-        },
-        {
-          testMethod: "Stress Testing",
-          testSpec: "500 concurrent users",
-          acceptanceSpec: "No system crash",
-          toTable: "Stress Results",
-          testProcedure: "Peak load simulation",
-          tech: "LoadRunner",
-        },
-      ],
-      status: "pending",
-      createdAt: new Date("2024-03-12"),
-    },
-    {
-      id: "2",
-      clientId: "2",
-      clientName: "Tech Solutions Ltd",
-      date: new Date("2024-03-18"),
-      summary: "Mobile application security audit",
-      detailsProvided: "Complete security assessment of mobile banking application",
-      dateTimeDay: new Date("2024-03-25T14:00:00"),
-      divisionRules: "OWASP Mobile Security Guidelines",
-      testRows: [
-        {
-          testMethod: "Penetration Testing",
-          testSpec: "Full app coverage",
-          acceptanceSpec: "No critical vulnerabilities",
-          toTable: "Security Report",
-          testProcedure: "Black box testing",
-          tech: "Burp Suite",
-        },
-      ],
-      status: "in-progress",
-      createdAt: new Date("2024-03-16"),
-    },
-  ]);
-
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+ 
+  const navigate = useNavigate()
+  const [jobRequests, setJobRequests] = useState<JobRequest[]>([]);
+  const [selectedClient, setSelectedClient] = useState<ClientType | null>(null);
   const [editingJobRequest, setEditingJobRequest] = useState<JobRequest | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [showClientSelection, setShowClientSelection] = useState(true);
   const [currentView, setCurrentView] = useState<"form" | "list">("form");
   const [selectedWorksheetId, setSelectedWorksheetId] = useState<string>("");
   const [worksheetData, setWorksheetData] = useState<WorksheetData>({});
-
   const activeWorksheets = worksheetStorage.getAll().filter(w => w.isActive);
-
-  const handleClientSelect = (client: Client) => {
+  
+  const handleClientSelect = (client: ClientType) => {
     setSelectedClient(client);
     setShowClientSelection(false);
   };
@@ -169,6 +71,10 @@ export default function JobRequestPage() {
     setShowClientSelection(true);
   };
 
+  const handleClientEdit = (data:ClientType)=>{
+     navigate(routes.clientOnBoarding,{state:data})
+  }
+
   if (showClientSelection) {
     return (
       <div className="container mx-auto px-6 py-8 space-y-8">
@@ -188,8 +94,7 @@ export default function JobRequestPage() {
               Choose a client from the list below to create a new job request.
             </p>
             <ClientsTable 
-              clients={clients} 
-              onEdit={() => {}} 
+              onEdit={handleClientEdit} 
               onDelete={() => {}}
               onSelect={handleClientSelect}
             />
@@ -317,7 +222,7 @@ export default function JobRequestPage() {
           {editingJobRequest && (
             <JobRequestForm 
               onSubmit={handleEditSubmit}
-              selectedClient={clients.find(c => c.id === editingJobRequest.clientId)}
+              selectedClient={[].find(c => c.id === editingJobRequest.clientId)}
               initialData={editingJobRequest}
               isEditing={true}
             />
@@ -327,3 +232,59 @@ export default function JobRequestPage() {
     </div>
   );
 }
+
+//   [
+  //   {
+  //     id: "1",
+  //     clientId: "1",
+  //     clientName: "Acme Corporation",
+  //     date: new Date("2024-03-15"),
+  //     summary: "Website performance testing and optimization",
+  //     detailsProvided: "Need comprehensive testing of website under high load conditions",
+  //     comment: "Priority testing for upcoming product launch",
+  //     dateTimeDay: new Date("2024-03-20T10:00:00"),
+  //     divisionRules: "Standard web testing protocols",
+  //     testRows: [
+  //       {
+  //         testMethod: "Load Testing",
+  //         testSpec: "100 concurrent users",
+  //         acceptanceSpec: "Response time < 2s",
+  //         toTable: "Performance Results",
+  //         testProcedure: "Gradual load increase",
+  //         tech: "JMeter",
+  //       },
+  //       {
+  //         testMethod: "Stress Testing",
+  //         testSpec: "500 concurrent users",
+  //         acceptanceSpec: "No system crash",
+  //         toTable: "Stress Results",
+  //         testProcedure: "Peak load simulation",
+  //         tech: "LoadRunner",
+  //       },
+  //     ],
+  //     status: "pending",
+  //     createdAt: new Date("2024-03-12"),
+  //   },
+  //   {
+  //     id: "2",
+  //     clientId: "2",
+  //     clientName: "Tech Solutions Ltd",
+  //     date: new Date("2024-03-18"),
+  //     summary: "Mobile application security audit",
+  //     detailsProvided: "Complete security assessment of mobile banking application",
+  //     dateTimeDay: new Date("2024-03-25T14:00:00"),
+  //     divisionRules: "OWASP Mobile Security Guidelines",
+  //     testRows: [
+  //       {
+  //         testMethod: "Penetration Testing",
+  //         testSpec: "Full app coverage",
+  //         acceptanceSpec: "No critical vulnerabilities",
+  //         toTable: "Security Report",
+  //         testProcedure: "Black box testing",
+  //         tech: "Burp Suite",
+  //       },
+  //     ],
+  //     status: "in-progress",
+  //     createdAt: new Date("2024-03-16"),
+  //   },
+  // ]

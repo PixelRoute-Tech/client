@@ -5,8 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
+import { saveClient, updateClient } from "@/services/client.services";
+import { ClientType } from "@/types/client.type";
 
 const clientSchema = z.object({
   businessName: z.string().min(2, "Business name is required"),
@@ -25,12 +35,16 @@ const clientSchema = z.object({
 type ClientFormData = z.infer<typeof clientSchema>;
 
 interface ClientFormProps {
-  onSubmit: (data: ClientFormData) => void;
-  initialData?: ClientFormData;
+  onSubmit: (data: ClientType) => void;
+  initialData?: (ClientFormData & ClientType) | null;
   isEditing?: boolean;
 }
 
-export function ClientForm({ onSubmit, initialData, isEditing = false }: ClientFormProps) {
+export function ClientForm({
+  onSubmit,
+  initialData,
+  isEditing = false,
+}: ClientFormProps) {
   const { toast } = useToast();
   const form = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
@@ -49,15 +63,63 @@ export function ClientForm({ onSubmit, initialData, isEditing = false }: ClientF
     },
   });
 
-  const handleSubmit = (data: ClientFormData) => {
-    onSubmit(data);
-    if (!isEditing) {
+  const { mutate: save, isPending: saveLoading } = useMutation({
+    mutationFn: saveClient,
+    onSuccess: (result) => {
       form.reset();
+      onSubmit(result.data as ClientType);
+      toast({
+        title:"Client registered successfully",
+        description: `${result?.data?.businessName} has been ${
+          isEditing ? "updated" : "added"
+        } to the system.`,
+        className: "bg-green-500 text-white",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Opps! Something went wrong",
+        className: "bg-red-500 text-white",
+      });
+    },
+  });
+  
+  const { mutate: update, isPending: updateLoading } = useMutation({
+    mutationFn: updateClient,
+    onSuccess: (result) => {
+      form.reset();
+      onSubmit(result.data as ClientType);
+      toast({
+        title:"Client updated successfully",
+        description: `${result?.data?.businessName} has been ${
+          isEditing ? "updated" : "added"
+        } to the system.`,
+        className: "bg-green-500 text-white",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Opps! Something went wrong",
+        className: "bg-red-500 text-white",
+      });
+    },
+  });
+
+  const handleSubmit = (data: ClientFormData & ClientType) => {
+    const formData = new FormData();
+    for (let key in data) {
+      formData.append(key, data[key]);
     }
-    toast({
-      title: isEditing ? "Client updated successfully" : "Client registered successfully",
-      description: `${data.businessName} has been ${isEditing ? 'updated' : 'added'} to the system.`,
-    });
+    if (initialData) {
+      formData.append("clientId",initialData.clientId)
+      update(formData)
+    } else {
+      save(formData);
+    }
+
+    
   };
 
   const handleReset = () => {
@@ -76,14 +138,17 @@ export function ClientForm({ onSubmit, initialData, isEditing = false }: ClientF
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <Form methods={form}>
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             {/* Company Details Section */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">
                 Company Details
               </h3>
-              
+
               <FormField
                 control={form.control}
                 name="businessName"
@@ -120,7 +185,11 @@ export function ClientForm({ onSubmit, initialData, isEditing = false }: ClientF
                     <FormItem>
                       <FormLabel>Phone</FormLabel>
                       <FormControl>
-                        <Input type="tel" placeholder="Enter phone number" {...field} />
+                        <Input
+                          type="tel"
+                          placeholder="Enter phone number"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -136,7 +205,10 @@ export function ClientForm({ onSubmit, initialData, isEditing = false }: ClientF
                     <FormItem>
                       <FormLabel>Business Address</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Enter business address" {...field} />
+                        <Textarea
+                          placeholder="Enter business address"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -150,7 +222,10 @@ export function ClientForm({ onSubmit, initialData, isEditing = false }: ClientF
                     <FormItem>
                       <FormLabel>Postal Address</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Enter postal address" {...field} />
+                        <Textarea
+                          placeholder="Enter postal address"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -165,7 +240,11 @@ export function ClientForm({ onSubmit, initialData, isEditing = false }: ClientF
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="Enter email address" {...field} />
+                      <Input
+                        type="email"
+                        placeholder="Enter email address"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -178,7 +257,7 @@ export function ClientForm({ onSubmit, initialData, isEditing = false }: ClientF
               <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">
                 Account Details
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -201,7 +280,11 @@ export function ClientForm({ onSubmit, initialData, isEditing = false }: ClientF
                     <FormItem>
                       <FormLabel>Phone</FormLabel>
                       <FormControl>
-                        <Input type="tel" placeholder="Enter account phone" {...field} />
+                        <Input
+                          type="tel"
+                          placeholder="Enter account phone"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -231,7 +314,11 @@ export function ClientForm({ onSubmit, initialData, isEditing = false }: ClientF
                     <FormItem>
                       <FormLabel>Account Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="Enter account email" {...field} />
+                        <Input
+                          type="email"
+                          placeholder="Enter account email"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -246,7 +333,11 @@ export function ClientForm({ onSubmit, initialData, isEditing = false }: ClientF
                   <FormItem>
                     <FormLabel>Email invoices to be issued to</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="Enter invoice email" {...field} />
+                      <Input
+                        type="email"
+                        placeholder="Enter invoice email"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -258,7 +349,12 @@ export function ClientForm({ onSubmit, initialData, isEditing = false }: ClientF
               <Button type="submit" className="flex-1">
                 {isEditing ? "Update Client" : "Submit"}
               </Button>
-              <Button type="button" variant="outline" onClick={handleReset} className="flex-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleReset}
+                className="flex-1"
+              >
                 Reset
               </Button>
             </div>
