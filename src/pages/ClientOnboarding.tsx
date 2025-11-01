@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function ClientOnboarding() {
   const { data: clients, refetch } = useQuery({
-    queryKey: ["fetchclientsinjobrequest"],
+    queryKey: ["fetchclientsinclientonboarding"],
     queryFn: getClients,
     refetchOnWindowFocus: false,
   });

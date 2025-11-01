@@ -8,28 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-
-export interface JobRequest {
-  id: string;
-  clientId: string;
-  clientName: string;
-  date: Date;
-  summary: string;
-  detailsProvided: string;
-  comment?: string;
-  dateTimeDay: Date;
-  divisionRules: string;
-  testRows: Array<{
-    testMethod: string;
-    testSpec: string;
-    acceptanceSpec: string;
-    toTable: string;
-    testProcedure: string;
-    tech: string;
-  }>;
-  status: "pending" | "in-progress" | "completed" | "cancelled";
-  createdAt: Date;
-}
+import { JobRequest } from "@/types/job.type";
+import moment from "moment";
 
 interface JobRequestsTableProps {
   jobRequests: JobRequest[];
@@ -116,7 +96,7 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsT
                 </TableRow>
               ) : (
                 filteredJobRequests.map((job) => (
-                  <TableRow key={job.id}>
+                  <TableRow key={job.jobId}>
                     <TableCell className="font-medium">{job.clientName}</TableCell>
                     <TableCell>
                       <div className="space-y-1">
@@ -133,10 +113,10 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsT
                       <div className="space-y-1">
                         <div className="flex items-center gap-1 text-sm">
                           <Calendar className="h-3 w-3" />
-                          {format(job.date, "PPP")}
+                          {format(job.startDate, "PPP")}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          Due: {format(job.dateTimeDay, "PPP p")}
+                          Due: {format(job.lastDate, "PPP")}
                         </div>
                       </div>
                     </TableCell>
@@ -153,7 +133,7 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsT
                     <TableCell>
                       <div className="text-sm">{truncateText(job.divisionRules, 20)}</div>
                     </TableCell>
-                    <TableCell>{job.createdAt.toLocaleDateString()}</TableCell>
+                    <TableCell>{moment(job.createdAt).format("MMMM Do, YYYY")}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button
@@ -182,7 +162,7 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsT
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDelete(job.id, job.summary)}
+                                onClick={() => handleDelete(job.jobId, job.summary)}
                                 className="bg-destructive text-destructive-foreground"
                               >
                                 Delete

@@ -9,11 +9,34 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useMutation } from "@tanstack/react-query";
+import { saveJobRequest, updateJobRequest } from "@/services/job.services";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { ClientType } from "@/types/client.type";
+export const jobStatus = ["Pending", "Approved", "Completed", "Rejected"]
 
 const testRowSchema = z.object({
   testMethod: z.string().min(1, "Test method is required"),
@@ -25,40 +48,48 @@ const testRowSchema = z.object({
 });
 
 const jobRequestSchema = z.object({
-  clientId: z.string().min(1, "Client selection is required"),
-  date: z.date({
+  // clientId: z.string().min(1, "Client selection is required"),
+  startDate: z.date({
     required_error: "Date is required",
   }),
-  summary: z.string().min(5, "Summary must be at least 5 characters"),
-  detailsProvided: z.string().min(5, "Details provided must be at least 5 characters"),
-  comment: z.string().optional(),
-  dateTimeDay: z.date({
+  lastDate: z.date({
     required_error: "Date-Time-Day is required",
   }),
+  summary: z.string().min(5, "Summary must be at least 5 characters"),
+  detailsProvided: z
+    .string()
+    .min(5, "Details provided must be at least 5 characters"),
+  comment: z.string().optional(),
   divisionRules: z.string().min(1, "Division rules is required"),
   testRows: z.array(testRowSchema).min(1, "At least one test row is required"),
+  status:z.string().min(1,"Status required")
 });
 
-type JobRequestFormData = z.infer<typeof jobRequestSchema>;
+export type JobRequestFormData = z.infer<typeof jobRequestSchema>;
 
 interface JobRequestFormProps {
   onSubmit: (data: JobRequestFormData) => void;
-  selectedClient?: { id: string; businessName: string; email: string; phone: string };
+  selectedClient?: ClientType;
   initialData?: JobRequestFormData;
   isEditing?: boolean;
 }
 
-export function JobRequestForm({ onSubmit, selectedClient, initialData, isEditing = false }: JobRequestFormProps) {
+export function JobRequestForm({
+  onSubmit,
+  selectedClient,
+  initialData,
+  isEditing = false,
+}: JobRequestFormProps) {
   const { toast } = useToast();
+  console.log("initialData=====>", initialData);
   const form = useForm<JobRequestFormData>({
     resolver: zodResolver(jobRequestSchema),
     defaultValues: initialData || {
-      clientId: selectedClient?.id || "",
-      date: new Date(),
+      startDate: new Date(),
+      lastDate: new Date(),
       summary: "",
       detailsProvided: "",
       comment: "",
-      dateTimeDay: new Date(),
       divisionRules: "",
       testRows: [
         {
@@ -78,15 +109,54 @@ export function JobRequestForm({ onSubmit, selectedClient, initialData, isEditin
     name: "testRows",
   });
 
-  const handleSubmit = (data: JobRequestFormData) => {
-    onSubmit(data);
-    if (!isEditing) {
+  const {mutate:save,isPending:saveLoading} = useMutation({
+    mutationFn: saveJobRequest,
+    onSuccess: (result) => {
+      onSubmit(result.data);
       form.reset();
+      toast({
+        title: "Job request created successfully",
+        description: `Job request has been submitted successfully.`,
+        className:"bg-green-500 text-white"
+      });
+    },
+    onError:(e:any)=>{
+        toast({
+        title: "Error",
+        description:e.message,
+        className:"bg-red-500 text-white"
+      });
     }
-    toast({
-      title: isEditing ? "Job request updated successfully" : "Job request created successfully",
-      description: `Job request has been ${isEditing ? 'updated' : 'submitted'} successfully.`,
-    });
+  });
+
+  const {mutate:update,isPending:updateLoading} = useMutation({
+    mutationFn: updateJobRequest,
+    onSuccess: (result) => {
+      onSubmit(result.data);
+      form.reset();
+      toast({
+        title: "Job request updated successfully",
+        description: `Job request has been updated successfully.`,
+        className:"bg-green-500 text-white"
+      });
+    },
+    onError:(e:any)=>{
+        toast({
+        title: "Error",
+        description:e.message,
+        className:"bg-red-500 text-white"
+      });
+    }
+  });
+
+  const handleSubmit = (data: JobRequestFormData) => {
+    console.log(data);
+    if (!isEditing) {
+       save({...data,clientId:selectedClient.clientId,clientName:selectedClient.businessName,})
+    }else{
+        update({...initialData,...data,clientId:selectedClient.clientId,clientName:selectedClient.businessName,})
+    }
+  
   };
 
   const handleReset = () => {
@@ -108,26 +178,36 @@ export function JobRequestForm({ onSubmit, selectedClient, initialData, isEditin
     });
   };
 
+
+
   return (
     <div className="w-full max-w-6xl space-y-6">
       {/* Client Details Header */}
       {selectedClient && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-primary">Selected Client Details</CardTitle>
+            <CardTitle className="text-primary">
+              Selected Client Details
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div>
-                <span className="font-medium text-muted-foreground">Business Name:</span>
+                <span className="font-medium text-muted-foreground">
+                  Business Name:
+                </span>
                 <p className="text-foreground">{selectedClient.businessName}</p>
               </div>
               <div>
-                <span className="font-medium text-muted-foreground">Email:</span>
+                <span className="font-medium text-muted-foreground">
+                  Email:
+                </span>
                 <p className="text-foreground">{selectedClient.email}</p>
               </div>
               <div>
-                <span className="font-medium text-muted-foreground">Phone:</span>
+                <span className="font-medium text-muted-foreground">
+                  Phone:
+                </span>
                 <p className="text-foreground">{selectedClient.phone}</p>
               </div>
             </div>
@@ -143,12 +223,15 @@ export function JobRequestForm({ onSubmit, selectedClient, initialData, isEditin
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <Form methods={form}>
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-6"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="date"
+                  name="startDate"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel>Date</FormLabel>
@@ -188,7 +271,7 @@ export function JobRequestForm({ onSubmit, selectedClient, initialData, isEditin
 
                 <FormField
                   control={form.control}
-                  name="dateTimeDay"
+                  name="lastDate"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel>Date-Time-Day</FormLabel>
@@ -203,7 +286,7 @@ export function JobRequestForm({ onSubmit, selectedClient, initialData, isEditin
                               )}
                             >
                               {field.value ? (
-                                format(field.value, "PPP p")
+                                format(field.value, "PPP")
                               ) : (
                                 <span>Pick date and time</span>
                               )}
@@ -225,6 +308,34 @@ export function JobRequestForm({ onSubmit, selectedClient, initialData, isEditin
                     </FormItem>
                   )}
                 />
+                  <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {jobStatus.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
               </div>
 
               <FormField
@@ -248,7 +359,10 @@ export function JobRequestForm({ onSubmit, selectedClient, initialData, isEditin
                   <FormItem>
                     <FormLabel>Details Provided</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Enter details provided" {...field} />
+                      <Textarea
+                        placeholder="Enter details provided"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -286,8 +400,15 @@ export function JobRequestForm({ onSubmit, selectedClient, initialData, isEditin
               {/* Dynamic Test Table */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-foreground">Test Methods</h3>
-                  <Button type="button" onClick={addTestRow} variant="outline" size="sm">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Test Methods
+                  </h3>
+                  <Button
+                    type="button"
+                    onClick={addTestRow}
+                    variant="outline"
+                    size="sm"
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Row
                   </Button>
@@ -316,7 +437,10 @@ export function JobRequestForm({ onSubmit, selectedClient, initialData, isEditin
                               render={({ field }) => (
                                 <FormItem>
                                   <FormControl>
-                                    <Input placeholder="Test method" {...field} />
+                                    <Input
+                                      placeholder="Test method"
+                                      {...field}
+                                    />
                                   </FormControl>
                                 </FormItem>
                               )}
@@ -342,7 +466,10 @@ export function JobRequestForm({ onSubmit, selectedClient, initialData, isEditin
                               render={({ field }) => (
                                 <FormItem>
                                   <FormControl>
-                                    <Input placeholder="Acceptance spec" {...field} />
+                                    <Input
+                                      placeholder="Acceptance spec"
+                                      {...field}
+                                    />
                                   </FormControl>
                                 </FormItem>
                               )}
@@ -368,7 +495,10 @@ export function JobRequestForm({ onSubmit, selectedClient, initialData, isEditin
                               render={({ field }) => (
                                 <FormItem>
                                   <FormControl>
-                                    <Input placeholder="Test procedure" {...field} />
+                                    <Input
+                                      placeholder="Test procedure"
+                                      {...field}
+                                    />
                                   </FormControl>
                                 </FormItem>
                               )}
@@ -410,7 +540,12 @@ export function JobRequestForm({ onSubmit, selectedClient, initialData, isEditin
                 <Button type="submit" className="flex-1">
                   {isEditing ? "Update Job Request" : "Submit"}
                 </Button>
-                <Button type="button" variant="outline" onClick={handleReset} className="flex-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleReset}
+                  className="flex-1"
+                >
                   Reset
                 </Button>
               </div>
@@ -421,3 +556,4 @@ export function JobRequestForm({ onSubmit, selectedClient, initialData, isEditin
     </div>
   );
 }
+
