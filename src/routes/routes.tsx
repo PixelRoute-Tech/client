@@ -137,6 +137,17 @@ const router = createBrowserRouter([
             ),
           },
           {
+            path: routes.worksheetNew,
+            loader: authenticatedLoader,
+            element: (
+              <Suspense
+                fallback={<SkeletonLoader config={skeletonConfigs.form} />}
+              >
+                <WorksheetBuilder />
+              </Suspense>
+            ),
+          },
+          {
             path: routes.worksheetEdit,
             loader: authenticatedLoader,
             element: (

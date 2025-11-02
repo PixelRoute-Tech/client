@@ -1,114 +1,160 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { SectionBuilder } from '@/components/worksheet/SectionBuilder';
-import { Plus, Save, ArrowLeft } from 'lucide-react';
-import { Worksheet, WorksheetSection } from '@/types/worksheet';
-import { worksheetStorage } from '@/utils/worksheetStorage';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionBuilder } from "@/components/worksheet/SectionBuilder";
+import { Plus, Save, ArrowLeft } from "lucide-react";
+import { Worksheet, WorksheetSection } from "@/types/worksheet";
+import { worksheetStorage } from "@/utils/worksheetStorage";
+import { useToast } from "@/hooks/use-toast";
+import routes from "@/routes/routeList";
+import { useMutation } from "@tanstack/react-query";
+import { saveWorkSheet, updateWorkSheet } from "@/services/worksheet.services";
 
 export default function WorksheetBuilder() {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const location = useLocation()
+  const workSheet = location.state as Worksheet
   const { toast } = useToast();
-  const isEditMode = !!id;
+  const isEditMode = !!workSheet;
 
-  const [worksheetName, setWorksheetName] = useState('');
+  const [worksheetName, setWorksheetName] = useState("");
   const [sections, setSections] = useState<WorksheetSection[]>([]);
 
+  const workSheetSave = useMutation({
+    mutationFn: saveWorkSheet,
+    onSuccess: (result) => {
+      toast({
+        title: "Success",
+        description: result.message,
+        className: "bg-green-500 text-white",
+      });
+      navigate(routes.worksheet);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "",
+        description: error?.message || "Opps! Something went wrong",
+        className: "bg-red-500 text-white",
+      });
+    },
+  });
+  const workSheetUpdate = useMutation({
+    mutationFn: updateWorkSheet,
+    onSuccess: (result) => {
+      toast({
+        title: "Success",
+        description: result.message,
+        className: "bg-green-500 text-white",
+      });
+      navigate(routes.worksheet);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Opps! Something went wrong",
+        className: "bg-red-500 text-white",
+      });
+    },
+  });
+
   useEffect(() => {
-    if (isEditMode && id) {
-      const worksheet = worksheetStorage.getById(id);
-      if (worksheet) {
-        setWorksheetName(worksheet.name);
-        setSections(worksheet.sections);
+    if (isEditMode && workSheet.workSheetId) {
+      if (workSheet) {
+        setWorksheetName(workSheet.name);
+        setSections(workSheet.sections);
       } else {
         toast({
-          title: 'Worksheet not found',
-          description: 'The worksheet you are trying to edit does not exist.',
-          variant: 'destructive',
+          title: "Worksheet not found",
+          description: "The worksheet you are trying to edit does not exist.",
+          variant: "destructive",
         });
-        navigate('/worksheets');
+        navigate(routes.worksheet);
       }
     }
-  }, [id, isEditMode, navigate, toast]);
+  }, [workSheet?.workSheetId, isEditMode, navigate, toast]);
 
   const addSection = () => {
     const newSection: WorksheetSection = {
-      id: crypto.randomUUID(),
-      name: '',
+      sectionId: crypto.randomUUID(),
+      name: "",
       fields: [],
     };
     setSections([...sections, newSection]);
   };
 
-  const updateSection = (sectionId: string, updatedSection: WorksheetSection) => {
-    setSections(sections.map(s => s.id === sectionId ? updatedSection : s));
+  const updateSection = (
+    sectionId: string,
+    updatedSection: WorksheetSection
+  ) => {
+    setSections(
+      sections.map((s) => (s.sectionId === sectionId ? updatedSection : s))
+    );
   };
 
   const deleteSection = (sectionId: string) => {
-    setSections(sections.filter(s => s.id !== sectionId));
+    setSections(sections.filter((s) => s.sectionId !== sectionId));
   };
 
   const handleSave = () => {
     if (!worksheetName.trim()) {
       toast({
-        title: 'Validation Error',
-        description: 'Please enter a worksheet name.',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "Please enter a worksheet name.",
+        variant: "destructive",
       });
       return;
     }
 
     if (sections.length === 0) {
       toast({
-        title: 'Validation Error',
-        description: 'Please add at least one section.',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "Please add at least one section.",
+        variant: "destructive",
       });
       return;
     }
 
-    const hasEmptySection = sections.some(s => !s.name.trim());
+    const hasEmptySection = sections.some((s) => !s.name.trim());
     if (hasEmptySection) {
       toast({
-        title: 'Validation Error',
-        description: 'All sections must have a name.',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "All sections must have a name.",
+        variant: "destructive",
       });
       return;
     }
 
-    const hasEmptyField = sections.some(s => 
-      s.fields.some(f => !f.name.trim())
+    const hasEmptyField = sections.some((s) =>
+      s.fields.some((f) => !f.name.trim())
     );
     if (hasEmptyField) {
       toast({
-        title: 'Validation Error',
-        description: 'All fields must have a name.',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "All fields must have a name.",
+        variant: "destructive",
       });
       return;
     }
 
     const worksheet: Worksheet = {
-      id: id || crypto.randomUUID(),
+      workSheetId: workSheet?.workSheetId || null,
       name: worksheetName,
       sections,
       isActive: true,
-      createdAt: id ? worksheetStorage.getById(id)?.createdAt || new Date().toISOString() : new Date().toISOString(),
+      createdAt: workSheet?.workSheetId
+        ? workSheet?.workSheetId || new Date().toISOString()
+        : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-
-    worksheetStorage.save(worksheet);
-    toast({
-      title: 'Success',
-      description: `Worksheet ${isEditMode ? 'updated' : 'created'} successfully.`,
-    });
-    navigate('/worksheets');
+    console.log(worksheet);
+    if(worksheet.workSheetId){
+        workSheetUpdate.mutate(worksheet)
+    }else{
+      workSheetSave.mutate(worksheet)
+    }
   };
 
   return (
@@ -118,13 +164,13 @@ export default function WorksheetBuilder() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/worksheets')}
+            onClick={() => navigate("/worksheets")}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
             <h1 className="text-3xl font-bold">
-              {isEditMode ? 'Edit Worksheet' : 'Create New Worksheet'}
+              {isEditMode ? "Edit Worksheet" : "Create New Worksheet"}
             </h1>
             <p className="text-muted-foreground mt-1">
               Build your custom worksheet with sections and fields
@@ -176,12 +222,14 @@ export default function WorksheetBuilder() {
             </CardContent>
           </Card>
         ) : (
-          sections.map(section => (
+          sections.map((section) => (
             <SectionBuilder
-              key={section.id}
+              key={section.sectionId}
               section={section}
-              onUpdate={(updatedSection) => updateSection(section.id, updatedSection)}
-              onDelete={() => deleteSection(section.id)}
+              onUpdate={(updatedSection) =>
+                updateSection(section.sectionId, updatedSection)
+              }
+              onDelete={() => deleteSection(section.sectionId)}
             />
           ))
         )}

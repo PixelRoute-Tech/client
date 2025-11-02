@@ -27,10 +27,10 @@ const TYPES_WITH_OPTIONS: FieldType[] = ['radio', 'select', 'autocomplete', 'aut
 
 export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
   const showOptions = TYPES_WITH_OPTIONS.includes(field.type);
-
+  
   const addOption = () => {
     const newOption: FieldOption = {
-      id: crypto.randomUUID(),
+      optionId: crypto.randomUUID(),
       value: '',
     };
     onUpdate({
@@ -43,7 +43,7 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
     onUpdate({
       ...field,
       options: field.options?.map(opt => 
-        opt.id === optionId ? { ...opt, value } : opt
+        opt.optionId === optionId ? { ...opt, value } : opt
       ),
     });
   };
@@ -51,7 +51,7 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
   const deleteOption = (optionId: string) => {
     onUpdate({
       ...field,
-      options: field.options?.filter(opt => opt.id !== optionId),
+      options: field.options?.filter(opt => opt.optionId !== optionId),
     });
   };
 
@@ -60,9 +60,9 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
       <div className="flex justify-between items-start gap-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
           <div className="space-y-2">
-            <Label htmlFor={`field-name-${field.id}`}>Field Name</Label>
+            <Label htmlFor={`field-name-${field.fieldId}`}>Field Name</Label>
             <Input
-              id={`field-name-${field.id}`}
+              id={`field-name-${field.fieldId}`}
               value={field.name}
               onChange={(e) => onUpdate({ ...field, name: e.target.value })}
               placeholder="Enter field name"
@@ -70,12 +70,12 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor={`field-type-${field.id}`}>Field Type</Label>
+            <Label htmlFor={`field-type-${field.fieldId}`}>Field Type</Label>
             <Select
               value={field.type}
               onValueChange={(value: FieldType) => onUpdate({ ...field, type: value })}
             >
-              <SelectTrigger id={`field-type-${field.id}`}>
+              <SelectTrigger id={`field-type-${field.fieldId}`}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -91,13 +91,13 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
           <div className="flex items-end space-x-2">
             <div className="flex items-center space-x-2">
               <Checkbox
-                id={`field-required-${field.id}`}
+                id={`field-required-${field.fieldId}`}
                 checked={field.required}
                 onCheckedChange={(checked) => 
                   onUpdate({ ...field, required: checked as boolean })
                 }
               />
-              <Label htmlFor={`field-required-${field.id}`}>Is Required</Label>
+              <Label htmlFor={`field-required-${field.fieldId}`}>Is Required</Label>
             </div>
           </div>
         </div>
@@ -129,17 +129,17 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
           
           <div className="space-y-2">
             {field.options?.map((option, index) => (
-              <div key={option.id} className="flex items-center gap-2">
+              <div key={option.optionId} className="flex items-center gap-2">
                 <Input
                   value={option.value}
-                  onChange={(e) => updateOption(option.id, e.target.value)}
+                  onChange={(e) => updateOption(option.optionId, e.target.value)}
                   placeholder={`Option ${index + 1}`}
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  onClick={() => deleteOption(option.id)}
+                  onClick={() => deleteOption(option.optionId)}
                   className="text-destructive"
                 >
                   <Trash2 className="h-4 w-4" />

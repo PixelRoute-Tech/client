@@ -15,7 +15,7 @@ const routes = {
     worksheet:"/worksheets",
     userProfile:"/user-profile",
     worksheetNew:"/worksheets/new",
-    worksheetEdit:"/worksheets/edit/:id"
+    worksheetEdit:"/worksheets/edit"
 }
 
 export default routes

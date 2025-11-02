@@ -30,14 +30,14 @@ export function WorksheetRenderer({ worksheet, data = {}, onChange }: WorksheetR
   };
 
   const renderField = (field: WorksheetField) => {
-    const value = formData[field.id];
+    const value = formData[field.fieldId];
 
     switch (field.type) {
       case 'textfield':
         return (
           <Input
             value={value || ''}
-            onChange={(e) => handleFieldChange(field.id, e.target.value)}
+            onChange={(e) => handleFieldChange(field.fieldId, e.target.value)}
             placeholder={`Enter ${field.name}`}
             required={field.required}
           />
@@ -47,7 +47,7 @@ export function WorksheetRenderer({ worksheet, data = {}, onChange }: WorksheetR
         return (
           <Textarea
             value={value || ''}
-            onChange={(e) => handleFieldChange(field.id, e.target.value)}
+            onChange={(e) => handleFieldChange(field.fieldId, e.target.value)}
             placeholder={`Enter ${field.name}`}
             required={field.required}
           />
@@ -58,7 +58,7 @@ export function WorksheetRenderer({ worksheet, data = {}, onChange }: WorksheetR
           <div className="flex items-center gap-2">
             <Checkbox
               checked={value || false}
-              onCheckedChange={(checked) => handleFieldChange(field.id, checked)}
+              onCheckedChange={(checked) => handleFieldChange(field.fieldId, checked)}
               required={field.required}
             />
             <Label>{field.name}</Label>
@@ -69,13 +69,13 @@ export function WorksheetRenderer({ worksheet, data = {}, onChange }: WorksheetR
         return (
           <RadioGroup
             value={value || ''}
-            onValueChange={(val) => handleFieldChange(field.id, val)}
+            onValueChange={(val) => handleFieldChange(field.fieldId, val)}
             required={field.required}
           >
             {field.options?.map((option) => (
-              <div key={option.id} className="flex items-center gap-2">
-                <RadioGroupItem value={option.value} id={`${field.id}-${option.id}`} />
-                <Label htmlFor={`${field.id}-${option.id}`}>{option.value}</Label>
+              <div key={option.optionId} className="flex items-center gap-2">
+                <RadioGroupItem value={option.value} id={`${field.fieldId}-${option.optionId}`} />
+                <Label htmlFor={`${field.fieldId}-${option.optionId}`}>{option.value}</Label>
               </div>
             ))}
           </RadioGroup>
@@ -85,7 +85,7 @@ export function WorksheetRenderer({ worksheet, data = {}, onChange }: WorksheetR
         return (
           <Select
             value={value || ''}
-            onValueChange={(val) => handleFieldChange(field.id, val)}
+            onValueChange={(val) => handleFieldChange(field.fieldId, val)}
             required={field.required}
           >
             <SelectTrigger>
@@ -93,7 +93,7 @@ export function WorksheetRenderer({ worksheet, data = {}, onChange }: WorksheetR
             </SelectTrigger>
             <SelectContent>
               {field.options?.map((option) => (
-                <SelectItem key={option.id} value={option.value}>
+                <SelectItem key={option.optionId} value={option.value}>
                   {option.value}
                 </SelectItem>
               ))}
@@ -105,7 +105,7 @@ export function WorksheetRenderer({ worksheet, data = {}, onChange }: WorksheetR
         return (
           <Select
             value={value || ''}
-            onValueChange={(val) => handleFieldChange(field.id, val)}
+            onValueChange={(val) => handleFieldChange(field.fieldId, val)}
             required={field.required}
           >
             <SelectTrigger>
@@ -113,7 +113,7 @@ export function WorksheetRenderer({ worksheet, data = {}, onChange }: WorksheetR
             </SelectTrigger>
             <SelectContent>
               {field.options?.map((option) => (
-                <SelectItem key={option.id} value={option.value}>
+                <SelectItem key={option.optionId} value={option.value}>
                   {option.value}
                 </SelectItem>
               ))}
@@ -128,7 +128,7 @@ export function WorksheetRenderer({ worksheet, data = {}, onChange }: WorksheetR
             <Select
               onValueChange={(val) => {
                 if (!chipValues.includes(val)) {
-                  handleFieldChange(field.id, [...chipValues, val]);
+                  handleFieldChange(field.fieldId, [...chipValues, val]);
                 }
               }}
             >
@@ -137,7 +137,7 @@ export function WorksheetRenderer({ worksheet, data = {}, onChange }: WorksheetR
               </SelectTrigger>
               <SelectContent>
                 {field.options?.map((option) => (
-                  <SelectItem key={option.id} value={option.value}>
+                  <SelectItem key={option.optionId} value={option.value}>
                     {option.value}
                   </SelectItem>
                 ))}
@@ -152,7 +152,7 @@ export function WorksheetRenderer({ worksheet, data = {}, onChange }: WorksheetR
                       className="h-3 w-3 cursor-pointer"
                       onClick={() =>
                         handleFieldChange(
-                          field.id,
+                          field.fieldId,
                           chipValues.filter((_: string, i: number) => i !== idx)
                         )
                       }
@@ -171,7 +171,7 @@ export function WorksheetRenderer({ worksheet, data = {}, onChange }: WorksheetR
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) {
-                handleFieldChange(field.id, file.name);
+                handleFieldChange(field.fieldId, file.name);
               }
             }}
             required={field.required}
@@ -190,13 +190,13 @@ export function WorksheetRenderer({ worksheet, data = {}, onChange }: WorksheetR
       </CardHeader>
       <CardContent className="space-y-6">
         {worksheet.sections.map((section) => (
-          <div key={section.id} className="space-y-4">
+          <div key={section.sectionId} className="space-y-4">
             <h3 className="text-lg font-semibold text-foreground border-b pb-2">
               {section.name}
             </h3>
             <div className="space-y-4">
               {section.fields.map((field) => (
-                <div key={field.id} className="space-y-2">
+                <div key={field.fieldId} className="space-y-2">
                   <Label>
                     {field.name}
                     {field.required && <span className="text-destructive ml-1">*</span>}
