@@ -24,36 +24,74 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, Plus } from "lucide-react";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
+import {
+  getDepartment,
+  getDesignation,
+  getUserRole,
+  saveDepartment,
+  saveDesignation,
+  saveUserRole,
+} from "@/services/masters.services";
+import { useMasterDataDelete, useMasterDataSave } from "@/hooks/use-master-data";
 
 interface MasterDataItem {
   id: string;
   name: string;
   createdAt: string;
 }
-
+export const masterQueryKey = {
+  department:"masterdepartment",
+  designation:"masterdesignation",
+  userRole:"masteruserroles"
+}
 const MasterData = () => {
   const { toast } = useToast();
-  const [designations, setDesignations] = useState<MasterDataItem[]>([]);
-  const [departments, setDepartments] = useState<MasterDataItem[]>([]);
-  const [userRoles, setUserRoles] = useState<MasterDataItem[]>([]);
-  
   const [designationInput, setDesignationInput] = useState("");
   const [departmentInput, setDepartmentInput] = useState("");
   const [userRoleInput, setUserRoleInput] = useState("");
-  
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<{ type: string; id: string } | null>(null);
 
-  // Load data from localStorage on mount
-  useEffect(() => {
-    const savedDesignations = localStorage.getItem("designations");
-    const savedDepartments = localStorage.getItem("departments");
-    const savedUserRoles = localStorage.getItem("userRoles");
-    
-    if (savedDesignations) setDesignations(JSON.parse(savedDesignations));
-    if (savedDepartments) setDepartments(JSON.parse(savedDepartments));
-    if (savedUserRoles) setUserRoles(JSON.parse(savedUserRoles));
-  }, []);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+ const onHandleSuccess = ()=>{
+    setDeleteDialogOpen(false);
+    setItemToDelete(null);
+ }
+
+  const deleteMutations = useMasterDataDelete({onSuccess:onHandleSuccess})
+  const [itemToDelete, setItemToDelete] = useState<{
+    type: keyof typeof deleteMutations;
+    id: string;
+  } | null>(null);
+
+  const [designation, department, userRole] = useQueries({
+    queries: [
+      {
+        queryKey: ["masterdesignation"],
+        queryFn: getDesignation,
+        refetchOnWindowFocus: false,
+      },
+      {
+        queryKey: ["masterdepartment"],
+        queryFn: getDepartment,
+        refetchOnWindowFocus: false,
+      },
+      {
+        queryKey: ["masteruserroles"],
+        queryFn: getUserRole,
+        refetchOnWindowFocus: false,
+      },
+    ],
+  });
+
+  const handleOnSuccess = ()=>{
+      setDesignationInput("")
+      setDepartmentInput("")
+      setUserRoleInput("")
+  }
+
+  const {departmentMutation,designationMutation,userRoleMutation} = useMasterDataSave({onSuccess:handleOnSuccess})
+  
 
   const addDesignation = () => {
     if (!designationInput.trim()) {
@@ -65,21 +103,7 @@ const MasterData = () => {
       return;
     }
 
-    const newDesignation: MasterDataItem = {
-      id: Date.now().toString(),
-      name: designationInput.trim(),
-      createdAt: new Date().toISOString(),
-    };
-
-    const updated = [...designations, newDesignation];
-    setDesignations(updated);
-    localStorage.setItem("designations", JSON.stringify(updated));
-    setDesignationInput("");
-    
-    toast({
-      title: "Success",
-      description: "Designation added successfully",
-    });
+    designationMutation.mutate({ label: designationInput });
   };
 
   const addDepartment = () => {
@@ -92,21 +116,7 @@ const MasterData = () => {
       return;
     }
 
-    const newDepartment: MasterDataItem = {
-      id: Date.now().toString(),
-      name: departmentInput.trim(),
-      createdAt: new Date().toISOString(),
-    };
-
-    const updated = [...departments, newDepartment];
-    setDepartments(updated);
-    localStorage.setItem("departments", JSON.stringify(updated));
-    setDepartmentInput("");
-    
-    toast({
-      title: "Success",
-      description: "Department added successfully",
-    });
+    departmentMutation.mutate({ label: departmentInput });
   };
 
   const addUserRole = () => {
@@ -119,68 +129,24 @@ const MasterData = () => {
       return;
     }
 
-    const newUserRole: MasterDataItem = {
-      id: Date.now().toString(),
-      name: userRoleInput.trim(),
-      createdAt: new Date().toISOString(),
-    };
-
-    const updated = [...userRoles, newUserRole];
-    setUserRoles(updated);
-    localStorage.setItem("userRoles", JSON.stringify(updated));
-    setUserRoleInput("");
-    
-    toast({
-      title: "Success",
-      description: "User role added successfully",
-    });
+    userRoleMutation.mutate({ label: userRoleInput });
   };
 
-  const confirmDelete = (type: string, id: string) => {
+  const confirmDelete = (type:keyof typeof deleteMutations, id: string) => {
     setItemToDelete({ type, id });
     setDeleteDialogOpen(true);
   };
 
   const handleDelete = () => {
-    if (!itemToDelete) return;
-
-    const { type, id } = itemToDelete;
-    
-    if (type === "designation") {
-      const updated = designations.filter((item) => item.id !== id);
-      setDesignations(updated);
-      localStorage.setItem("designations", JSON.stringify(updated));
-    } else if (type === "department") {
-      const updated = departments.filter((item) => item.id !== id);
-      setDepartments(updated);
-      localStorage.setItem("departments", JSON.stringify(updated));
-    } else if (type === "userRole") {
-      const updated = userRoles.filter((item) => item.id !== id);
-      setUserRoles(updated);
-      localStorage.setItem("userRoles", JSON.stringify(updated));
-    }
-
-    toast({
-      title: "Success",
-      description: "Item deleted successfully",
-    });
-    
-    setDeleteDialogOpen(false);
-    setItemToDelete(null);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+      deleteMutations[itemToDelete.type].mutate(itemToDelete.id)
   };
 
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Master Data Management</h1>
+        <h1 className="text-3xl font-bold text-foreground">
+          Master Data Management
+        </h1>
         <p className="text-muted-foreground mt-2">
           Manage designations, departments, and user roles
         </p>
@@ -212,7 +178,7 @@ const MasterData = () => {
                   />
                 </div>
                 <div className="flex items-end">
-                  <Button onClick={addDesignation}>
+                  <Button loading={designationMutation.isPending} onClick={addDesignation}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add
                   </Button>
@@ -223,10 +189,12 @@ const MasterData = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Designations List ({designations.length})</CardTitle>
+              <CardTitle>
+                Designations List ({designation?.data?.data?.length})
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              {designations.length === 0 ? (
+              {designation.data?.data?.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
                   No designations added yet
                 </p>
@@ -240,15 +208,20 @@ const MasterData = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {designations.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell>{formatDate(item.createdAt)}</TableCell>
+                    {designation?.data?.data?.map((item) => (
+                      <TableRow key={item._id}>
+                        <TableCell className="font-medium">
+                          {item.label}
+                        </TableCell>
+                        <TableCell>{item.createdAt}</TableCell>
                         <TableCell className="text-right">
                           <Button
                             variant="destructive"
+                            loading={deleteMutations.designationDelete.isPending}
                             size="sm"
-                            onClick={() => confirmDelete("designation", item.id)}
+                            onClick={() =>
+                              confirmDelete("designationDelete", item._id)
+                            }
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -281,7 +254,7 @@ const MasterData = () => {
                   />
                 </div>
                 <div className="flex items-end">
-                  <Button onClick={addDepartment}>
+                  <Button loading={departmentMutation.isPending} onClick={addDepartment}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add
                   </Button>
@@ -292,10 +265,12 @@ const MasterData = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Departments List ({departments.length})</CardTitle>
+              <CardTitle>
+                Departments List ({department?.data?.data?.length})
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              {departments.length === 0 ? (
+              {department?.data?.data?.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
                   No departments added yet
                 </p>
@@ -309,15 +284,20 @@ const MasterData = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {departments.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell>{formatDate(item.createdAt)}</TableCell>
+                    {department?.data?.data?.map((item) => (
+                      <TableRow key={item._id}>
+                        <TableCell className="font-medium">
+                          {item.label}
+                        </TableCell>
+                        <TableCell>{item.createdAt}</TableCell>
                         <TableCell className="text-right">
                           <Button
                             variant="destructive"
+                            loading={deleteMutations.departmentDelete.isPending}
                             size="sm"
-                            onClick={() => confirmDelete("department", item.id)}
+                            onClick={() =>
+                              confirmDelete("departmentDelete", item._id)
+                            }
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -350,7 +330,7 @@ const MasterData = () => {
                   />
                 </div>
                 <div className="flex items-end">
-                  <Button onClick={addUserRole}>
+                  <Button loading={userRoleMutation.isPending} onClick={addUserRole}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add
                   </Button>
@@ -361,10 +341,12 @@ const MasterData = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>User Roles List ({userRoles.length})</CardTitle>
+              <CardTitle>
+                User Roles List ({userRole?.data?.data?.length})
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              {userRoles.length === 0 ? (
+              {userRole?.data?.data?.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
                   No user roles added yet
                 </p>
@@ -378,15 +360,18 @@ const MasterData = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {userRoles.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell>{formatDate(item.createdAt)}</TableCell>
+                    {userRole?.data?.data?.map((item) => (
+                      <TableRow key={item._id}>
+                        <TableCell className="font-medium">
+                          {item.label}
+                        </TableCell>
+                        <TableCell>{item.createdAt}</TableCell>
                         <TableCell className="text-right">
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => confirmDelete("userRole", item.id)}
+                            loading={deleteMutations.userRoleDelete.isPending}
+                            onClick={() => confirmDelete("userRoleDelete", item._id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -406,14 +391,15 @@ const MasterData = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this item? This action cannot be undone.
+              Are you sure you want to delete this item? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setItemToDelete(null)}>
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <Button onClick={handleDelete}>Delete</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

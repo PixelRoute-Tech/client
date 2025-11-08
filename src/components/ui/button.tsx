@@ -76,7 +76,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {loading ? (
           <>
             <Spinner />
-            <span className="opacity-70">Loading...</span>
+            {/* <span className="opacity-70">Loading...</span> */}
           </>
         ) : (
           children

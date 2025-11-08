@@ -5,7 +5,10 @@ usersApi:"/api/users",
 clientApi:"/api/client",
 jobRequest:"/api/job",
 jobRequestDetails:"/api/job/details",
-worksheet:"/api/worksheet"
+worksheet:"/api/worksheet",
+designationMaster:"/api/masters/designation",
+departmentMaster:"/api/masters/department",
+userRoles:"/api/masters/userrole"
 }
 
 export default apis 
