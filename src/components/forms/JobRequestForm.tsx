@@ -32,11 +32,19 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { saveJobRequest, updateJobRequest } from "@/services/job.services";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { ClientType } from "@/types/client.type";
-export const jobStatus = ["Pending", "Approved", "Completed", "Rejected"]
+import { getWorkSheets } from "@/services/worksheet.services";
+import moment from "moment";
+export const jobStatus = ["Pending", "Approved", "Completed", "Rejected"];
 
 const testRowSchema = z.object({
   testMethod: z.string().min(1, "Test method is required"),
@@ -62,7 +70,7 @@ const jobRequestSchema = z.object({
   comment: z.string().optional(),
   divisionRules: z.string().min(1, "Division rules is required"),
   testRows: z.array(testRowSchema).min(1, "At least one test row is required"),
-  status:z.string().min(1,"Status required")
+  status: z.string().min(1, "Status required"),
 });
 
 export type JobRequestFormData = z.infer<typeof jobRequestSchema>;
@@ -81,7 +89,6 @@ export function JobRequestForm({
   isEditing = false,
 }: JobRequestFormProps) {
   const { toast } = useToast();
-  console.log("initialData=====>", initialData);
   const form = useForm<JobRequestFormData>({
     resolver: zodResolver(jobRequestSchema),
     defaultValues: initialData || {
@@ -109,7 +116,13 @@ export function JobRequestForm({
     name: "testRows",
   });
 
-  const {mutate:save,isPending:saveLoading} = useMutation({
+  const { data: activeWorksheets } = useQuery({
+    queryKey: ["worksheetforJobrequestform", selectedClient],
+    queryFn: getWorkSheets,
+    refetchOnWindowFocus: false,
+  });
+
+  const { mutate: save, isPending: saveLoading } = useMutation({
     mutationFn: saveJobRequest,
     onSuccess: (result) => {
       onSubmit(result.data);
@@ -117,19 +130,19 @@ export function JobRequestForm({
       toast({
         title: "Job request created successfully",
         description: `Job request has been submitted successfully.`,
-        className:"bg-green-500 text-white"
+        className: "bg-green-500 text-white",
       });
     },
-    onError:(e:any)=>{
-        toast({
+    onError: (e: any) => {
+      toast({
         title: "Error",
-        description:e.message,
-        className:"bg-red-500 text-white"
+        description: e.message,
+        className: "bg-red-500 text-white",
       });
-    }
+    },
   });
 
-  const {mutate:update,isPending:updateLoading} = useMutation({
+  const { mutate: update, isPending: updateLoading } = useMutation({
     mutationFn: updateJobRequest,
     onSuccess: (result) => {
       onSubmit(result.data);
@@ -137,26 +150,42 @@ export function JobRequestForm({
       toast({
         title: "Job request updated successfully",
         description: `Job request has been updated successfully.`,
-        className:"bg-green-500 text-white"
+        className: "bg-green-500 text-white",
       });
     },
-    onError:(e:any)=>{
-        toast({
+    onError: (e: any) => {
+      toast({
         title: "Error",
-        description:e.message,
-        className:"bg-red-500 text-white"
+        description: e.message,
+        className: "bg-red-500 text-white",
       });
-    }
+    },
   });
 
   const handleSubmit = (data: JobRequestFormData) => {
     console.log(data);
     if (!isEditing) {
-       save({...data,clientId:selectedClient.clientId,clientName:selectedClient.businessName,})
-    }else{
-        update({...initialData,...data,clientId:selectedClient.clientId,clientName:selectedClient.businessName,})
+      save({
+        ...data,
+        clientId: selectedClient.clientId,
+        clientName: selectedClient.businessName,
+        clientEmail:selectedClient.email,
+        startDate:moment(data.startDate).toDate(),
+        lastDate:moment(data.lastDate).toDate(),
+      });
+    } else {
+      update({
+        ...initialData,
+        ...data,
+        clientId: selectedClient.clientId,
+        clientName: selectedClient.businessName,
+        clientEmail:selectedClient.email,
+      });
     }
-  
+  };
+
+  const handleFormError = (error: any) => {
+    console.log(error);
   };
 
   const handleReset = () => {
@@ -177,8 +206,6 @@ export function JobRequestForm({
       tech: "",
     });
   };
-
-
 
   return (
     <div className="w-full max-w-6xl space-y-6">
@@ -225,7 +252,7 @@ export function JobRequestForm({
         <CardContent>
           <Form methods={form}>
             <form
-              onSubmit={form.handleSubmit(handleSubmit)}
+              onSubmit={form.handleSubmit(handleSubmit, handleFormError)}
               className="space-y-6"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -308,34 +335,34 @@ export function JobRequestForm({
                     </FormItem>
                   )}
                 />
-                  <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {jobStatus.map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {jobStatus.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <FormField
@@ -431,7 +458,7 @@ export function JobRequestForm({
                       {fields.map((field, index) => (
                         <TableRow key={field.id}>
                           <TableCell>
-                            <FormField
+                            {/* <FormField
                               control={form.control}
                               name={`testRows.${index}.testMethod`}
                               render={({ field }) => (
@@ -442,6 +469,37 @@ export function JobRequestForm({
                                       {...field}
                                     />
                                   </FormControl>
+                                </FormItem>
+                              )}
+                            /> */}
+                            <FormField
+                              control={form.control}
+                              name={`testRows.${index}.testMethod`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <Select 
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Test method" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {activeWorksheets?.data?.map(
+                                        (worksheet) => (
+                                          <SelectItem
+                                            key={worksheet.workSheetId}
+                                            value={worksheet.workSheetId}
+                                          >
+                                            {worksheet.name}
+                                          </SelectItem>
+                                        )
+                                      )}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
                                 </FormItem>
                               )}
                             />
@@ -537,7 +595,7 @@ export function JobRequestForm({
               </div>
 
               <div className="flex gap-4 pt-4">
-                <Button type="submit" className="flex-1">
+                <Button loading={saveLoading || updateLoading} type="submit" className="flex-1">
                   {isEditing ? "Update Job Request" : "Submit"}
                 </Button>
                 <Button
@@ -556,4 +614,3 @@ export function JobRequestForm({
     </div>
   );
 }
-

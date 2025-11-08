@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/skeleton-loader";
 import { authenticatedLoader } from "@/loaders/authLoaders";
 import ErrorBoundary from "@/components/ErrorPage/ErrorBoundary";
+const MasterData = lazy(() => import("@/pages/MasterData"));
+const JobRequestDetails = lazy(() => import("@/pages/JobRequestDetails"));
 const ErrorPage = lazy(() => import("@/components/ErrorPage/ErrorPage"));
 const SessionExpired = lazy(() => import("@/pages/SessionExpired"));
 const PageNotFound = lazy(() => import("@/pages/PageNotFound"));
@@ -126,6 +128,17 @@ const router = createBrowserRouter([
             ),
           },
           {
+            path: routes.userMaster,
+            loader: authenticatedLoader,
+            element: (
+              <Suspense
+                fallback={<SkeletonLoader config={skeletonConfigs.table} />}
+              >
+                <MasterData />
+              </Suspense>
+            ),
+          },
+          {
             path: routes.worksheet,
             loader: authenticatedLoader,
             element: (
@@ -201,6 +214,14 @@ const router = createBrowserRouter([
     element: (
       <Suspense fallback={<SkeletonLoader config={skeletonConfigs.login} />}>
         <Login />
+      </Suspense>
+    ),
+  },
+  {
+    path: `${routes.jobRequestDetails}/:id`,
+    element: (
+      <Suspense fallback={<SkeletonLoader config={skeletonConfigs.form} />}>
+        <JobRequestDetails />
       </Suspense>
     ),
   },

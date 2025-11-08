@@ -4,7 +4,7 @@ import { ApiResponseType } from "@/types/network.type";
 import apis from "./apis";
 
 export const saveJobRequest = async (
-  payload: Omit<JobRequest, "jobId">
+  payload: JobRequest
 ): ApiResponseType<JobRequest> => {
   try {
     return (await network.post(apis.jobRequest, payload)).data;
@@ -24,8 +24,16 @@ export const updateJobRequest = async (
 
 export const getJobRequests = async (id: string): ApiResponseType<JobRequest[]> => {
   try {
-    return (await network.get(`${apis.jobRequest}/${id}`)).data;
+    return (await network.get(`${apis.jobRequestDetails}/${id}`)).data;
   } catch (error) {
     throw new Error(error.response.data.message);
   }
 };
+
+export const getJobDetails = async (id:string):ApiResponseType<JobRequest> =>{
+     try {
+       return (await network.get(`${apis.jobRequestDetails}/${id}`)).data
+     } catch (error) {
+      throw new Error(error.response.data.message || "Oops! Something went wrong")
+     }
+}

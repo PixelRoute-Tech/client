@@ -4,6 +4,7 @@ const routes = {
     signout:"/signout",
     pageNotFound:"*",
     jobRequest:"/job-request",
+    jobRequestDetails:"/job-details",
     datatables:"/tables",
     forms:"/forms",
     themeSettings:"/theme-settings",
@@ -13,6 +14,7 @@ const routes = {
     createUser:"/create-user",
     clientOnBoarding:"/client-onboarding",
     worksheet:"/worksheets",
+    userMaster:"//master-data",
     userProfile:"/user-profile",
     worksheetNew:"/worksheets/new",
     worksheetEdit:"/worksheets/edit"

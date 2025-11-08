@@ -77,7 +77,7 @@ interface UserFormProps {
     },
   });
 
-  const { mutate: createUser } = useMutation({
+  const { mutate: createUser,isLoading:saveLoading } = useMutation({
     mutationFn: userRegistration,
     onSuccess: (result) => {
       onSubmit(result.data);
@@ -96,7 +96,7 @@ interface UserFormProps {
       });
     },
   });
-  const { mutate: updateUser } = useMutation({
+  const { mutate: updateUser,isLoading:updateLoading } = useMutation({
     mutationFn: userUpdation,
     onSuccess: (result) => {
       if (user.id == result.data.id) {
@@ -353,7 +353,7 @@ interface UserFormProps {
             />
 
             <div className="flex gap-4 pt-4">
-              <Button type="submit" className="flex-1">
+              <Button loading={saveLoading || updateLoading} type="submit" className="flex-1">
                 {Boolean(user) ? "Update User" : "Submit"}
               </Button>
               <Button

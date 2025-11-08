@@ -35,6 +35,7 @@ import { getClients } from "@/services/client.services";
 import moment from "moment";
 import { JobRequest } from "@/types/job.type";
 import { getJobRequests } from "@/services/job.services";
+import { getWorkSheets } from "@/services/worksheet.services";
 
 export default function JobRequestPage() {
   const { data: clients, refetch } = useQuery({
@@ -53,11 +54,17 @@ export default function JobRequestPage() {
   const [currentView, setCurrentView] = useState<"form" | "list">("form");
   const [selectedWorksheetId, setSelectedWorksheetId] = useState<string>("");
   const [worksheetData, setWorksheetData] = useState<WorksheetData>({});
-  const activeWorksheets = worksheetStorage.getAll().filter((w) => w.isActive);
-
-  const {data:jobRequests,refetch:jobRequestRefetch} = useQuery({
+  // const activeWorksheets = worksheetStorage.getAll().filter((w) => w.isActive);
+  
+  const {data: jobRequests,refetch:jobRequestRefetch} = useQuery({
     queryKey: ["jobrequestlist", selectedClient],
-    queryFn: async () => await getJobRequests(selectedClient.clientId),
+    queryFn: async () => await getJobRequests(selectedClient?.clientId),
+    refetchOnWindowFocus:false
+  });
+
+  const {data:activeWorksheets} = useQuery({
+    queryKey: ["worksheetforJobrequest", selectedClient],
+    queryFn:getWorkSheets,
     refetchOnWindowFocus:false
   });
 
@@ -173,7 +180,7 @@ export default function JobRequestPage() {
           />
 
           {/* Worksheet Selection */}
-          {activeWorksheets.length > 0 && (
+          {activeWorksheets?.data?.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-primary">
@@ -192,8 +199,8 @@ export default function JobRequestPage() {
                       <SelectValue placeholder="Choose a worksheet" />
                     </SelectTrigger>
                     <SelectContent>
-                      {activeWorksheets.map((worksheet) => (
-                        <SelectItem key={worksheet.id} value={worksheet.id}>
+                      {activeWorksheets?.data?.map((worksheet) => (
+                        <SelectItem key={worksheet.workSheetId} value={worksheet.workSheetId}>
                           {worksheet.name}
                         </SelectItem>
                       ))}
@@ -204,8 +211,8 @@ export default function JobRequestPage() {
                 {selectedWorksheetId && (
                   <WorksheetRenderer
                     worksheet={
-                      activeWorksheets.find(
-                        (w) => w.id === selectedWorksheetId
+                      activeWorksheets?.data?.find(
+                        (w) => w.workSheetId === selectedWorksheetId
                       )!
                     }
                     data={worksheetData}
@@ -267,59 +274,3 @@ export default function JobRequestPage() {
     </div>
   );
 }
-
-//   [
-//   {
-//     id: "1",
-//     clientId: "1",
-//     clientName: "Acme Corporation",
-//     date: new Date("2024-03-15"),
-//     summary: "Website performance testing and optimization",
-//     detailsProvided: "Need comprehensive testing of website under high load conditions",
-//     comment: "Priority testing for upcoming product launch",
-//     dateTimeDay: new Date("2024-03-20T10:00:00"),
-//     divisionRules: "Standard web testing protocols",
-//     testRows: [
-//       {
-//         testMethod: "Load Testing",
-//         testSpec: "100 concurrent users",
-//         acceptanceSpec: "Response time < 2s",
-//         toTable: "Performance Results",
-//         testProcedure: "Gradual load increase",
-//         tech: "JMeter",
-//       },
-//       {
-//         testMethod: "Stress Testing",
-//         testSpec: "500 concurrent users",
-//         acceptanceSpec: "No system crash",
-//         toTable: "Stress Results",
-//         testProcedure: "Peak load simulation",
-//         tech: "LoadRunner",
-//       },
-//     ],
-//     status: "pending",
-//     createdAt: new Date("2024-03-12"),
-//   },
-//   {
-//     id: "2",
-//     clientId: "2",
-//     clientName: "Tech Solutions Ltd",
-//     date: new Date("2024-03-18"),
-//     summary: "Mobile application security audit",
-//     detailsProvided: "Complete security assessment of mobile banking application",
-//     dateTimeDay: new Date("2024-03-25T14:00:00"),
-//     divisionRules: "OWASP Mobile Security Guidelines",
-//     testRows: [
-//       {
-//         testMethod: "Penetration Testing",
-//         testSpec: "Full app coverage",
-//         acceptanceSpec: "No critical vulnerabilities",
-//         toTable: "Security Report",
-//         testProcedure: "Black box testing",
-//         tech: "Burp Suite",
-//       },
-//     ],
-//     status: "in-progress",
-//     createdAt: new Date("2024-03-16"),
-//   },
-// ]
