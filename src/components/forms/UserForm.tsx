@@ -25,39 +25,36 @@ import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Camera } from "lucide-react";
 import { UserType } from "@/types/auth";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueries } from "@tanstack/react-query";
 import { userRegistration, userUpdation } from "@/services/user.services";
 import { useAuth } from "@/hooks/useAuth";
 import { setItem, storageKeys } from "@/utils/storage";
 import { useLocation } from "react-router-dom";
-
-const userRoles = ["Admin", "Manager", "Employee", "Contractor", "Intern"];
-const designations = [
-  "Software Engineer",
-  "Project Manager",
-  "Designer",
-  "Analyst",
-  "Developer",
-];
-const departments = ["IT", "HR", "Finance", "Marketing", "Operations", "Sales"];
+import {
+  getDepartment,
+  getDesignation,
+  getUserRole,
+} from "@/services/masters.services";
 
 export function UserForm({ onSubmit }) {
-    const location = useLocation();
+  const location = useLocation();
   const user = location.state;
   const userSchema = z.object({
-  userName: z.string().min(2, "User name must be at least 2 characters"),
-  userRole: z.string().min(1, "User role is required"),
-  designation: z.string().min(1, "Designation is required"),
-  department: z.string().min(1, "Department is required"),
-  email: z.string().email("Invalid email address"),
-  password:user?.id ? z.string().optional() : z.string().min(5,"Minimum 5 characters required"),
-});
+    userName: z.string().min(2, "User name must be at least 2 characters"),
+    userRole: z.string().min(1, "User role is required"),
+    designation: z.string().min(1, "Designation is required"),
+    department: z.string().min(1, "Department is required"),
+    email: z.string().email("Invalid email address"),
+    password: user?.id
+      ? z.string().optional().nullable()
+      : z.string().min(5, "Minimum 5 characters required"),
+  });
 
-type UserFormData = z.infer<typeof userSchema>;
+  type UserFormData = z.infer<typeof userSchema>;
 
-interface UserFormProps {
-  onSubmit: (data: UserType) => void;
-}
+  interface UserFormProps {
+    onSubmit: (data: UserType) => void;
+  }
   const { toast } = useToast();
   const { setUser } = useAuth();
 
@@ -74,10 +71,31 @@ interface UserFormProps {
       designation: "",
       department: "",
       email: "",
+      password: "",
     },
   });
 
-  const { mutate: createUser,isLoading:saveLoading } = useMutation({
+  const [designations, departments, userRoles] = useQueries({
+    queries: [
+      {
+        queryKey: ["createuserformdesignation"],
+        queryFn: getDesignation,
+        refetchOnWindowFocus: false,
+      },
+      {
+        queryKey: ["createuserformdepartment"],
+        queryFn: getDepartment,
+        refetchOnWindowFocus: false,
+      },
+      {
+        queryKey: ["createuserformuserroles"],
+        queryFn: getUserRole,
+        refetchOnWindowFocus: false,
+      },
+    ],
+  });
+
+  const { mutate: createUser, isLoading: saveLoading } = useMutation({
     mutationFn: userRegistration,
     onSuccess: (result) => {
       onSubmit(result.data);
@@ -91,12 +109,12 @@ interface UserFormProps {
     onError: (error: any) => {
       toast({
         title: "",
-        description: error.message  || "Opps! Something went wrong",
+        description: error.message || "Opps! Something went wrong",
         className: "bg-red-500 text-white",
       });
     },
   });
-  const { mutate: updateUser,isLoading:updateLoading } = useMutation({
+  const { mutate: updateUser, isLoading: updateLoading } = useMutation({
     mutationFn: userUpdation,
     onSuccess: (result) => {
       if (user.id == result.data.id) {
@@ -142,7 +160,7 @@ interface UserFormProps {
         designation: "",
         department: "",
         email: "",
-        password:""
+        password: "",
       }
     );
     toast({
@@ -247,9 +265,9 @@ interface UserFormProps {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {userRoles.map((role) => (
-                        <SelectItem key={role} value={role}>
-                          {role}
+                      {userRoles?.data?.data?.map((role) => (
+                        <SelectItem key={role._id} value={role.label}>
+                          {role.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -276,9 +294,12 @@ interface UserFormProps {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {designations.map((designation) => (
-                        <SelectItem key={designation} value={designation}>
-                          {designation}
+                      {designations?.data?.data?.map((designation) => (
+                        <SelectItem
+                          key={designation._id}
+                          value={designation.label}
+                        >
+                          {designation.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -305,9 +326,9 @@ interface UserFormProps {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {departments.map((dept) => (
-                        <SelectItem key={dept} value={dept}>
-                          {dept}
+                      {departments?.data?.data?.map((dept) => (
+                        <SelectItem key={dept._id} value={dept.label}>
+                          {dept.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -338,7 +359,9 @@ interface UserFormProps {
               control={form.control}
               name="password"
               render={({ field }) => (
-                <FormItem className={user?"hidden" : ""}>
+                <FormItem 
+                // className={Boolean(user) ? "hidden" : ""}
+                >
                   <FormLabel>Password</FormLabel>
                   <FormControl>
                     <Input
@@ -353,7 +376,11 @@ interface UserFormProps {
             />
 
             <div className="flex gap-4 pt-4">
-              <Button loading={saveLoading || updateLoading} type="submit" className="flex-1">
+              <Button
+                loading={saveLoading || updateLoading}
+                type="submit"
+                className="flex-1"
+              >
                 {Boolean(user) ? "Update User" : "Submit"}
               </Button>
               <Button
