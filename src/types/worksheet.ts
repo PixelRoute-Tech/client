@@ -9,12 +9,12 @@ export type FieldType =
   | 'file';
 
 export interface FieldOption {
-  id: string;
+  optionId: string;
   value: string;
 }
 
 export interface WorksheetField {
-  id: string;
+  fieldId: string;
   name: string;
   type: FieldType;
   required: boolean;
@@ -22,13 +22,13 @@ export interface WorksheetField {
 }
 
 export interface WorksheetSection {
-  id: string;
+  sectionId: string;
   name: string;
   fields: WorksheetField[];
 }
 
 export interface Worksheet {
-  id: string;
+  workSheetId: string;
   name: string;
   sections: WorksheetSection[];
   isActive: boolean;

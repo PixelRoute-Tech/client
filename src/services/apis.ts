@@ -2,7 +2,13 @@ const apis = {
 login:"/api/users/login",
 userRegistration:"/api/users/register",
 usersApi:"/api/users",
-clientApi:"/api/client"
+clientApi:"/api/client",
+jobRequest:"/api/job",
+jobRequestDetails:"/api/job/details",
+worksheet:"/api/worksheet",
+designationMaster:"/api/masters/designation",
+departmentMaster:"/api/masters/department",
+userRoles:"/api/masters/userrole"
 }
 
 export default apis 

@@ -346,7 +346,7 @@ export function ClientForm({
             </div>
 
             <div className="flex gap-4 pt-4">
-              <Button type="submit" className="flex-1">
+              <Button loading={saveLoading || updateLoading} type="submit" className="flex-1">
                 {isEditing ? "Update Client" : "Submit"}
               </Button>
               <Button

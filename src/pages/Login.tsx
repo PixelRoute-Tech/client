@@ -36,7 +36,7 @@ const Login = () => {
     onSuccess: (result) => {
       signin(result.data);
     },
-    onError: (e) => {
+    onError: (e:any) => {
       toast({
         title: "",
         description: e?.message,

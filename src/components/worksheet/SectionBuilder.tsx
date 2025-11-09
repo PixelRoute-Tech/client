@@ -15,7 +15,7 @@ interface SectionBuilderProps {
 export function SectionBuilder({ section, onUpdate, onDelete }: SectionBuilderProps) {
   const addField = () => {
     const newField: WorksheetField = {
-      id: crypto.randomUUID(),
+      fieldId: crypto.randomUUID(),
       name: '',
       type: 'textfield',
       required: false,
@@ -29,14 +29,14 @@ export function SectionBuilder({ section, onUpdate, onDelete }: SectionBuilderPr
   const updateField = (fieldId: string, updatedField: WorksheetField) => {
     onUpdate({
       ...section,
-      fields: section.fields.map(f => f.id === fieldId ? updatedField : f),
+      fields: section.fields.map(f => f.fieldId === fieldId ? updatedField : f),
     });
   };
 
   const deleteField = (fieldId: string) => {
     onUpdate({
       ...section,
-      fields: section.fields.filter(f => f.id !== fieldId),
+      fields: section.fields.filter(f => f.fieldId !== fieldId),
     });
   };
 
@@ -45,9 +45,9 @@ export function SectionBuilder({ section, onUpdate, onDelete }: SectionBuilderPr
       <CardHeader>
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
-            <Label htmlFor={`section-name-${section.id}`}>Section Name</Label>
+            <Label htmlFor={`section-name-${section.sectionId}`}>Section Name</Label>
             <Input
-              id={`section-name-${section.id}`}
+              id={`section-name-${section.sectionId}`}
               value={section.name}
               onChange={(e) => onUpdate({ ...section, name: e.target.value })}
               placeholder="Enter section name"
@@ -67,10 +67,10 @@ export function SectionBuilder({ section, onUpdate, onDelete }: SectionBuilderPr
       <CardContent className="space-y-4">
         {section.fields.map(field => (
           <FieldBuilder
-            key={field.id}
+            key={field.fieldId}
             field={field}
-            onUpdate={(updatedField) => updateField(field.id, updatedField)}
-            onDelete={() => deleteField(field.id)}
+            onUpdate={(updatedField) => updateField(field.fieldId, updatedField)}
+            onDelete={() => deleteField(field.fieldId)}
           />
         ))}
         
