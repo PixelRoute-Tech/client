@@ -1,3 +1,4 @@
+
 export type FieldType = 
   | 'textfield'
   | 'checkbox'
@@ -6,29 +7,48 @@ export type FieldType =
   | 'select'
   | 'autocomplete'
   | 'autocomplete-chips'
-  | 'file';
+  | 'file'
+  | 'table';
 
 export interface FieldOption {
-  optionId: string;
+  id: string;
   value: string;
 }
 
+export interface TableColumn {
+  id: string;
+  name: string;
+  type: FieldType;
+  options?: FieldOption[];
+}
+
+export interface TableActions {
+  edit: boolean;
+  view: boolean;
+  delete: boolean;
+}
+
 export interface WorksheetField {
-  fieldId: string;
+  id: string;
   name: string;
   type: FieldType;
   required: boolean;
   options?: FieldOption[];
+  tableColumns?: TableColumn[];
+  tableActions?: TableActions;
 }
 
+export type SectionLayout = 1 | 2 | 3 | 4;
+
 export interface WorksheetSection {
-  sectionId: string;
+  id: string;
   name: string;
+  layout: SectionLayout;
   fields: WorksheetField[];
 }
 
 export interface Worksheet {
-  workSheetId: string;
+  id: string;
   name: string;
   sections: WorksheetSection[];
   isActive: boolean;
