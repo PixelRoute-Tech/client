@@ -35,7 +35,7 @@ import { getClients } from "@/services/client.services";
 import moment from "moment";
 import { JobRequest } from "@/types/job.type";
 import { getJobRequests } from "@/services/job.services";
-import { getWorkSheets } from "@/services/worksheet.services";
+import { getWorkSheetslList } from "@/services/worksheet.services";
 
 export default function JobRequestPage() {
   const { data: clients, refetch } = useQuery({
@@ -44,14 +44,13 @@ export default function JobRequestPage() {
     refetchOnWindowFocus: false,
   });
   const navigate = useNavigate();
-  const [ ] = useState<JobRequest[]>([]);
   const [selectedClient, setSelectedClient] = useState<ClientType | null>(null);
   const [editingJobRequest, setEditingJobRequest] = useState<JobRequest | null>(
     null
   );
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [showClientSelection, setShowClientSelection] = useState(true);
-  const [currentView, setCurrentView] = useState<"form" | "list">("form");
+  const [currentView, setCurrentView] = useState<"form" | "list">("list");
   const [selectedWorksheetId, setSelectedWorksheetId] = useState<string>("");
   const [worksheetData, setWorksheetData] = useState<WorksheetData>({});
   // const activeWorksheets = worksheetStorage.getAll().filter((w) => w.isActive);
@@ -59,14 +58,15 @@ export default function JobRequestPage() {
   const {data: jobRequests,refetch:jobRequestRefetch} = useQuery({
     queryKey: ["jobrequestlist", selectedClient],
     queryFn: async () => await getJobRequests(selectedClient?.clientId),
+    enabled:Boolean(selectedClient?.clientId),
     refetchOnWindowFocus:false
   });
 
-  const {data:activeWorksheets} = useQuery({
-    queryKey: ["worksheetforJobrequest", selectedClient],
-    queryFn:getWorkSheets,
-    refetchOnWindowFocus:false
-  });
+  // const {data:activeWorksheets} = useQuery({
+  //   queryKey: ["worksheetforJobrequest", selectedClient],
+  //   queryFn:getWorkSheetslList,
+  //   refetchOnWindowFocus:false
+  // });
 
   const handleClientSelect = (client: ClientType) => {
     setSelectedClient(client);
@@ -86,6 +86,7 @@ export default function JobRequestPage() {
       setIsEditDialogOpen(false);
       setEditingJobRequest(null);
       refetch()
+      jobRequestRefetch()
   };
 
   const handleDelete = (jobRequestId: string) => {
@@ -159,7 +160,7 @@ export default function JobRequestPage() {
           </Button>
           <Button
             variant={currentView === "list" ? "default" : "outline"}
-            onClick={() => setCurrentView("list")}
+            onClick={() => {setCurrentView("list"),jobRequestRefetch()}}
             className="flex items-center gap-2"
           >
             <List className="h-4 w-4" />
@@ -180,7 +181,7 @@ export default function JobRequestPage() {
           />
 
           {/* Worksheet Selection */}
-          {activeWorksheets?.data?.length > 0 && (
+          {/* {activeWorksheets?.data?.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-primary">
@@ -221,7 +222,7 @@ export default function JobRequestPage() {
                 )}
               </CardContent>
             </Card>
-          )}
+          )} */}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-primary/10 rounded-lg p-4">

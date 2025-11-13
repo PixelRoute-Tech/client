@@ -1,4 +1,4 @@
-import { Field } from "@/types/worksheet";
+import { Field } from "@/types/worksheet.type";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit, Trash2, Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";

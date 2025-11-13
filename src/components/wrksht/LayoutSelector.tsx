@@ -1,4 +1,4 @@
-import { ColumnLayout } from "@/types/worksheet";
+import { ColumnLayout } from "@/types/worksheet.type";
 import { Button } from "@/components/ui/button";
 import { Columns2, Columns3, Columns4, RectangleVertical } from "lucide-react";
 

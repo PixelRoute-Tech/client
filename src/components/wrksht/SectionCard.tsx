@@ -1,4 +1,4 @@
-import { Section, ColumnLayout, FieldType } from "@/types/worksheet";
+import { Section, ColumnLayout, FieldType } from "@/types/worksheet.type";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { LayoutSelector } from "./LayoutSelector";

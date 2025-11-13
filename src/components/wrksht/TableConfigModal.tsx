@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TableConfig, TableColumn, FieldType } from "@/types/worksheet";
+import { TableConfig, TableColumn, FieldType } from "@/types/worksheet.type";
 import { Plus, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 

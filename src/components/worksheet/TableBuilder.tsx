@@ -4,7 +4,7 @@ import {
   TableActions,
   FieldType,
   FieldOption,
-} from "@/types/worksheet";
+} from "@/types/worksheet.type";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,7 +53,7 @@ export function TableBuilder({
 
   const addColumn = () => {
     const newColumn: TableColumn = {
-      id: crypto.randomUUID(),
+      columnId: crypto.randomUUID(),
       name: "",
       type: "textfield",
     };
@@ -63,21 +63,21 @@ export function TableBuilder({
   const updateColumn = (columnId: string, updates: Partial<TableColumn>) => {
     setEditingColumns(
       editingColumns.map((col) =>
-        col.id === columnId ? { ...col, ...updates } : col
+        col.columnId === columnId ? { ...col, ...updates } : col
       )
     );
   };
 
   const deleteColumn = (columnId: string) => {
-    setEditingColumns(editingColumns.filter((col) => col.id !== columnId));
+    setEditingColumns(editingColumns.filter((col) => col.columnId !== columnId));
   };
 
   const addOption = (columnId: string) => {
-    const column = editingColumns.find((col) => col.id === columnId);
+    const column = editingColumns.find((col) => col.columnId === columnId);
     if (!column) return;
 
     const newOption: FieldOption = {
-      id: crypto.randomUUID(),
+      optionId: crypto.randomUUID(),
       value: "",
     };
     updateColumn(columnId, {
@@ -86,22 +86,22 @@ export function TableBuilder({
   };
 
   const updateOption = (columnId: string, optionId: string, value: string) => {
-    const column = editingColumns.find((col) => col.id === columnId);
+    const column = editingColumns.find((col) => col.columnId === columnId);
     if (!column) return;
 
     updateColumn(columnId, {
       options: column.options?.map((opt) =>
-        opt.id === optionId ? { ...opt, value } : opt
+        opt.optionId === optionId ? { ...opt, value } : opt
       ),
     });
   };
 
   const deleteOption = (columnId: string, optionId: string) => {
-    const column = editingColumns.find((col) => col.id === columnId);
+    const column = editingColumns.find((col) => col.columnId === columnId);
     if (!column) return;
 
     updateColumn(columnId, {
-      options: column.options?.filter((opt) => opt.id !== optionId),
+      options: column.options?.filter((opt) => opt.optionId !== optionId),
     });
   };
 
@@ -223,7 +223,7 @@ export function TableBuilder({
                     );
 
                     return (
-                      <Card key={column.id}>
+                      <Card key={column.columnId}>
                         <CardContent className="pt-6 space-y-4">
                           <div className="flex gap-4 items-start">
                             <div className="flex-1 grid grid-cols-2 gap-4">
@@ -232,7 +232,7 @@ export function TableBuilder({
                                 <Input
                                   value={column.name}
                                   onChange={(e) =>
-                                    updateColumn(column.id, {
+                                    updateColumn(column.columnId, {
                                       name: e.target.value,
                                     })
                                   }
@@ -245,7 +245,7 @@ export function TableBuilder({
                                 <Select
                                   value={column.type}
                                   onValueChange={(value: FieldType) =>
-                                    updateColumn(column.id, { type: value })
+                                    updateColumn(column.columnId, { type: value })
                                   }
                                 >
                                   <SelectTrigger>
@@ -268,7 +268,7 @@ export function TableBuilder({
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => deleteColumn(column.id)}
+                              onClick={() => deleteColumn(column.columnId)}
                               className="text-destructive"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -283,7 +283,7 @@ export function TableBuilder({
                                   type="button"
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => addOption(column.id)}
+                                  onClick={() => addOption(column.columnId)}
                                 >
                                   <Plus className="h-3 w-3 mr-1" />
                                   Add Option
@@ -293,15 +293,15 @@ export function TableBuilder({
                               <div className="space-y-2">
                                 {column.options?.map((option, optIndex) => (
                                   <div
-                                    key={option.id}
+                                    key={option.optionId}
                                     className="flex items-center gap-2"
                                   >
                                     <Input
                                       value={option.value}
                                       onChange={(e) =>
                                         updateOption(
-                                          column.id,
-                                          option.id,
+                                          column.columnId,
+                                          option.optionId,
                                           e.target.value
                                         )
                                       }
@@ -312,7 +312,7 @@ export function TableBuilder({
                                       variant="ghost"
                                       size="icon"
                                       onClick={() =>
-                                        deleteOption(column.id, option.id)
+                                        deleteOption(column.columnId, option.optionId)
                                       }
                                       className="text-destructive"
                                     >

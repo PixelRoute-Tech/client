@@ -1,22 +1,21 @@
-
-export type FieldType = 
-  | 'textfield'
-  | 'checkbox'
-  | 'radio'
-  | 'textarea'
-  | 'select'
-  | 'autocomplete'
-  | 'autocomplete-chips'
-  | 'file'
-  | 'table';
+export type FieldType =
+  | "textfield"
+  | "checkbox"
+  | "radio"
+  | "textarea"
+  | "select"
+  | "autocomplete"
+  | "autocomplete-chips"
+  | "file"
+  | "table";
 
 export interface FieldOption {
-  id: string;
+  optionId: string;
   value: string;
 }
 
 export interface TableColumn {
-  id: string;
+  columnId: string;
   name: string;
   type: FieldType;
   options?: FieldOption[];
@@ -29,7 +28,7 @@ export interface TableActions {
 }
 
 export interface WorksheetField {
-  id: string;
+  fieldId: string;
   name: string;
   type: FieldType;
   required: boolean;
@@ -41,17 +40,26 @@ export interface WorksheetField {
 export type SectionLayout = 1 | 2 | 3 | 4;
 
 export interface WorksheetSection {
-  id: string;
+  sectionId: string;
   name: string;
   layout: SectionLayout;
   fields: WorksheetField[];
 }
 
 export interface Worksheet {
-  id: string;
+  workSheetId: string;
+  description?: string;
   name: string;
   sections: WorksheetSection[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
+
+export type WorksheetRecord = {
+  recordId: string;
+  worksheetId: string;
+  data: any;
+  createdAt?: string;
+  updatedAt?: string;
+};

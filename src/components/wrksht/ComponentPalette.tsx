@@ -1,6 +1,6 @@
 import { Type, ChevronDown, Calendar, CheckSquare, AlignLeft, Table } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { FieldType } from "@/types/worksheet";
+import { FieldType } from "@/types/worksheet.type";
 
 interface ComponentItem {
   type: FieldType | 'table';

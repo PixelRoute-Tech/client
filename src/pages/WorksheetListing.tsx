@@ -1,9 +1,8 @@
-
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -11,7 +10,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,33 +20,32 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Plus, Edit, Trash2, Power, PowerOff } from 'lucide-react';
-import { Worksheet } from '@/types/worksheet';
-import { worksheetStorage } from '@/utils/worksheetStorage';
-import { useToast } from '@/hooks/use-toast';
+} from "@/components/ui/alert-dialog";
+import { Plus, Edit, Trash2, Power, PowerOff } from "lucide-react";
+import { Worksheet } from "@/types/worksheet.type";
+import { worksheetStorage } from "@/utils/worksheetStorage";
+import { useToast } from "@/hooks/use-toast";
+import routes from "@/routes/routeList";
+import { useQuery } from "@tanstack/react-query";
+import { getWorkSheets } from "@/services/worksheet.services";
 
 export default function WorksheetListing() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [worksheets, setWorksheets] = useState<Worksheet[]>([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const { data: worksheets, refetch } = useQuery({
+    queryKey: ["worksheetlist"],
+    queryFn: getWorkSheets,
+  });
 
-  useEffect(() => {
-    loadWorksheets();
-  }, []);
-
-  const loadWorksheets = () => {
-    setWorksheets(worksheetStorage.getAll());
-  };
 
   const handleDelete = () => {
     if (deleteId) {
       worksheetStorage.delete(deleteId);
-      loadWorksheets();
+      refetch();
       toast({
-        title: 'Worksheet deleted',
-        description: 'The worksheet has been successfully deleted.',
+        title: "Worksheet deleted",
+        description: "The worksheet has been successfully deleted.",
       });
       setDeleteId(null);
     }
@@ -55,10 +53,10 @@ export default function WorksheetListing() {
 
   const handleToggleActive = (id: string) => {
     worksheetStorage.toggleActive(id);
-    loadWorksheets();
+    refetch();
     toast({
-      title: 'Status updated',
-      description: 'Worksheet status has been updated.',
+      title: "Status updated",
+      description: "Worksheet status has been updated.",
     });
   };
 
@@ -71,7 +69,7 @@ export default function WorksheetListing() {
             Create and manage custom worksheets
           </p>
         </div>
-        <Button onClick={() => navigate('/worksheets/new')}>
+        <Button onClick={() => navigate("/worksheets/new")}>
           <Plus className="h-4 w-4 mr-2" />
           Create New Worksheet
         </Button>
@@ -82,12 +80,12 @@ export default function WorksheetListing() {
           <CardTitle>All Worksheets</CardTitle>
         </CardHeader>
         <CardContent>
-          {worksheets.length === 0 ? (
+          {worksheets?.data?.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-4">
                 No worksheets found. Create your first worksheet to get started.
               </p>
-              <Button onClick={() => navigate('/worksheets/new')}>
+              <Button onClick={() => navigate("/worksheets/new")}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Worksheet
               </Button>
@@ -104,13 +102,17 @@ export default function WorksheetListing() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {worksheets.map(worksheet => (
-                  <TableRow key={worksheet.id}>
-                    <TableCell className="font-medium">{worksheet.name}</TableCell>
+                {worksheets?.data?.map((worksheet) => (
+                  <TableRow key={worksheet.workSheetId}>
+                    <TableCell className="font-medium">
+                      {worksheet.name}
+                    </TableCell>
                     <TableCell>{worksheet.sections.length}</TableCell>
                     <TableCell>
-                      <Badge variant={worksheet.isActive ? 'default' : 'secondary'}>
-                        {worksheet.isActive ? 'Active' : 'Disabled'}
+                      <Badge
+                        variant={worksheet.isActive ? "default" : "secondary"}
+                      >
+                        {worksheet.isActive ? "Active" : "Disabled"}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -121,14 +123,18 @@ export default function WorksheetListing() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => navigate(`/worksheets/edit/${worksheet.id}`)}
+                          onClick={() =>
+                            navigate(routes.worksheetEdit, { state: worksheet })
+                          }
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleToggleActive(worksheet.id)}
+                          onClick={() =>
+                            handleToggleActive(worksheet.workSheetId)
+                          }
                         >
                           {worksheet.isActive ? (
                             <PowerOff className="h-4 w-4" />
@@ -139,7 +145,7 @@ export default function WorksheetListing() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setDeleteId(worksheet.id)}
+                          onClick={() => setDeleteId(worksheet.workSheetId)}
                           className="text-destructive"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -159,7 +165,8 @@ export default function WorksheetListing() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Worksheet</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this worksheet? This action cannot be undone.
+              Are you sure you want to delete this worksheet? This action cannot
+              be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

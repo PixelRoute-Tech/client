@@ -3,7 +3,8 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { CalendarIcon, Plus, Trash2 } from "lucide-react";
+import { CalendarIcon, Plus, Trash2, ClipboardPenLine } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,6 +45,9 @@ import {
 import { ClientType } from "@/types/client.type";
 import { getWorkSheets } from "@/services/worksheet.services";
 import moment from "moment";
+import { getUsers } from "@/services/user.services";
+import { useNavigate } from "react-router-dom";
+import routes from "@/routes/routeList";
 export const jobStatus = ["Pending", "Approved", "Completed", "Rejected"];
 
 const testRowSchema = z.object({
@@ -67,8 +71,11 @@ const jobRequestSchema = z.object({
   detailsProvided: z
     .string()
     .min(5, "Details provided must be at least 5 characters"),
+  requiredDocument: z
+    .string()
+    .min(5, "Details provided must be at least 5 characters"),
   comment: z.string().optional(),
-  divisionRules: z.string().min(1, "Division rules is required"),
+  timeRequired: z.string().min(1, "Division rules is required"),
   testRows: z.array(testRowSchema).min(1, "At least one test row is required"),
   status: z.string().min(1, "Status required"),
 });
@@ -89,31 +96,45 @@ export function JobRequestForm({
   isEditing = false,
 }: JobRequestFormProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const form = useForm<JobRequestFormData>({
     resolver: zodResolver(jobRequestSchema),
-    defaultValues: initialData || {
-      startDate: new Date(),
-      lastDate: new Date(),
-      summary: "",
-      detailsProvided: "",
-      comment: "",
-      divisionRules: "",
-      testRows: [
-        {
-          testMethod: "",
-          testSpec: "",
-          acceptanceSpec: "",
-          toTable: "",
-          testProcedure: "",
-          tech: "",
+    defaultValues: Boolean(initialData)
+      ? {
+          ...initialData,
+          startDate: moment(initialData.startDate).toDate(),
+          lastDate: moment(initialData.lastDate).toDate(),
+        }
+      : {
+          startDate: new Date(),
+          lastDate: new Date(),
+          summary: "",
+          detailsProvided: "",
+          comment: "",
+          timeRequired: "",
+          requiredDocument:"",
+          testRows: [
+            {
+              testMethod: "",
+              testSpec: "",
+              acceptanceSpec: "",
+              toTable: "",
+              testProcedure: "",
+              tech: "",
+            },
+          ],
         },
-      ],
-    },
   });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "testRows",
+  });
+
+  const { data: usersList } = useQuery({
+    queryKey: ["usersList"],
+    queryFn: getUsers,
+    refetchOnWindowFocus: false,
   });
 
   const { data: activeWorksheets } = useQuery({
@@ -169,9 +190,9 @@ export function JobRequestForm({
         ...data,
         clientId: selectedClient.clientId,
         clientName: selectedClient.businessName,
-        clientEmail:selectedClient.email,
-        startDate:moment(data.startDate).toDate(),
-        lastDate:moment(data.lastDate).toDate(),
+        clientEmail: selectedClient.email,
+        startDate: moment(data.startDate).toDate(),
+        lastDate: moment(data.lastDate).toDate(),
       });
     } else {
       update({
@@ -179,7 +200,7 @@ export function JobRequestForm({
         ...data,
         clientId: selectedClient.clientId,
         clientName: selectedClient.businessName,
-        clientEmail:selectedClient.email,
+        clientEmail: selectedClient.email,
       });
     }
   };
@@ -261,7 +282,7 @@ export function JobRequestForm({
                   name="startDate"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Date</FormLabel>
+                      <FormLabel>Form</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -301,7 +322,7 @@ export function JobRequestForm({
                   name="lastDate"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Date-Time-Day</FormLabel>
+                      <FormLabel>To</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -331,6 +352,19 @@ export function JobRequestForm({
                           />
                         </PopoverContent>
                       </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="timeRequired"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Time required</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter Time required" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -401,7 +435,7 @@ export function JobRequestForm({
                 name="comment"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Comment (Optional)</FormLabel>
+                    <FormLabel>Work request</FormLabel>
                     <FormControl>
                       <Textarea placeholder="Enter any comments" {...field} />
                     </FormControl>
@@ -412,12 +446,12 @@ export function JobRequestForm({
 
               <FormField
                 control={form.control}
-                name="divisionRules"
+                name="requiredDocument"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Division Rules (conf)</FormLabel>
+                    <FormLabel>Document required on completion</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter division rules" {...field} />
+                      <Textarea placeholder="Enter any comments" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -477,9 +511,9 @@ export function JobRequestForm({
                               name={`testRows.${index}.testMethod`}
                               render={({ field }) => (
                                 <FormItem>
-                                  <Select 
-                                  onValueChange={field.onChange}
-                                  value={field.value}
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
                                   >
                                     <FormControl>
                                       <SelectTrigger>
@@ -568,24 +602,54 @@ export function JobRequestForm({
                               name={`testRows.${index}.tech`}
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormControl>
-                                    <Input placeholder="Tech" {...field} />
-                                  </FormControl>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Technician" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {usersList?.data?.map((tech) => (
+                                        <SelectItem
+                                          key={`${tech.id}`}
+                                          value={tech._id}
+                                        >
+                                          {tech.userName}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
                                 </FormItem>
                               )}
                             />
                           </TableCell>
                           <TableCell>
-                            {fields.length > 1 && (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => remove(index)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
+                            <div className="flex gap-1">
+                                {Boolean(initialData) && <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {console.log(field);navigate(`${routes.worksheetDetails}?sheetid=${field.testMethod}&jobid=${initialData.jobId}`)}}
+                                  >
+                                    <ClipboardPenLine className="h-4 w-4" />
+                                  </Button>}
+                              {fields.length > 1 && (
+                                <>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => remove(index)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -595,7 +659,11 @@ export function JobRequestForm({
               </div>
 
               <div className="flex gap-4 pt-4">
-                <Button loading={saveLoading || updateLoading} type="submit" className="flex-1">
+                <Button
+                  loading={saveLoading || updateLoading}
+                  type="submit"
+                  className="flex-1"
+                >
                   {isEditing ? "Update Job Request" : "Submit"}
                 </Button>
                 <Button
