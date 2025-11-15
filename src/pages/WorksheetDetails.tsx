@@ -1,6 +1,7 @@
 import { WorksheetRenderer } from "@/components/worksheet/WorksheetRenderer";
 import { getRecord, getWorkSheet } from "@/services/worksheet.services";
 import { useQuery } from "@tanstack/react-query";
+import { Button } from "react-day-picker";
 import { useSearchParams } from "react-router-dom";
 
 function WorksheetDetails() {
@@ -22,6 +23,9 @@ function WorksheetDetails() {
   });
   return (
     <div className="p-1">
+      <div className="flex justify-end items-center">
+        <Button>Report</Button>
+      </div>
       {worksheetLoading && "Fetching data"}
       {(worksheet?.data && !worksheetLoading) ? (
         <WorksheetRenderer  data={record?.data?.data} worksheet={worksheet.data} recordId={recordId}/>

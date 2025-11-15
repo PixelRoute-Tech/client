@@ -2,11 +2,12 @@ import network from "@/config/network.config";
 import apis from "./apis";
 import { UserType } from "@/types/auth";
 import { ApiResponseType } from "@/types/network.type";
+import { SettingsType } from "@/types/settings.type";
 
 export const loginServices = async (payload: {
   email: string;
   password: string;
-}): ApiResponseType<{ user: UserType; token: string }> => {
+}): ApiResponseType<{ user: UserType; token: string,settings:SettingsType }> => {
   try {
     return (await network.post(apis.login, payload)).data;
   } catch (error) {

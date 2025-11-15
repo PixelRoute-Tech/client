@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/skeleton-loader";
 import { authenticatedLoader } from "@/loaders/authLoaders";
 import ErrorBoundary from "@/components/ErrorPage/ErrorBoundary";
+import WorksheetReport from "@/pages/WorksheetReport";
 const WorksheetDetails = lazy(() => import("@/pages/WorksheetDetails"));
 const MasterData = lazy(() => import("@/pages/MasterData"));
 const JobRequestDetails = lazy(() => import("@/pages/JobRequestDetails"));
@@ -180,6 +181,17 @@ const router = createBrowserRouter([
                 fallback={<SkeletonLoader config={skeletonConfigs.form} />}
               >
                 <WorksheetDetails />
+              </Suspense>
+            ),
+          },
+          {
+            path: `${routes.worksheetReport}`,
+            loader: authenticatedLoader,
+            element: (
+              <Suspense
+                fallback={<SkeletonLoader config={skeletonConfigs.form} />}
+              >
+                <WorksheetReport />
               </Suspense>
             ),
           },
