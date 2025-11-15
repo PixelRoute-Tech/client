@@ -162,13 +162,13 @@ export default function WorksheetReport() {
           <div className="border-b-2 border-gray-800 p-6 grid grid-cols-12 items-center">
             <div className="flex items-center gap-4 col-span-3">
               <div className="w-24 h-24 border-2 border-gray-300 flex items-center justify-center text-xs text-gray-500">
-                <img src="https://www.shutterstock.com/shutterstock/photos/2278726727/display_1500/stock-vector-minimalistic-circular-logo-sample-vector-2278726727.jpg" />
+                <img src={user?.company?.logo} alt="Logo" />
               </div>
               <div>
                 <h1 className="text-sm font-bold text-gray-900">
-                  NDT Plus Pty Ltd
+                 {user.company.name}
                 </h1>
-                <p className="text-xs text-gray-600">Non Destructive Testing</p>
+                <p className="text-xs text-gray-600">{user.company.description}</p>
               </div>
             </div>
 
@@ -179,9 +179,9 @@ export default function WorksheetReport() {
             </div>
 
             <div className="text-right text-xs text-gray-700 col-span-3">
-              <p className="font-semibold">ABN: 74 361 341 455</p>
-              <p className="text-blue-600">enquiries@ndtplus.com.au</p>
-              <p>ph: +61 8 6161 3445</p>
+              <p className="font-semibold">{user.company.lisenceNo}</p>
+              <p className="text-blue-600">{user.company.email}</p>
+              <p>{user.company.contactNo}</p>
             </div>
           </div>
 
@@ -232,6 +232,18 @@ export default function WorksheetReport() {
                  
               </div>
             </div>
+           
+            <div className="space-y-2 grid grid-cols-2 my-3">
+               <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="font-bold text-gray-900">Technician</div>
+                <div className="col-span-2 text-gray-700">: {user.userName}</div>
+              </div> 
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="font-bold text-gray-900">Date of Inspection</div>
+                <div className="col-span-2 text-gray-700">: {moment().format("DD-MM-YYYY")}</div>
+              </div>
+            </div>
+
             <hr className="my-3 border-gray-300" />
             {worksheet?.sections?.map((section, sectionIndex) => (
               <div key={section.sectionId} className="mb-8">
@@ -380,10 +392,10 @@ export default function WorksheetReport() {
                   {/* NAME + QUALIFICATION */}
                   <div>
                     <p className="font-semibold text-base leading-tight">
-                      Shijumon Jaleel
+                      {user?.userName}
                     </p>
                     <p className="text-sm text-gray-700 leading-tight">
-                      ISO 9712 Level II; UT Welds
+                      {user?.qualification || ""}
                     </p>
                   </div>
                 </div>

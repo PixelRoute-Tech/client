@@ -39,11 +39,13 @@ import {
 export function UserForm({ onSubmit }) {
   const location = useLocation();
   const user = location.state;
+  const { user: currentUser } = useAuth();
   const userSchema = z.object({
     userName: z.string().min(2, "User name must be at least 2 characters"),
     userRole: z.string().min(1, "User role is required"),
     designation: z.string().min(1, "Designation is required"),
     department: z.string().min(1, "Department is required"),
+    qualification: z.string().min(1, "Department is required"),
     email: z.string().email("Invalid email address"),
     password: user?.id
       ? z.string().optional().nullable()
@@ -71,6 +73,7 @@ export function UserForm({ onSubmit }) {
       designation: "",
       department: "",
       email: "",
+      qualification: "",
       password: "",
     },
   });
@@ -117,9 +120,9 @@ export function UserForm({ onSubmit }) {
   const { mutate: updateUser, isLoading: updateLoading } = useMutation({
     mutationFn: userUpdation,
     onSuccess: (result) => {
-      if (user.id == result.data.id) {
-        setItem(storageKeys.user, result.data);
-        setUser(result.data);
+      if (currentUser.id == result.data.user.id) {
+        setItem(storageKeys.user, {...result.data.user,company:result.data.company});
+        setUser({...result.data.user,company:result.data.company});
       }
       onSubmit(result.data);
       toast({
@@ -140,6 +143,7 @@ export function UserForm({ onSubmit }) {
   const handleSubmit = (data: UserFormData) => {
     const formData = new FormData();
     user?.id && formData.append("id", user?.id);
+    formData.append("companyId", currentUser.company._id);
     formData.append("file", file);
     for (let key in data) {
       formData.append(key, data[key]);
@@ -340,6 +344,23 @@ export function UserForm({ onSubmit }) {
 
             <FormField
               control={form.control}
+              name="qualification"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Qualification/Certification</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter Qualification/Certification"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
@@ -359,7 +380,7 @@ export function UserForm({ onSubmit }) {
               control={form.control}
               name="password"
               render={({ field }) => (
-                <FormItem 
+                <FormItem
                 // className={Boolean(user) ? "hidden" : ""}
                 >
                   <FormLabel>Password</FormLabel>

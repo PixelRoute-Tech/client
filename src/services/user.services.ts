@@ -3,6 +3,7 @@ import apis from "./apis";
 import { UserType } from "@/types/auth";
 import { ApiResponseType } from "@/types/network.type";
 import { SettingsType } from "@/types/settings.type";
+import { Company } from "@/admin/types/company.type";
 
 export const loginServices = async (payload: {
   email: string;
@@ -33,7 +34,7 @@ export const userRegistration = async (
 
 export const userUpdation = async (
   payload: FormData
-): ApiResponseType<UserType> => {
+): ApiResponseType<{user:UserType,company:Company}> => {
   try {
     return (
       await network.put(apis.usersApi, payload, {

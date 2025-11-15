@@ -36,6 +36,7 @@ export default function WorksheetListing() {
   const { data: worksheets, refetch } = useQuery({
     queryKey: ["worksheetlist"],
     queryFn: getWorkSheets,
+    refetchOnWindowFocus:true
   });
 
 

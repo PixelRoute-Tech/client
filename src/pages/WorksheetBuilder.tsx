@@ -150,13 +150,13 @@ export default function WorksheetBuilder() {
       description,
       sections,
       isActive: true,
-      createdAt: worksheet?.createdAt || moment().format("DD-MM-YYYY hh:mm A"),
+      createdAt: worksheet?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
     console.log("worksheet data=====> ", workSheet);
 
-    if (worksheet.workSheetId) {
+    if (worksheet?.workSheetId) {
       workSheetUpdate.mutate(workSheet);
     } else {
       workSheetSave.mutate(workSheet);

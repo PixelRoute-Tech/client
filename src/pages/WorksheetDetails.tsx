@@ -1,4 +1,8 @@
 import { Button } from "@/components/ui/button";
+import {
+  skeletonConfigs,
+  SkeletonLoader,
+} from "@/components/ui/skeleton-loader";
 import { WorksheetRenderer } from "@/components/worksheet/WorksheetRenderer";
 import routes from "@/routes/routeList";
 import { getRecord, getWorkSheet } from "@/services/worksheet.services";
@@ -22,6 +26,7 @@ function WorksheetDetails() {
     queryFn: async () => getRecord(recordId),
     enabled: Boolean(sheetid),
     refetchOnWindowFocus: false,
+    retry: 2,
   });
 
   const navigate = useNavigate();
@@ -41,6 +46,8 @@ function WorksheetDetails() {
           recordId={recordId}
           clientId={clientId}
         />
+      ) : !worksheetLoading || !recordLoading ? (
+        <SkeletonLoader config={skeletonConfigs.form} />
       ) : (
         <div className="text-red-600 bg-red-50 p-3 rounded-md border border-red-300">
           Failed to load worksheet data. Please try again.
