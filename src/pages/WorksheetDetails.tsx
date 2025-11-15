@@ -1,8 +1,9 @@
+import { Button } from "@/components/ui/button";
 import { WorksheetRenderer } from "@/components/worksheet/WorksheetRenderer";
+import routes from "@/routes/routeList";
 import { getRecord, getWorkSheet } from "@/services/worksheet.services";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "react-day-picker";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 function WorksheetDetails() {
   const [searchParams] = useSearchParams();
@@ -20,15 +21,22 @@ function WorksheetDetails() {
     queryFn: async () => getRecord(recordId),
     enabled: Boolean(sheetid),
     refetchOnWindowFocus: false,
-  });
+  }); 
+
+ const navigate = useNavigate()
+ const handleShowReport = ()=>{
+    navigate(`${routes.worksheetReport}/${recordId}`)
+ }
   return (
     <div className="p-1">
-      <div className="flex justify-end items-center">
+
+      <div className="flex justify-end items-center p-2">
         <Button>Report</Button>
+        {recordId}
       </div>
       {worksheetLoading && "Fetching data"}
-      {(worksheet?.data && !worksheetLoading) ? (
-        <WorksheetRenderer  data={record?.data?.data} worksheet={worksheet.data} recordId={recordId}/>
+      {(worksheet?.data && !worksheetLoading && !recordLoading) ? (
+        <WorksheetRenderer  data={record?.data?.data || {}} worksheet={worksheet?.data} recordId={recordId}/>
       ) : (
         "Error to fetch the worksheet data"
       )}

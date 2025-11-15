@@ -114,20 +114,19 @@ export function WorksheetRenderer({
   };
 
   const handleSave = () => {
-    const recordId = currentRecordId;
+        const jobId = recordId.split("_")[1]
     const record = {
+      jobId,
       recordId,
       worksheetId: worksheet.workSheetId,
       data: formData,
     };
-    console.log("record = ", record);
-    // worksheetDataStorage.save(record);
     onSubmit && onSubmit(record);
     setCurrentRecordId(recordId);
-    if (Boolean(data)) {
-      save(record);
-    } else {
+    if (Object.entries(data).length > 0) {
       update(record);
+    } else {
+      save(record);
     }
   };
 
@@ -135,7 +134,6 @@ export function WorksheetRenderer({
     setFormData({});
     setCurrentRecordId("");
     onChange?.({});
-
     toast({
       title: "Reset Complete",
       description: "Form has been cleared",
@@ -475,7 +473,7 @@ export function WorksheetRenderer({
   return (
     <Card>
       <CardHeader>
-        <div className="flex gap-2 items-center">
+        <div className="grid grid-cols-12 gap-2 items-center">
           <Button
             variant="ghost"
             size="sm"
@@ -485,6 +483,7 @@ export function WorksheetRenderer({
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
           </Button>
+
           <CardTitle className="text-primary">{worksheet.name}</CardTitle>
         </div>
       </CardHeader>
@@ -527,7 +526,7 @@ export function WorksheetRenderer({
         })}
 
         <div className="flex gap-4 pt-6 border-t">
-          <Button onClick={handleSave} className="flex-1">
+          <Button loading={saveLoading} onClick={handleSave} className="flex-1">
             <Save className="h-4 w-4 mr-2" />
             {currentRecordId ? "Update" : "Save"}
           </Button>

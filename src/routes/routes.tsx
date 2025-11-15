@@ -185,7 +185,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: `${routes.worksheetReport}`,
+            path: `${routes.worksheetReport}/:id`,
             loader: authenticatedLoader,
             element: (
               <Suspense
