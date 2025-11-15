@@ -64,7 +64,7 @@ export function ClientsTable({clients, onEdit, onDelete, onSelect }: ClientsTabl
                 <TableHead>Account Contact</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className={Boolean(onSelect) ? "hidden" : "text-right" }>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -112,7 +112,7 @@ export function ClientsTable({clients, onEdit, onDelete, onSelect }: ClientsTabl
                       </div>
                     </TableCell>
                     <TableCell>{client.createdDate}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className={Boolean(onSelect) ? "hidden" : "text-right" }>
                       <div className="flex items-center justify-end gap-2">
                         <Button
                           variant="outline"
@@ -125,7 +125,7 @@ export function ClientsTable({clients, onEdit, onDelete, onSelect }: ClientsTabl
                           <Edit className="h-4 w-4 mr-1" />
                           Edit
                         </Button>
-                        <AlertDialog>
+                        <AlertDialog >
                           <AlertDialogTrigger asChild>
                             <Button 
                               variant="outline" 
