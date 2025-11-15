@@ -10,7 +10,8 @@ worksheetRecord:"/api/worksheet/record",
 designationMaster:"/api/masters/designation",
 departmentMaster:"/api/masters/department",
 userRoles:"/api/masters/userrole",
-settings:"/api/settings"
+settings:"/api/settings",
+reportRecordData:"/api/worksheet/record-data"
 }
 
 export default apis 

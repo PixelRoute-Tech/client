@@ -31,8 +31,7 @@ function WorksheetDetails() {
     <div className="p-1">
 
       <div className="flex justify-end items-center p-2">
-        <Button>Report</Button>
-        {recordId}
+        <Button onClick={handleShowReport}>Report</Button>
       </div>
       {worksheetLoading && "Fetching data"}
       {(worksheet?.data && !worksheetLoading && !recordLoading) ? (

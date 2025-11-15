@@ -1,34 +1,46 @@
-import { useRef } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useReactToPrint } from 'react-to-print';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Printer } from 'lucide-react';
-import { worksheetStorage } from '@/utils/worksheetStorage';
-import { worksheetDataStorage } from '@/utils/worksheetDataStorage';
-import { WorksheetField } from '@/types/worksheet.type';
+import { useRef, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useReactToPrint } from "react-to-print";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Printer } from "lucide-react";
+import { worksheetStorage } from "@/utils/worksheetStorage";
+import { worksheetDataStorage } from "@/utils/worksheetDataStorage";
+import { Worksheet, WorksheetField } from "@/types/worksheet.type";
+import { useQuery } from "@tanstack/react-query";
+import { getRecordData } from "@/services/worksheet.services";
 
 export default function WorksheetReport() {
-  const { worksheetId } = useParams();
+  const { id } = useParams();
   const [searchParams] = useSearchParams();
-  const recordId = searchParams.get('recordId');
+  const recordId = searchParams.get("recordId");
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement>(null);
-
+  const [worksheet,setWorkSheet] = useState<Worksheet>()
+  const [record,setRecord] = useState<any>()
   const handlePrint = useReactToPrint({
     contentRef: printRef,
-    documentTitle: 'NDTP-Inspection-Report',
+    documentTitle: "NDTP-Inspection-Report",
   });
 
-  const worksheet = worksheetStorage.getById(worksheetId || '');
-  const record = recordId ? worksheetDataStorage.getById(recordId) : null;
+  const { isLoading: loadingData } = useQuery({
+    queryKey: [`${id}forworksheetreport`, id],
+    queryFn: async () => getRecordData(id),
+    onSuccess:(result)=>{
+       setRecord(result.data[0].record)
+       setWorkSheet(result.data[0].worksheet)
+    }
+  });
 
-  
+  // const worksheet = worksheetStorage.getById(id || "");
+  // const record = recordId ? worksheetDataStorage.getById(recordId) : null;
 
   if (!worksheet || !record) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-4">Report Not Found</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-4">
+            Report Not Found
+          </h2>
           <Button onClick={() => navigate(-1)}>Go Back</Button>
         </div>
       </div>
@@ -41,16 +53,16 @@ export default function WorksheetReport() {
     const value = data[field.fieldId];
 
     switch (field.type) {
-      case 'checkbox':
-        return value ? 'Yes' : 'No';
-      case 'autocomplete-chips':
-        return Array.isArray(value) ? value.join(', ') : '-';
-      case 'file':
-        return value || '-';
-      case 'table':
+      case "checkbox":
+        return value ? "Yes" : "No";
+      case "autocomplete-chips":
+        return Array.isArray(value) ? value.join(", ") : "-";
+      case "file":
+        return value || "-";
+      case "table":
         return null; // Tables rendered separately
       default:
-        return value || '-';
+        return value || "-";
     }
   };
 
@@ -59,7 +71,11 @@ export default function WorksheetReport() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Action Bar */}
         <div className="flex justify-between items-center mb-6">
-          <Button variant="outline" onClick={() => navigate(-1)} className="gap-2">
+          <Button
+            variant="outline"
+            onClick={() => navigate(-1)}
+            className="gap-2"
+          >
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
@@ -70,13 +86,13 @@ export default function WorksheetReport() {
         </div>
 
         {/* Printable Report */}
-        <div ref={printRef} className="bg-white shadow-lg">
+        <div ref={printRef} className="bg-white">
           <style>
             {`
               @media print {
                 @page {
                   size: A4;
-                  margin: 15mm;
+                  margin: 5mm;
                 }
                 body {
                   print-color-adjust: exact;
@@ -96,23 +112,24 @@ export default function WorksheetReport() {
                 [Company Logo]
               </div>
               <div>
-                <h1 className="text-sm font-bold text-gray-900">NDT Plus Pty Ltd</h1>
+                <h1 className="text-sm font-bold text-gray-900">
+                  NDT Plus Pty Ltd
+                </h1>
                 <p className="text-xs text-gray-600">Non Destructive Testing</p>
               </div>
             </div>
+            <div className="py-6 border-b border-gray-300">
+            <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-wide">
+              {worksheet.name}
+            </h2>
+          </div>
             <div className="text-right text-xs text-gray-700">
               <p className="font-semibold">ABN: 74 361 341 455</p>
               <p className="text-blue-600">enquiries@ndtplus.com.au</p>
               <p>ph: +61 8 6161 3445</p>
             </div>
           </div>
-
-          {/* Report Title */}
-          <div className="text-center py-6 border-b border-gray-300">
-            <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-wide">
-              {worksheet.name}
-            </h2>
-          </div>
+          
 
           {/* Report Details Grid */}
           <div className="p-6">
@@ -128,19 +145,26 @@ export default function WorksheetReport() {
                 {/* Section Fields */}
                 <div className="space-y-3">
                   {section.fields.map((field) => {
-                    if (field.type === 'table') {
+                    if (field.type === "table") {
                       const tableData = data[field.fieldId] || [];
                       return (
                         <div key={field.fieldId} className="mt-6">
-                          <h4 className="font-bold text-sm text-gray-900 mb-2">{field.name}:</h4>
+                          <h4 className="font-bold text-sm text-gray-900 mb-2">
+                            {field.name}:
+                          </h4>
                           {tableData.length === 0 ? (
-                            <p className="text-sm text-gray-600 italic">No data</p>
+                            <p className="text-sm text-gray-600 italic">
+                              No data
+                            </p>
                           ) : (
                             <table className="w-full border-collapse border border-gray-400 text-xs">
                               <thead>
                                 <tr className="bg-gray-200">
                                   {field.tableColumns?.map((col) => (
-                                    <th key={col.columnId} className="border border-gray-400 px-3 py-2 text-left font-bold">
+                                    <th
+                                      key={col.columnId}
+                                      className="border border-gray-400 px-3 py-2 text-left font-bold"
+                                    >
                                       {col.name}
                                     </th>
                                   ))}
@@ -150,10 +174,15 @@ export default function WorksheetReport() {
                                 {tableData.map((row: any, idx: number) => (
                                   <tr key={idx} className="even:bg-gray-50">
                                     {field.tableColumns?.map((col) => (
-                                      <td key={col.columnId} className="border border-gray-400 px-3 py-2">
-                                        {col.type === 'checkbox'
-                                          ? (row[col.columnId] ? 'Yes' : 'No')
-                                          : (row[col.columnId] || '-')}
+                                      <td
+                                        key={col.columnId}
+                                        className="border border-gray-400 px-3 py-2"
+                                      >
+                                        {col.type === "checkbox"
+                                          ? row[col.columnId]
+                                            ? "Yes"
+                                            : "No"
+                                          : row[col.columnId] || "-"}
                                       </td>
                                     ))}
                                   </tr>
@@ -166,9 +195,16 @@ export default function WorksheetReport() {
                     }
 
                     return (
-                      <div key={field.fieldId} className="grid grid-cols-3 gap-4 text-sm">
-                        <div className="font-bold text-gray-900">{field.name}:</div>
-                        <div className="col-span-2 text-gray-700">{renderFieldValue(field)}</div>
+                      <div
+                        key={field.fieldId}
+                        className="grid grid-cols-3 gap-4 text-sm"
+                      >
+                        <div className="font-bold text-gray-900">
+                          {field.name}:
+                        </div>
+                        <div className="col-span-2 text-gray-700">
+                          {renderFieldValue(field)}
+                        </div>
                       </div>
                     );
                   })}
@@ -184,7 +220,9 @@ export default function WorksheetReport() {
             <div className="mt-12 pt-6 border-t-2 border-gray-800">
               <div className="grid grid-cols-2 gap-8">
                 <div>
-                  <p className="text-sm font-bold text-gray-900 mb-4">Reported By:</p>
+                  <p className="text-sm font-bold text-gray-900 mb-4">
+                    Reported By:
+                  </p>
                   <div className="border-b border-gray-400 w-48 mb-2"></div>
                   <p className="text-xs text-gray-600">Signature</p>
                 </div>
@@ -198,7 +236,10 @@ export default function WorksheetReport() {
 
             {/* Page Footer */}
             <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-500">
-              <p>Generated on: {new Date(record.updatedAt).toLocaleDateString()} {new Date(record.updatedAt).toLocaleTimeString()}</p>
+              <p>
+                Generated on: {new Date(record.updatedAt).toLocaleDateString()}{" "}
+                {new Date(record.updatedAt).toLocaleTimeString()}
+              </p>
               <p className="mt-2">Page 1 of 1</p>
             </div>
           </div>
