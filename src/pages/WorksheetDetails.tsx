@@ -9,7 +9,7 @@ function WorksheetDetails() {
   const [searchParams] = useSearchParams();
   const sheetid = searchParams.get("sheetid");
   const jobid = searchParams.get("jobid");
-  const recordId = `record_${jobid}_${sheetid}`
+  const recordId = `record_${jobid}_${sheetid}`;
   const { data: worksheet, isLoading: worksheetLoading } = useQuery({
     queryKey: ["worksheetdatafordetails", sheetid],
     queryFn: async () => getWorkSheet(sheetid),
@@ -21,23 +21,28 @@ function WorksheetDetails() {
     queryFn: async () => getRecord(recordId),
     enabled: Boolean(sheetid),
     refetchOnWindowFocus: false,
-  }); 
+  });
 
- const navigate = useNavigate()
- const handleShowReport = ()=>{
-    navigate(`${routes.worksheetReport}/${recordId}`)
- }
+  const navigate = useNavigate();
+  const handleShowReport = () => {
+    navigate(`${routes.worksheetReport}/${recordId}`);
+  };
   return (
     <div className="p-1">
-
       <div className="flex justify-end items-center p-2">
         <Button onClick={handleShowReport}>Report</Button>
       </div>
       {worksheetLoading && "Fetching data"}
-      {(worksheet?.data && !worksheetLoading && !recordLoading) ? (
-        <WorksheetRenderer  data={record?.data?.data || {}} worksheet={worksheet?.data} recordId={recordId}/>
+      {worksheet?.data && !worksheetLoading && !recordLoading ? (
+        <WorksheetRenderer
+          data={record?.data?.data || {}}
+          worksheet={worksheet?.data}
+          recordId={recordId}
+        />
       ) : (
-        "Error to fetch the worksheet data"
+        <div className="text-red-600 bg-red-50 p-3 rounded-md border border-red-300">
+          Failed to load worksheet data. Please try again.
+        </div>
       )}
     </div>
   );

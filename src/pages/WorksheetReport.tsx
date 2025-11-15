@@ -5,18 +5,26 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Printer } from "lucide-react";
 import { worksheetStorage } from "@/utils/worksheetStorage";
 import { worksheetDataStorage } from "@/utils/worksheetDataStorage";
-import { Worksheet, WorksheetField } from "@/types/worksheet.type";
+import { Worksheet, WorksheetField, WorksheetRecord } from "@/types/worksheet.type";
 import { useQuery } from "@tanstack/react-query";
 import { getRecordData } from "@/services/worksheet.services";
+import { useToast } from "@/hooks/use-toast";
+import { JobRequest, TechRow } from "@/types/job.type";
+import SignaturePad from "react-signature-canvas";
+import moment from "moment";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function WorksheetReport() {
   const { id } = useParams();
-  const [searchParams] = useSearchParams();
-  const recordId = searchParams.get("recordId");
+  const { toast } = useToast();
+  const {user} = useAuth()
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement>(null);
-  const [worksheet,setWorkSheet] = useState<Worksheet>()
-  const [record,setRecord] = useState<any>()
+  const [worksheet, setWorkSheet] = useState<Worksheet>();
+  const [techRow, setTechRow] = useState<TechRow>();
+  const [jobData,setJobData] = useState<JobRequest>()
+  const [record, setRecord] = useState<WorksheetRecord>();
+  const [signature, setSignature] = useState<string | ArrayBuffer>("");
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: "NDTP-Inspection-Report",
@@ -25,14 +33,47 @@ export default function WorksheetReport() {
   const { isLoading: loadingData } = useQuery({
     queryKey: [`${id}forworksheetreport`, id],
     queryFn: async () => getRecordData(id),
-    onSuccess:(result)=>{
-       setRecord(result.data[0].record)
-       setWorkSheet(result.data[0].worksheet)
-    }
+    onSuccess: (result) => {
+      try {
+        if (result?.data?.length > 0) {
+          const data = result.data[0];
+          if (data) {
+            setRecord(data?.record);
+            setWorkSheet(data?.worksheet);
+            setJobData(data.job)
+            const testRow = data?.job?.testRows.find(
+              (j) => j.testMethod == data.worksheet.workSheetId
+            );
+            setTechRow(testRow);
+          }
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Oops! Something went wrong",
+          className: "bg-red-500 text-white",
+        });
+      }
+    },
   });
 
-  // const worksheet = worksheetStorage.getById(id || "");
-  // const record = recordId ? worksheetDataStorage.getById(recordId) : null;
+  const sigRef = useRef<any>(null);
+
+  const clear = () => {
+    sigRef.current.clear();
+    setSignature("");
+  };
+
+  const handleUpload = (e: any) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setSignature(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   if (!worksheet || !record) {
     return (
@@ -106,10 +147,10 @@ export default function WorksheetReport() {
           </style>
 
           {/* Header */}
-          <div className="border-b-2 border-gray-800 p-6 flex justify-between items-start">
-            <div className="flex items-center gap-4">
+          <div className="border-b-2 border-gray-800 p-6 grid grid-cols-12 items-center">
+            <div className="flex items-center gap-4 col-span-3">
               <div className="w-24 h-24 border-2 border-gray-300 flex items-center justify-center text-xs text-gray-500">
-                [Company Logo]
+                <img src="https://www.shutterstock.com/shutterstock/photos/2278726727/display_1500/stock-vector-minimalistic-circular-logo-sample-vector-2278726727.jpg" />
               </div>
               <div>
                 <h1 className="text-sm font-bold text-gray-900">
@@ -118,37 +159,84 @@ export default function WorksheetReport() {
                 <p className="text-xs text-gray-600">Non Destructive Testing</p>
               </div>
             </div>
-            <div className="py-6 border-b border-gray-300">
-            <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-wide">
-              {worksheet.name}
-            </h2>
-          </div>
-            <div className="text-right text-xs text-gray-700">
+
+            <div className="py-6 border-gray-300 col-span-6 ">
+              <h2 className="underline text-center text-2xl font-bold text-gray-900 uppercase tracking-wide">
+                {worksheet.name}
+              </h2>
+            </div>
+
+            <div className="text-right text-xs text-gray-700 col-span-3">
               <p className="font-semibold">ABN: 74 361 341 455</p>
               <p className="text-blue-600">enquiries@ndtplus.com.au</p>
               <p>ph: +61 8 6161 3445</p>
             </div>
           </div>
-          
 
           {/* Report Details Grid */}
           <div className="p-6">
+            <div className="space-y-2 grid grid-cols-2">
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="font-bold text-gray-900">Job description</div>
+                <div className="col-span-2 text-gray-700">: {jobData.summary}</div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="font-bold text-gray-900">Report no</div>
+                <div className="col-span-2 text-gray-700">: {record.recordId}</div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="font-bold text-gray-900">Client</div>
+                <div className="col-span-2 text-gray-700">: {jobData.clientName}</div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="font-bold text-gray-900">Report date</div>
+                <div className="col-span-2 text-gray-700">: {moment().format("DD-MM-YYYY")}</div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="font-bold text-gray-900">Address</div>
+                <div className="col-span-2 text-gray-700">: {jobData.clientAddress}</div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="font-bold text-gray-900">Job no</div>
+                <div className="col-span-2 text-gray-700">: {jobData.jobId}</div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="font-bold text-gray-900">Job address</div>
+                <div className="col-span-2 text-gray-700">: {""}</div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="font-bold text-gray-900">P/O no</div>
+                <div className="col-span-2 text-gray-700">: {jobData.clientAddress}</div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="font-bold text-gray-900">Client jon no</div>
+                <div className="col-span-2 text-gray-700">: {jobData.jobId.slice(3,jobData.jobId.length -1)}</div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="font-bold text-gray-900">Attention</div>
+                <div className="col-span-2 text-gray-700">: {techRow.tech}</div>
+              </div>
+              <div className="col-span-full">
+                 
+              </div>
+            </div>
+            <hr className="my-3 border-gray-300" />
             {worksheet.sections.map((section, sectionIndex) => (
               <div key={section.sectionId} className="mb-8">
                 {/* Section Title */}
-                <div className="bg-gray-100 border-l-4 border-gray-800 px-4 py-2 mb-4">
+                {/* <div className="bg-gray-100 border-l-4 border-gray-800 px-4 py-2 mb-4">
                   <h3 className="font-bold text-gray-900 text-sm uppercase">
                     {section.name}
                   </h3>
-                </div>
+                </div> */}
 
                 {/* Section Fields */}
-                <div className="space-y-3">
+                <div className="space-y-2 grid grid-cols-2">
                   {section.fields.map((field) => {
                     if (field.type === "table") {
                       const tableData = data[field.fieldId] || [];
                       return (
-                        <div key={field.fieldId} className="mt-6">
+                        <div key={field.fieldId} className="mt-6 col-span-full">
                           <h4 className="font-bold text-sm text-gray-900 mb-2">
                             {field.name}:
                           </h4>
@@ -217,20 +305,108 @@ export default function WorksheetReport() {
             ))}
 
             {/* Report Footer */}
-            <div className="mt-12 pt-6 border-t-2 border-gray-800">
-              <div className="grid grid-cols-2 gap-8">
-                <div>
-                  <p className="text-sm font-bold text-gray-900 mb-4">
-                    Reported By:
-                  </p>
-                  <div className="border-b border-gray-400 w-48 mb-2"></div>
-                  <p className="text-xs text-gray-600">Signature</p>
-                </div>
-                <div className="text-right">
-                  <div className="w-32 h-32 border-2 border-gray-300 ml-auto flex items-center justify-center text-xs text-gray-500">
-                    [Certification Logo]
+            {/* --- CUSTOM REPORT FOOTER (Matches Screenshot) --- */}
+            <div className="mt-12 pt-10 border-t border-gray-300 text-sm leading-relaxed">
+              {/* GRID: LEFT = Signature + Name | RIGHT = NATA */}
+              <div className="grid grid-cols-12 gap-8 items-start">
+                {/* LEFT SIDE */}
+                <div className="col-span-7 space-y-4">
+                  <p className="font-semibold text-lg">Reported By:</p>
+
+                  {/* SIGNATURE BLOCK */}
+                  <div className="space-y-3">
+                    <p className="font-semibold text-gray-700">Signature:</p>
+
+                    {/* DRAW SIGNATURE */}
+                    {!signature && (
+                      <div>
+                        <SignaturePad
+                          ref={sigRef}
+                          penColor="black"
+                          canvasProps={{
+                            width: 280,
+                            height: 100,
+                            className:
+                              "border border-dashed border-gray-400 rounded bg-white shadow-sm",
+                          }}
+                        />
+
+                        <div className="flex gap-3 mt-3 no-print">
+                          <Button variant="outline" onClick={clear}>
+                            Clear
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    {signature && (
+                      <div className="space-y-2">
+                        <img
+                          src={`${signature}`}
+                          alt="saved signature"
+                          className="w-48 border"
+                        />
+                        <Button className="no-print" variant="outline" onClick={clear}>
+                          Remove Signature
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* UPLOAD SIGNATURE */}
+                    <div className="no-print">
+                      <p className="text-xs text-gray-600 mb-1">
+                        OR upload signature image
+                      </p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleUpload}
+                        className="text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  {/* NAME + QUALIFICATION */}
+                  <div>
+                    <p className="font-semibold text-base leading-tight">
+                      Shijumon Jaleel
+                    </p>
+                    <p className="text-sm text-gray-700 leading-tight">
+                      ISO 9712 Level II; UT Welds
+                    </p>
                   </div>
                 </div>
+
+                {/* RIGHT SIDE — NATA */}
+                <div className="col-span-5 flex flex-col items-end text-right space-y-1">
+                  <img
+                    src="https://eaglelighting.com.au/assets/public-assets/Nata-Text-Media-Block.jpg"
+                    alt="NATA Accreditation"
+                    className="w-40 object-contain mb-2"
+                  />
+
+                  <p className="text-xs">
+                    Accreditation No. <strong>20974</strong>
+                  </p>
+                  <p className="text-xs">Accredited for compliance with</p>
+                  <p className="text-xs font-semibold">ISO/IEC 17025</p>
+                  <p className="text-xs">TESTING</p>
+                </div>
+              </div>
+
+              {/* NOTES SECTION */}
+              <div className="mt-10 text-xs italic text-gray-700 leading-5">
+                <p>
+                  The results contained in this report are based on measurements
+                  and observations made at the time of testing and apply only to
+                  the items tested. NDT Plus assumes all information provided by
+                  the client is correct. NDT Plus is not responsible for test
+                  results that are based on inaccurate or misleading information
+                  provided by the client. Client-supplied information is
+                  indicated with ^. Measurement Uncertainty (MU) – Binary
+                  decision rule applied as per NDT quality procedure QMP-PRO-08
+                  where conformance statements are required. This report is not
+                  to be reproduced except in full.
+                </p>
               </div>
             </div>
 

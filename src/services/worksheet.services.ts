@@ -80,7 +80,7 @@ export const getRecordData = async (
 ): ApiResponseType<{
   record: WorksheetRecord;
   worksheet: Worksheet;
-  data: JobRequest;
+  job: JobRequest;
 }[]> => {
   try {
     return (await network.get(`${apis.reportRecordData}/${id}`)).data;

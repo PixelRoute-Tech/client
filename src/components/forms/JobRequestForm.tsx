@@ -190,6 +190,7 @@ export function JobRequestForm({
         ...data,
         clientId: selectedClient.clientId,
         clientName: selectedClient.businessName,
+        clientAddress:selectedClient.businessAddress,
         clientEmail: selectedClient.email,
         startDate: moment(data.startDate).toDate(),
         lastDate: moment(data.lastDate).toDate(),
@@ -199,6 +200,7 @@ export function JobRequestForm({
         ...initialData,
         ...data,
         clientId: selectedClient.clientId,
+        clientAddress:selectedClient.businessAddress,
         clientName: selectedClient.businessName,
         clientEmail: selectedClient.email,
       });
@@ -614,8 +616,8 @@ export function JobRequestForm({
                                     <SelectContent>
                                       {usersList?.data?.map((tech) => (
                                         <SelectItem
-                                          key={`${tech.id}`}
-                                          value={tech._id}
+                                          key={`${tech._id}`}
+                                          value={tech.userName}
                                         >
                                           {tech.userName}
                                         </SelectItem>
