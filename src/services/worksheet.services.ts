@@ -3,6 +3,7 @@ import { Worksheet, WorksheetRecord } from "@/types/worksheet.type";
 import apis from "./apis";
 import { ApiResponseType } from "@/types/network.type";
 import { JobRequest } from "@/types/job.type";
+import { ClientType } from "@/types/client.type";
 
 export const saveWorkSheet = async (
   payload: Worksheet
@@ -81,6 +82,7 @@ export const getRecordData = async (
   record: WorksheetRecord;
   worksheet: Worksheet;
   job: JobRequest;
+  client:ClientType
 }[]> => {
   try {
     return (await network.get(`${apis.reportRecordData}/${id}`)).data;

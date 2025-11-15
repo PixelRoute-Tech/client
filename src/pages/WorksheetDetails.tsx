@@ -9,6 +9,7 @@ function WorksheetDetails() {
   const [searchParams] = useSearchParams();
   const sheetid = searchParams.get("sheetid");
   const jobid = searchParams.get("jobid");
+  const clientId = searchParams.get("clientId");
   const recordId = `record_${jobid}_${sheetid}`;
   const { data: worksheet, isLoading: worksheetLoading } = useQuery({
     queryKey: ["worksheetdatafordetails", sheetid],
@@ -38,6 +39,7 @@ function WorksheetDetails() {
           data={record?.data?.data || {}}
           worksheet={worksheet?.data}
           recordId={recordId}
+          clientId={clientId}
         />
       ) : (
         <div className="text-red-600 bg-red-50 p-3 rounded-md border border-red-300">

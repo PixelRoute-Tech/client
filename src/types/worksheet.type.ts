@@ -59,6 +59,7 @@ export interface Worksheet {
 export type WorksheetRecord = {
   recordId: string;
   jobId?:string;
+  clientId?:string;
   worksheetId: string;
   data: any;
   createdAt?: string;

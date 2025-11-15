@@ -48,6 +48,7 @@ interface WorksheetRendererProps {
   onChange?: (data: WorksheetData) => void;
   onSubmit?: (data: WorksheetData) => void;
   recordId?: string;
+  clientId?:string
 }
 
 export function WorksheetRenderer({
@@ -56,6 +57,7 @@ export function WorksheetRenderer({
   onChange,
   onSubmit,
   recordId,
+  clientId=""
 }: WorksheetRendererProps) {
   const [formData, setFormData] = useState<WorksheetData>(data);
   const [currentRecordId, setCurrentRecordId] = useState<string>(
@@ -118,6 +120,7 @@ export function WorksheetRenderer({
     const record = {
       jobId,
       recordId,
+      clientId,
       worksheetId: worksheet.workSheetId,
       data: formData,
     };
@@ -483,8 +486,11 @@ export function WorksheetRenderer({
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
           </Button>
-
-          <CardTitle className="text-primary">{worksheet.name}</CardTitle>
+<div></div>
+<div></div>
+          <div className="col-span-5 text-center">
+            <CardTitle className="text-primary">{worksheet.name}</CardTitle>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">

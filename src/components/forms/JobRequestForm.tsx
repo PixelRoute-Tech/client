@@ -635,7 +635,7 @@ export function JobRequestForm({
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => {console.log(field);navigate(`${routes.worksheetDetails}?sheetid=${field.testMethod}&jobid=${initialData.jobId}`)}}
+                                    onClick={() => {console.log(field);navigate(`${routes.worksheetDetails}?sheetid=${field.testMethod}&jobid=${initialData.jobId}&clientId=${selectedClient.clientId}`)}}
                                   >
                                     <ClipboardPenLine className="h-4 w-4" />
                                   </Button>}

@@ -13,6 +13,7 @@ import { JobRequest, TechRow } from "@/types/job.type";
 import SignaturePad from "react-signature-canvas";
 import moment from "moment";
 import { useAuth } from "@/hooks/useAuth";
+import { ClientType } from "@/types/client.type";
 
 export default function WorksheetReport() {
   const { id } = useParams();
@@ -24,11 +25,21 @@ export default function WorksheetReport() {
   const [techRow, setTechRow] = useState<TechRow>();
   const [jobData,setJobData] = useState<JobRequest>()
   const [record, setRecord] = useState<WorksheetRecord>();
+  const [client, setClient] = useState<ClientType>();
   const [signature, setSignature] = useState<string | ArrayBuffer>("");
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: "NDTP-Inspection-Report",
   });
+
+ const createReportNo = ()=>{
+     if(client.clientId && jobData.jobId){
+        const set1 = parseInt(client.clientId.replace(/\D/g, ""), 10);
+        const set2 = parseInt(jobData.jobId.replace(/\D/g, ""), 10);
+        const set3 = moment(jobData.startDate).format("DD_YY")
+        return `${set3}/${set1}_${set2}`
+     }
+ }
 
   const { isLoading: loadingData } = useQuery({
     queryKey: [`${id}forworksheetreport`, id],
@@ -40,6 +51,7 @@ export default function WorksheetReport() {
           if (data) {
             setRecord(data?.record);
             setWorkSheet(data?.worksheet);
+            setClient(data?.client)
             setJobData(data.job)
             const testRow = data?.job?.testRows.find(
               (j) => j.testMethod == data.worksheet.workSheetId
@@ -178,15 +190,15 @@ export default function WorksheetReport() {
             <div className="space-y-2 grid grid-cols-2">
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Job description</div>
-                <div className="col-span-2 text-gray-700">: {jobData.summary}</div>
+                <div className="col-span-2 text-gray-700">: {jobData?.summary}</div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Report no</div>
-                <div className="col-span-2 text-gray-700">: {record.recordId}</div>
+                <div className="col-span-2 text-gray-700">: {createReportNo()}</div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Client</div>
-                <div className="col-span-2 text-gray-700">: {jobData.clientName}</div>
+                <div className="col-span-2 text-gray-700">: {client?.businessName}</div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Report date</div>
@@ -194,34 +206,34 @@ export default function WorksheetReport() {
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Address</div>
-                <div className="col-span-2 text-gray-700">: {jobData.clientAddress}</div>
+                <div className="col-span-2 text-gray-700">: {client?.businessAddress}</div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Job no</div>
-                <div className="col-span-2 text-gray-700">: {jobData.jobId}</div>
+                <div className="col-span-2 text-gray-700">: {jobData?.jobId}</div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Job address</div>
-                <div className="col-span-2 text-gray-700">: {""}</div>
+                <div className="col-span-2 text-gray-700">: {client?.businessAddress}</div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">P/O no</div>
-                <div className="col-span-2 text-gray-700">: {jobData.clientAddress}</div>
+                <div className="col-span-2 text-gray-700">: {client?.postalAddress}</div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Client jon no</div>
-                <div className="col-span-2 text-gray-700">: {jobData.jobId.slice(3,jobData.jobId.length -1)}</div>
+                <div className="col-span-2 text-gray-700">: {jobData?.jobId?.slice(3,jobData?.jobId?.length)}</div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Attention</div>
-                <div className="col-span-2 text-gray-700">: {techRow.tech}</div>
+                <div className="col-span-2 text-gray-700">: {techRow?.tech}</div>
               </div>
               <div className="col-span-full">
                  
               </div>
             </div>
             <hr className="my-3 border-gray-300" />
-            {worksheet.sections.map((section, sectionIndex) => (
+            {worksheet?.sections?.map((section, sectionIndex) => (
               <div key={section.sectionId} className="mb-8">
                 {/* Section Title */}
                 {/* <div className="bg-gray-100 border-l-4 border-gray-800 px-4 py-2 mb-4">
@@ -232,7 +244,7 @@ export default function WorksheetReport() {
 
                 {/* Section Fields */}
                 <div className="space-y-2 grid grid-cols-2">
-                  {section.fields.map((field) => {
+                  {section?.fields?.map((field) => {
                     if (field.type === "table") {
                       const tableData = data[field.fieldId] || [];
                       return (
@@ -259,7 +271,7 @@ export default function WorksheetReport() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {tableData.map((row: any, idx: number) => (
+                                {tableData?.map((row: any, idx: number) => (
                                   <tr key={idx} className="even:bg-gray-50">
                                     {field.tableColumns?.map((col) => (
                                       <td
