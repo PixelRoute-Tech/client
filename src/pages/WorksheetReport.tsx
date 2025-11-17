@@ -163,7 +163,7 @@ export default function WorksheetReport() {
                   display: none !important;
                 }
                   #onborder{
-                     border:none; 
+                     border:none !important; 
                   }
               }
             `}
