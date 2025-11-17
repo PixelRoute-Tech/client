@@ -9,9 +9,12 @@ import {
   WorksheetRecord,
 } from "@/types/worksheet.type";
 import { useQuery } from "@tanstack/react-query";
-import { getRecordData, JobRequestTemp, TechRowTemp } from "@/services/worksheet.services";
+import {
+  getRecordData,
+  JobRequestTemp,
+  TechRowTemp,
+} from "@/services/worksheet.services";
 import { useToast } from "@/hooks/use-toast";
-import { JobRequest, TechRow } from "@/types/job.type";
 import SignaturePad from "react-signature-canvas";
 import moment from "moment";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,6 +35,9 @@ export default function WorksheetReport() {
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: "NDTP-Inspection-Report",
+    onAfterPrint: () => {
+      console.log("After print completed or print dialog was closed");
+    },
   });
 
   const createReportNo = () => {
@@ -156,6 +162,9 @@ export default function WorksheetReport() {
                 .no-print {
                   display: none !important;
                 }
+                  #onborder{
+                     border:none; 
+                  }
               }
             `}
           </style>
@@ -320,9 +329,9 @@ export default function WorksheetReport() {
                                       >
                                         {col.type === "checkbox" ? (
                                           row[col.columnId] ? (
-                                            <Check className="w-4 h-4 text-green-500"/>
+                                            <Check className="w-4 h-4 text-green-500" />
                                           ) : (
-                                            <X className="w-4 h-4 text-red-500"/>
+                                            <X className="w-4 h-4 text-red-500" />
                                           )
                                         ) : (
                                           row[col.columnId] || "-"
@@ -376,16 +385,17 @@ export default function WorksheetReport() {
                     {/* DRAW SIGNATURE */}
                     {!signature && (
                       <div>
-                        <SignaturePad
-                          ref={sigRef}
-                          penColor="black"
-                          canvasProps={{
-                            width: 280,
-                            height: 100,
-                            className:
-                              "border border-dashed border-gray-400 rounded bg-white shadow-sm",
-                          }}
-                        />
+                        <div id="onborder" className="border border-dashed border-gray-400 w-fit">
+                          <SignaturePad
+                            ref={sigRef}
+                            penColor="black"
+                            canvasProps={{
+                              width: 280,
+                              height: 100,
+                              className: " rounded bg-white shadow-sm",
+                            }}
+                          />
+                        </div>
 
                         <div className="flex gap-3 mt-3 no-print">
                           <Button variant="outline" onClick={clear}>
@@ -476,7 +486,7 @@ export default function WorksheetReport() {
                 Generated on: {new Date(record.updatedAt).toLocaleDateString()}{" "}
                 {new Date(record.updatedAt).toLocaleTimeString()}
               </p>
-              <p className="mt-2">Page 1 of 1</p>
+              {/* <p className="mt-2">Page 1 of 1</p> */}
             </div>
           </div>
         </div>

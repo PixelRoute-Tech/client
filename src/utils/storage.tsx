@@ -24,7 +24,7 @@ export const getItem = (key:keyof typeof storageKeys | string):any|false=>{
 
 export const clearStorage = ()=>{
      try {
-        [storageKeys.user].map(key=>{
+        [storageKeys.user,storageKeys.token].map(key=>{
          localStorage.removeItem(key)
         })
         return true
