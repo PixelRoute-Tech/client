@@ -617,7 +617,7 @@ export function JobRequestForm({
                                       {usersList?.data?.map((tech) => (
                                         <SelectItem
                                           key={`${tech._id}`}
-                                          value={tech.userName}
+                                          value={tech.id}
                                         >
                                           {tech.userName}
                                         </SelectItem>
