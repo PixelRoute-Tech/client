@@ -46,7 +46,7 @@ function WorksheetDetails() {
           recordId={recordId}
           clientId={clientId}
         />
-      ) : !worksheetLoading || !recordLoading ? (
+      ) : (worksheetLoading || recordLoading) ? (
         <SkeletonLoader config={skeletonConfigs.form} />
       ) : (
         <div className="text-red-600 bg-red-50 p-3 rounded-md border border-red-300">

@@ -1,13 +1,15 @@
 import { useRef, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer } from "lucide-react";
-import { worksheetStorage } from "@/utils/worksheetStorage";
-import { worksheetDataStorage } from "@/utils/worksheetDataStorage";
-import { Worksheet, WorksheetField, WorksheetRecord } from "@/types/worksheet.type";
+import { ArrowLeft, Printer, Check, X } from "lucide-react";
+import {
+  Worksheet,
+  WorksheetField,
+  WorksheetRecord,
+} from "@/types/worksheet.type";
 import { useQuery } from "@tanstack/react-query";
-import { getRecordData } from "@/services/worksheet.services";
+import { getRecordData, JobRequestTemp, TechRowTemp } from "@/services/worksheet.services";
 import { useToast } from "@/hooks/use-toast";
 import { JobRequest, TechRow } from "@/types/job.type";
 import SignaturePad from "react-signature-canvas";
@@ -18,12 +20,12 @@ import { ClientType } from "@/types/client.type";
 export default function WorksheetReport() {
   const { id } = useParams();
   const { toast } = useToast();
-  const {user} = useAuth()
+  const { user } = useAuth();
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement>(null);
   const [worksheet, setWorkSheet] = useState<Worksheet>();
-  const [techRow, setTechRow] = useState<TechRow>();
-  const [jobData,setJobData] = useState<JobRequest>()
+  const [techRow, setTechRow] = useState<TechRowTemp>();
+  const [jobData, setJobData] = useState<JobRequestTemp>();
   const [record, setRecord] = useState<WorksheetRecord>();
   const [client, setClient] = useState<ClientType>();
   const [signature, setSignature] = useState<string | ArrayBuffer>("");
@@ -32,14 +34,14 @@ export default function WorksheetReport() {
     documentTitle: "NDTP-Inspection-Report",
   });
 
- const createReportNo = ()=>{
-     if(client.clientId && jobData.jobId){
-        const set1 = parseInt(client.clientId.replace(/\D/g, ""), 10);
-        const set2 = parseInt(jobData.jobId.replace(/\D/g, ""), 10);
-        const set3 = moment(jobData.startDate).format("DD_YY")
-        return `${set3}/${set1}_${set2}`
-     }
- }
+  const createReportNo = () => {
+    if (client.clientId && jobData.jobId) {
+      const set1 = parseInt(client.clientId.replace(/\D/g, ""), 10);
+      const set2 = parseInt(jobData.jobId.replace(/\D/g, ""), 10);
+      const set3 = moment(jobData.startDate).format("DD_YY");
+      return `${set3}/${set1}_${set2}`;
+    }
+  };
 
   const { isLoading: loadingData } = useQuery({
     queryKey: [`${id}forworksheetreport`, id],
@@ -51,8 +53,8 @@ export default function WorksheetReport() {
           if (data) {
             setRecord(data?.record);
             setWorkSheet(data?.worksheet);
-            setClient(data?.client)
-            setJobData(data.job)
+            setClient(data?.client);
+            setJobData(data.job);
             const testRow = data?.job?.testRows.find(
               (j) => j.testMethod == data.worksheet.workSheetId
             );
@@ -166,21 +168,23 @@ export default function WorksheetReport() {
               </div>
               <div>
                 <h1 className="text-sm font-bold text-gray-900">
-                 {user.company.name}
+                  {user?.company?.name}
                 </h1>
-                <p className="text-xs text-gray-600">{user.company.description}</p>
+                <p className="text-xs text-gray-600">
+                  {user?.company?.description}
+                </p>
               </div>
             </div>
 
             <div className="py-6 border-gray-300 col-span-6 ">
               <h2 className="underline text-center text-2xl font-bold text-gray-900 uppercase tracking-wide">
-                {worksheet.name}
+                {worksheet?.name}
               </h2>
             </div>
 
             <div className="text-right text-xs text-gray-700 col-span-3">
-              <p className="font-semibold">{user.company.lisenceNo}</p>
-              <p className="text-blue-600">{user.company.email}</p>
+              <p className="font-semibold">{user?.company?.lisenceNo}</p>
+              <p className="text-blue-600">{user?.company?.email}</p>
               <p>{user.company.contactNo}</p>
             </div>
           </div>
@@ -190,57 +194,81 @@ export default function WorksheetReport() {
             <div className="space-y-2 grid grid-cols-2">
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Job description</div>
-                <div className="col-span-2 text-gray-700">: {jobData?.summary}</div>
+                <div className="col-span-2 text-gray-700">
+                  : {jobData?.summary}
+                </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Report no</div>
-                <div className="col-span-2 text-gray-700">: {createReportNo()}</div>
+                <div className="col-span-2 text-gray-700">
+                  : {createReportNo()}
+                </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Client</div>
-                <div className="col-span-2 text-gray-700">: {client?.businessName}</div>
+                <div className="col-span-2 text-gray-700">
+                  : {client?.businessName}
+                </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Report date</div>
-                <div className="col-span-2 text-gray-700">: {moment().format("DD-MM-YYYY")}</div>
+                <div className="col-span-2 text-gray-700">
+                  : {moment().format("DD-MM-YYYY")}
+                </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Address</div>
-                <div className="col-span-2 text-gray-700">: {client?.businessAddress}</div>
+                <div className="col-span-2 text-gray-700">
+                  : {client?.businessAddress}
+                </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Job no</div>
-                <div className="col-span-2 text-gray-700">: {jobData?.jobId}</div>
+                <div className="col-span-2 text-gray-700">
+                  : {jobData?.jobId}
+                </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Job address</div>
-                <div className="col-span-2 text-gray-700">: {client?.businessAddress}</div>
+                <div className="col-span-2 text-gray-700">
+                  : {client?.businessAddress}
+                </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">P/O no</div>
-                <div className="col-span-2 text-gray-700">: {client?.postalAddress}</div>
+                <div className="col-span-2 text-gray-700">
+                  : {client?.postalAddress}
+                </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Client jon no</div>
-                <div className="col-span-2 text-gray-700">: {jobData?.jobId?.slice(3,jobData?.jobId?.length)}</div>
+                <div className="col-span-2 text-gray-700">
+                  : {jobData?.jobId?.slice(3, jobData?.jobId?.length)}
+                </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Attention</div>
-                <div className="col-span-2 text-gray-700">: {techRow?.tech}</div>
+                <div className="col-span-2 text-gray-700">
+                  : {techRow?.tech.userName}
+                </div>
               </div>
-              <div className="col-span-full">
-                 
-              </div>
+              <div className="col-span-full"></div>
             </div>
-           
+
             <div className="space-y-2 grid grid-cols-2 my-3">
-               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900">Technician</div>
-                <div className="col-span-2 text-gray-700">: {user.userName}</div>
-              </div> 
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900">Date of Inspection</div>
-                <div className="col-span-2 text-gray-700">: {moment().format("DD-MM-YYYY")}</div>
+                <div className="font-bold text-gray-900">Technician</div>
+                <div className="col-span-2 text-gray-700">
+                  : {user.userName}
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="font-bold text-gray-900">
+                  Date of Inspection
+                </div>
+                <div className="col-span-2 text-gray-700">
+                  : {moment().format("DD-MM-YYYY")}
+                </div>
               </div>
             </div>
 
@@ -290,11 +318,15 @@ export default function WorksheetReport() {
                                         key={col.columnId}
                                         className="border border-gray-400 px-3 py-2"
                                       >
-                                        {col.type === "checkbox"
-                                          ? row[col.columnId]
-                                            ? "Yes"
-                                            : "No"
-                                          : row[col.columnId] || "-"}
+                                        {col.type === "checkbox" ? (
+                                          row[col.columnId] ? (
+                                            <Check className="w-4 h-4 text-green-500"/>
+                                          ) : (
+                                            <X className="w-4 h-4 text-red-500"/>
+                                          )
+                                        ) : (
+                                          row[col.columnId] || "-"
+                                        )}
                                       </td>
                                     ))}
                                   </tr>
@@ -369,7 +401,11 @@ export default function WorksheetReport() {
                           alt="saved signature"
                           className="w-48 border"
                         />
-                        <Button className="no-print" variant="outline" onClick={clear}>
+                        <Button
+                          className="no-print"
+                          variant="outline"
+                          onClick={clear}
+                        >
                           Remove Signature
                         </Button>
                       </div>

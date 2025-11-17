@@ -2,8 +2,9 @@ import network from "@/config/network.config";
 import { Worksheet, WorksheetRecord } from "@/types/worksheet.type";
 import apis from "./apis";
 import { ApiResponseType } from "@/types/network.type";
-import { JobRequest } from "@/types/job.type";
+import { JobRequest, TechRow } from "@/types/job.type";
 import { ClientType } from "@/types/client.type";
+import { ReplaceField } from "@/types/types";
 
 export const saveWorkSheet = async (
   payload: Worksheet
@@ -76,14 +77,29 @@ export const updateRecord = async (
   }
 };
 
+export type TechRowTemp = ReplaceField<
+  TechRow,
+  "tech",
+  {
+    _id: string;
+    id: string;
+    userName: string;
+    email: string;
+  }
+>;
+
+export type JobRequestTemp = ReplaceField<JobRequest,"testRows",Array<TechRowTemp>>
+
 export const getRecordData = async (
   id: string
-): ApiResponseType<{
-  record: WorksheetRecord;
-  worksheet: Worksheet;
-  job: JobRequest;
-  client:ClientType
-}[]> => {
+): ApiResponseType<
+  {
+    record: WorksheetRecord;
+    worksheet: Worksheet;
+    job: JobRequestTemp;
+    client: ClientType;
+  }[]
+> => {
   try {
     return (await network.get(`${apis.reportRecordData}/${id}`)).data;
   } catch (error) {
