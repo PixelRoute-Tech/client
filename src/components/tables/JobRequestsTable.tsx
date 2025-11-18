@@ -53,7 +53,7 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsT
   };
 
   const truncateText = (text: string, maxLength: number = 50) => {
-    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+    return text?.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
   };
 
   return (
@@ -127,7 +127,7 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsT
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {job.testRows.length} method{job.testRows.length !== 1 ? 's' : ''}
+                        {job?.testRows?.length} method{job?.testRows?.length !== 1 ? 's' : ''}
                       </div>
                     </TableCell>
                     <TableCell>

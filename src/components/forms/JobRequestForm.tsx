@@ -48,6 +48,8 @@ import moment from "moment";
 import { getUsers } from "@/services/user.services";
 import { useNavigate } from "react-router-dom";
 import routes from "@/routes/routeList";
+import { useAuth } from "@/hooks/useAuth";
+import { TechRow } from "@/types/job.type";
 export const jobStatus = ["Pending", "Approved", "Completed", "Rejected"];
 
 const testRowSchema = z.object({
@@ -85,7 +87,7 @@ export type JobRequestFormData = z.infer<typeof jobRequestSchema>;
 interface JobRequestFormProps {
   onSubmit: (data: JobRequestFormData) => void;
   selectedClient?: ClientType;
-  initialData?: JobRequestFormData;
+  initialData?: JobRequestFormData & {jobId:string};
   isEditing?: boolean;
 }
 
@@ -97,6 +99,7 @@ export function JobRequestForm({
 }: JobRequestFormProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const form = useForm<JobRequestFormData>({
     resolver: zodResolver(jobRequestSchema),
     defaultValues: Boolean(initialData)
@@ -112,7 +115,7 @@ export function JobRequestForm({
           detailsProvided: "",
           comment: "",
           timeRequired: "",
-          requiredDocument:"",
+          requiredDocument: "",
           testRows: [
             {
               testMethod: "",
@@ -188,9 +191,12 @@ export function JobRequestForm({
     if (!isEditing) {
       save({
         ...data,
+        createdBy: user.id,
+        testRows: data.testRows as TechRow[],
+        comment: data.comment,
         clientId: selectedClient.clientId,
         clientName: selectedClient.businessName,
-        clientAddress:selectedClient.businessAddress,
+        clientAddress: selectedClient.businessAddress,
         clientEmail: selectedClient.email,
         startDate: moment(data.startDate).toDate(),
         lastDate: moment(data.lastDate).toDate(),
@@ -199,8 +205,10 @@ export function JobRequestForm({
       update({
         ...initialData,
         ...data,
+        testRows: data.testRows as TechRow[],
+        createdBy: user.id,
         clientId: selectedClient.clientId,
-        clientAddress:selectedClient.businessAddress,
+        clientAddress: selectedClient.businessAddress,
         clientName: selectedClient.businessName,
         clientEmail: selectedClient.email,
       });
@@ -486,7 +494,7 @@ export function JobRequestForm({
                         <TableHead>Acceptance Spec</TableHead>
                         <TableHead>To Table</TableHead>
                         <TableHead>Test Procedure</TableHead>
-                        <TableHead>Tech</TableHead>
+                        <TableHead>Technician </TableHead>
                         <TableHead className="w-[50px]">Action</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -631,14 +639,21 @@ export function JobRequestForm({
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-1">
-                                {Boolean(initialData) && <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {console.log(field);navigate(`${routes.worksheetDetails}?sheetid=${field.testMethod}&jobid=${initialData.jobId}&clientId=${selectedClient.clientId}`)}}
-                                  >
-                                    <ClipboardPenLine className="h-4 w-4" />
-                                  </Button>}
+                              {Boolean(initialData) && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    console.log(field);
+                                    navigate(
+                                      `${routes.worksheetDetails}?sheetid=${field.testMethod}&jobid=${initialData?.jobId}&clientId=${selectedClient.clientId}`
+                                    );
+                                  }}
+                                >
+                                  <ClipboardPenLine className="h-4 w-4" />
+                                </Button>
+                              )}
                               {fields.length > 1 && (
                                 <>
                                   <Button

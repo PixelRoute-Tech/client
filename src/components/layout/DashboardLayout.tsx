@@ -77,7 +77,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         id: "test1",
                         title: "Test notification",
                         message: "Test notification message",
-                        type: "success",
+                        type: "default",
                         isRead: false,
                         timestamp: new Date(),
                       },
