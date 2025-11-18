@@ -1,3 +1,4 @@
+import { Company } from "@/admin/types/company.type";
 import { Dispatch, SetStateAction } from "react";
 
 export type UserType = {
@@ -13,6 +14,8 @@ export type UserType = {
   joinDate?: Date;
   rememberMe: boolean;
   password: string;
+  company:Company;
+  qualification:string
 };
 export type AuthContextType = {
   user: UserType | null;

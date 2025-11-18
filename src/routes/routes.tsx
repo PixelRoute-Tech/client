@@ -8,6 +8,9 @@ import {
 } from "@/components/ui/skeleton-loader";
 import { authenticatedLoader } from "@/loaders/authLoaders";
 import ErrorBoundary from "@/components/ErrorPage/ErrorBoundary";
+import WorksheetReport from "@/pages/WorksheetReport";
+import { adminRouter } from "@/admin/routes/routes";
+const WorksheetDetails = lazy(() => import("@/pages/WorksheetDetails"));
 const MasterData = lazy(() => import("@/pages/MasterData"));
 const JobRequestDetails = lazy(() => import("@/pages/JobRequestDetails"));
 const ErrorPage = lazy(() => import("@/components/ErrorPage/ErrorPage"));
@@ -172,6 +175,28 @@ const router = createBrowserRouter([
             ),
           },
           {
+            path: `${routes.worksheetDetails}`,
+            loader: authenticatedLoader,
+            element: (
+              <Suspense
+                fallback={<SkeletonLoader config={skeletonConfigs.form} />}
+              >
+                <WorksheetDetails />
+              </Suspense>
+            ),
+          },
+          {
+            path: `${routes.worksheetReport}/:id`,
+            loader: authenticatedLoader,
+            element: (
+              <Suspense
+                fallback={<SkeletonLoader config={skeletonConfigs.form} />}
+              >
+                <WorksheetReport />
+              </Suspense>
+            ),
+          },
+          {
             path: routes.userProfile,
             loader: authenticatedLoader,
             element: (
@@ -240,6 +265,10 @@ const router = createBrowserRouter([
         <PageNotFound />
       </Suspense>
     ),
+  },
+  {
+    path: "/admin",
+    children:adminRouter
   },
 ]);
 

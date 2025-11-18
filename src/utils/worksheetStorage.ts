@@ -1,4 +1,4 @@
-import { Worksheet } from '@/types/worksheet';
+import { Worksheet } from '@/types/worksheet.type';
 
 const STORAGE_KEY = 'worksheets';
 

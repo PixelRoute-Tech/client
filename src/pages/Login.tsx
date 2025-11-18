@@ -21,22 +21,28 @@ import { loginServices } from "@/services/user.services";
 import FormCheckbox from "@/components/forms/fields/FormCheckbox";
 import { useToast } from "@/hooks/use-toast";
 import { AxiosError } from "axios";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const Login = () => {
   const { signin } = useAuth();
-  const { control, handleSubmit } = useForm<{email:string,password:string}>({
-    defaultValues:{
-      email:null,
-      password:null
-    }
+  const { updateTheme } = useTheme();
+  const { control, handleSubmit } = useForm<{
+    email: string;
+    password: string;
+  }>({
+    defaultValues: {
+      email: null,
+      password: null,
+    },
   });
   const { toast } = useToast();
   const { mutate, isPending } = useMutation({
     mutationFn: loginServices,
     onSuccess: (result) => {
       signin(result.data);
+      updateTheme(result.data.settings);
     },
-    onError: (e:any) => {
+    onError: (e: any) => {
       toast({
         title: "",
         description: e?.message,
@@ -44,7 +50,7 @@ const Login = () => {
       });
     },
   });
-  const onSubmit = (e: {email:string,password:string}) => {
+  const onSubmit = (e: { email: string; password: string }) => {
     mutate(e);
   };
 

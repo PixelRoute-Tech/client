@@ -1,10 +1,11 @@
-import { WorksheetField, FieldType, FieldOption } from '@/types/worksheet';
+import { WorksheetField, FieldType, FieldOption } from '@/types/worksheet.type';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Plus } from 'lucide-react';
+import { TableBuilder } from './TableBuilder';
 
 interface FieldBuilderProps {
   field: WorksheetField;
@@ -21,13 +22,15 @@ const FIELD_TYPES: { value: FieldType; label: string }[] = [
   { value: 'autocomplete', label: 'Autocomplete' },
   { value: 'autocomplete-chips', label: 'Autocomplete with Chips' },
   { value: 'file', label: 'Files Field' },
+  { value: 'table', label: 'Table' },
 ];
 
 const TYPES_WITH_OPTIONS: FieldType[] = ['radio', 'select', 'autocomplete', 'autocomplete-chips'];
 
 export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
   const showOptions = TYPES_WITH_OPTIONS.includes(field.type);
-  
+  const isTable = field.type === 'table';
+
   const addOption = () => {
     const newOption: FieldOption = {
       optionId: crypto.randomUUID(),
@@ -147,6 +150,18 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {isTable && (
+        <div className="pl-4 border-l-2 border-muted">
+          <TableBuilder
+            columns={field.tableColumns || []}
+            actions={field.tableActions || { edit: false, view: false, delete: false }}
+            onUpdate={(columns, actions) => 
+              onUpdate({ ...field, tableColumns: columns, tableActions: actions })
+            }
+          />
         </div>
       )}
     </div>
