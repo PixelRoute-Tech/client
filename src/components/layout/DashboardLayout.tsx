@@ -17,6 +17,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import routes from "@/routes/routeList";
 import { NotificationList } from "../ui/notification-list";
+import { useSocketListen } from "@/hooks/use-socket";
+import { useEffect } from "react";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -35,6 +37,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const handleNavigateSettings = () => {
     navigate(routes.settings);
   };
+
+  const notifications = useSocketListen("notification");
+  useEffect(() => {
+    console.log("notifications ====> ", notifications);
+  }, [notifications]);
+
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-background">
@@ -94,7 +102,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     className="flex items-center gap-2 hover:bg-muted/50"
                   >
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={`${import.meta.env.VITE_API_URL}${user?.imageUrl ?? ""}`} />
+                      <AvatarImage
+                        src={`${import.meta.env.VITE_API_URL}${
+                          user?.imageUrl ?? ""
+                        }`}
+                      />
                       <AvatarFallback className="bg-primary text-primary-foreground">
                         {user.shortName}
                       </AvatarFallback>

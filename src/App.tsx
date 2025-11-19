@@ -9,11 +9,11 @@ import { SplashScreen } from "@/components/ui/splash-screen";
 import router from "./routes/routes";
 import AuthProvider from "./contexts/AuthContext";
 import MainRoute from "./routes/MainRoute";
+import { useInitSocket } from "./hooks/use-socket";
 const queryClient = new QueryClient();
 
 const App = () => {
-
-
+useInitSocket("token")
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
