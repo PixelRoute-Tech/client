@@ -1,15 +1,22 @@
 import { getSocket, initSocket, socketEvents } from "@/config/socket.config";
 import { useEffect, useState } from "react";
+import { useAuth } from "./useAuth";
 
-export function useInitSocket(token) {
+export function useInitSocket() {
+  const { user } = useAuth();
+  const token = "test";
   useEffect(() => {
-    const s = initSocket(token);
-    return () => {
-      try {
-        s.disconnect();
-      } catch (e) {}
-    };
-  }, [token]);
+    if (user?.id) {
+      const s = initSocket({ token, userId: user?.id });
+      return () => {
+        try {
+          s.disconnect();
+        } catch (e) {
+          console.log(e)
+        }
+      };
+    }
+  }, [user]);
 }
 
 export function useSocketListen(eventName: keyof typeof socketEvents) {

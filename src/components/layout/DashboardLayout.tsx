@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import routes from "@/routes/routeList";
 import { NotificationList } from "../ui/notification-list";
-import { useSocketListen } from "@/hooks/use-socket";
+import { useInitSocket, useSocketListen } from "@/hooks/use-socket";
 import { useEffect } from "react";
 
 interface DashboardLayoutProps {
@@ -142,7 +142,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 overflow-auto">{children}</main>
+          <main className="flex-1 overflow-auto">
+            {children}
+            </main>
         </div>
       </div>
     </SidebarProvider>
