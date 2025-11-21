@@ -11,7 +11,8 @@ designationMaster:"/api/masters/designation",
 departmentMaster:"/api/masters/department",
 userRoles:"/api/masters/userrole",
 settings:"/api/settings",
-reportRecordData:"/api/worksheet/record-data"
+reportRecordData:"/api/worksheet/record-data",
+notification:"/api/notification"
 }
 
 export default apis 

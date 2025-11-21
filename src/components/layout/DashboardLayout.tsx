@@ -18,15 +18,22 @@ import { useNavigate } from "react-router-dom";
 import routes from "@/routes/routeList";
 import { NotificationList } from "../ui/notification-list";
 import { useInitSocket, useSocketListen } from "@/hooks/use-socket";
-import { useEffect } from "react";
-
+import { useEffect, useState } from "react";
+import { Notification } from "@/types/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getNotification, updateNotification } from "@/services/notification.services";
+import { useToast } from "@/hooks/use-toast";
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { signout, startLoading, user } = useAuth();
+  const [notifications, setNotifications] = useState<Notification[]>();
+  const [notificationCount, setNotificationCount] = useState<number>(0);
+  const queryClient = useQueryClient();
   const handleSignOut = () => {
     startLoading();
     signout(true);
@@ -38,9 +45,45 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     navigate(routes.settings);
   };
 
-  const notifications = useSocketListen("notification");
+  const { isLoading: notificationLoading,refetch } = useQuery({
+    queryKey: ["user-notification", user.id],
+    queryFn: async () => getNotification(user.id),
+    onSuccess: (result) => {
+      if (result.success) {
+        setNotifications(result?.data || []);
+      }
+    },
+    refetchOnWindowFocus: false,
+  });
+
+  const {mutate:updateUnReaded} = useMutation({mutationFn:updateNotification,onSuccess:(result)=>{
+       if(result.success){
+          refetch()
+       }
+  }})
+
+const handleUpdateUnRead = (value)=>{
+  console.log(value)
+  if(value == "unread" || notifications.length > 0){
+     updateUnReaded({id:user.id,isRead:true})
+  }
+}
+
+  const notification = useSocketListen("notification") as Notification;
   useEffect(() => {
-    console.log("notifications ====> ", notifications);
+    if (notification) {
+      setNotifications((prev) => [notification, ...prev]);
+      toast({
+        title: notification?.title,
+        description: notification.message,
+        className: "bg-green-500 text-white",
+      });
+    }
+  }, [notification]);
+
+  useEffect(() => {
+    const unreadCount = notifications?.filter((n) => !n.isRead).length;
+    setNotificationCount(unreadCount);
   }, [notifications]);
 
   return (
@@ -70,27 +113,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative">
                     <Bell className="h-5 w-5" />
-                    <Badge
-                      variant="destructive"
-                      className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                    >
-                      3
-                    </Badge>
+                    {notificationCount > 0 && (
+                      <Badge
+                        variant="destructive"
+                        className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                      >
+                        {notificationCount}
+                      </Badge>
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="center" className="w-fit">
-                  <NotificationList
-                    notifications={[
-                      {
-                        id: "test1",
-                        title: "Test notification",
-                        message: "Test notification message",
-                        type: "default",
-                        isRead: false,
-                        timestamp: new Date(),
-                      },
-                    ]}
-                  />
+                  <NotificationList onTabChange={handleUpdateUnRead} notifications={notifications || []} />
                 </DropdownMenuContent>
               </DropdownMenu>
 
@@ -142,9 +176,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 overflow-auto">
-            {children}
-            </main>
+          <main className="flex-1 overflow-auto">{children}</main>
         </div>
       </div>
     </SidebarProvider>

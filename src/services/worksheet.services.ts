@@ -5,6 +5,7 @@ import { ApiResponseType } from "@/types/network.type";
 import { JobRequest, TechRow } from "@/types/job.type";
 import { ClientType } from "@/types/client.type";
 import { ReplaceField } from "@/types/types";
+import { UserType } from "@/types/auth";
 
 export const saveWorkSheet = async (
   payload: Worksheet
@@ -94,10 +95,13 @@ export const getRecordData = async (
   id: string
 ): ApiResponseType<
   {
+    recordId:string;
     record: WorksheetRecord;
+    client: ClientType;
     worksheet: Worksheet;
     job: JobRequestTemp;
-    client: ClientType;
+    jobrequest:JobRequest;
+    technician:UserType
   }[]
 > => {
   try {

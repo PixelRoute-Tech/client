@@ -1,16 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Bell, CheckCircle2, Info, AlertCircle } from "lucide-react";
-
-export interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: "info" | "success" | "warning" | "default";
-  isRead: boolean;
-  timestamp: Date;
-}
-
+import { Notification } from "@/types/types";
 interface NotificationItemProps {
   notification: Notification;
   onMarkAsRead?: (id: string) => void;
@@ -39,19 +30,29 @@ export function NotificationItem({
   const Icon = notificationIcons[notification.type];
   const iconColorClass = notificationVariants[notification.type];
 
-  const formatTimestamp = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
+const formatTimestamp = (input: string | Date): string => {
+  const date = typeof input === "string" ? new Date(input) : input;
 
-    if (minutes < 1) return "Just now";
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
-    return date.toLocaleDateString();
-  };
+  if (isNaN(date.getTime())) return "Invalid date"; // safe guard
+
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
 
   return (
     <div
@@ -63,9 +64,9 @@ export function NotificationItem({
           : "bg-accent/30 border-primary/20"
       )}
       onClick={() => {
-        onClick?.(notification.id);
+        onClick?.(notification.userId);
         if (!notification.isRead) {
-          onMarkAsRead?.(notification.id);
+          onMarkAsRead?.(notification.userId);
         }
       }}
     >
@@ -115,7 +116,7 @@ export function NotificationItem({
         </p>
 
         <time className="text-xs text-muted-foreground">
-          {formatTimestamp(notification.timestamp)}
+          {formatTimestamp(notification.createdAt)}
         </time>
       </div>
     </div>

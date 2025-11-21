@@ -19,6 +19,7 @@ import SignaturePad from "react-signature-canvas";
 import moment from "moment";
 import { useAuth } from "@/hooks/useAuth";
 import { ClientType } from "@/types/client.type";
+import { UserType } from "@/types/auth";
 
 export default function WorksheetReport() {
   const { id } = useParams();
@@ -27,7 +28,7 @@ export default function WorksheetReport() {
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement>(null);
   const [worksheet, setWorkSheet] = useState<Worksheet>();
-  const [techRow, setTechRow] = useState<TechRowTemp>();
+  const [technician, setTechnician] = useState<UserType>();
   const [jobData, setJobData] = useState<JobRequestTemp>();
   const [record, setRecord] = useState<WorksheetRecord>();
   const [client, setClient] = useState<ClientType>();
@@ -61,10 +62,7 @@ export default function WorksheetReport() {
             setWorkSheet(data?.worksheet);
             setClient(data?.client);
             setJobData(data.job);
-            const testRow = data?.job?.testRows.find(
-              (j) => j.testMethod == data.worksheet.workSheetId
-            );
-            setTechRow(testRow);
+            setTechnician(data.technician)
           }
         }
       } catch (error) {
@@ -204,7 +202,7 @@ export default function WorksheetReport() {
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Job description</div>
                 <div className="col-span-2 text-gray-700">
-                  : {jobData?.summary}
+                  : {worksheet?.description}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
@@ -250,7 +248,7 @@ export default function WorksheetReport() {
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900">Client jon no</div>
+                <div className="font-bold text-gray-900">Client job no</div>
                 <div className="col-span-2 text-gray-700">
                   : {jobData?.jobId?.slice(3, jobData?.jobId?.length)}
                 </div>
@@ -258,7 +256,7 @@ export default function WorksheetReport() {
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="font-bold text-gray-900">Attention</div>
                 <div className="col-span-2 text-gray-700">
-                  : {techRow?.tech.userName}
+                  : {technician?.userName}
                 </div>
               </div>
               <div className="col-span-full"></div>

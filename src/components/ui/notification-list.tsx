@@ -1,15 +1,16 @@
 import { useState } from "react";
-import { NotificationItem, Notification } from "./notification-item";
+import { NotificationItem } from "./notification-item";
 import { Button } from "./button";
 import { CheckCheck } from "lucide-react";
 import { ScrollArea } from "./scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
-
+import { Notification } from "@/types/types";
 interface NotificationListProps {
   notifications: Notification[];
   onMarkAsRead?: (id: string) => void;
   onMarkAllAsRead?: () => void;
   onClick?: (id: string) => void;
+  onTabChange?:(value:string)=>void
 }
 
 export function NotificationList({
@@ -17,9 +18,15 @@ export function NotificationList({
   onMarkAsRead,
   onMarkAllAsRead,
   onClick,
+  onTabChange
 }: NotificationListProps) {
   const [filter, setFilter] = useState<"all" | "unread">("all");
-
+  const handleTabChange = (value:string)=>{
+    if(onTabChange){
+        onTabChange(value)
+    }
+    setFilter(value as "all" | "unread")
+  }
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   const filteredNotifications =
@@ -56,7 +63,7 @@ export function NotificationList({
       <Tabs
         defaultValue="all"
         value={filter}
-        onValueChange={(value) => setFilter(value as "all" | "unread")}
+        onValueChange={handleTabChange}
         className="flex-1 flex flex-col"
       >
         <TabsList className="mx-4 mt-4 w-auto">
@@ -83,7 +90,7 @@ export function NotificationList({
               ) : (
                 filteredNotifications.map((notification) => (
                   <NotificationItem
-                    key={notification.id}
+                    key={notification.userId}
                     notification={notification}
                     onMarkAsRead={onMarkAsRead}
                     onClick={onClick}
@@ -104,7 +111,7 @@ export function NotificationList({
               ) : (
                 filteredNotifications.map((notification) => (
                   <NotificationItem
-                    key={notification.id}
+                    key={notification.userId}
                     notification={notification}
                     onMarkAsRead={onMarkAsRead}
                     onClick={onClick}
