@@ -10,6 +10,7 @@ import { authenticatedLoader } from "@/loaders/authLoaders";
 import ErrorBoundary from "@/components/ErrorPage/ErrorBoundary";
 import WorksheetReport from "@/pages/WorksheetReport";
 import { adminRouter } from "@/admin/routes/routes";
+const JobListing = lazy(() => import("@/pages/JobListing"));
 const WorksheetDetails = lazy(() => import("@/pages/WorksheetDetails"));
 const MasterData = lazy(() => import("@/pages/MasterData"));
 const JobRequestDetails = lazy(() => import("@/pages/JobRequestDetails"));
@@ -105,6 +106,17 @@ const router = createBrowserRouter([
                 fallback={<SkeletonLoader config={skeletonConfigs.form} />}
               >
                 <JobRequest />
+              </Suspense>
+            ),
+          },
+          {
+            path: routes.joblisting,
+            loader: authenticatedLoader,
+            element: (
+              <Suspense
+                fallback={<SkeletonLoader config={skeletonConfigs.form} />}
+              >
+                <JobListing />
               </Suspense>
             ),
           },

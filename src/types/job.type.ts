@@ -24,3 +24,16 @@ export interface JobRequest {
   testRows: Array<TechRow>;
   status?: string;
 }
+
+export interface Job {
+  jobId: string;
+  testMethod: string;
+  testSpec: string;
+  acceptanceSpec: string;
+  toTable: string;
+  testProcedure: string;
+  tech: string;
+  status: "Pending" | "Completed" | "In progress";
+  createdAt: string;
+  updatedAt: string;
+}

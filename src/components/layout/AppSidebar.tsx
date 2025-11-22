@@ -12,7 +12,8 @@ import {
   Building2,
   ClipboardList,
   FileSpreadsheet,
-  Database
+  Database,
+  Briefcase
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -38,6 +39,7 @@ const mainItems = [
   { title: "Job Request", url: "/job-request", icon: ClipboardList },
   { title: "Master Data", url: "/master-data", icon: Database },
   { title: "Worksheet Master", url: "/worksheets", icon: FileSpreadsheet },
+  { title: "Jobs", url: "/job-listing", icon: Briefcase },
   { title: "Users", url: "/users", icon: Users },
 ];
 

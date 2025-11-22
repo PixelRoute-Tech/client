@@ -191,7 +191,7 @@ export function JobRequestForm({
     if (!isEditing) {
       save({
         ...data,
-        createdBy: user.id,
+        createdBy: user?.id,
         testRows: data.testRows as TechRow[],
         comment: data.comment,
         clientId: selectedClient.clientId,

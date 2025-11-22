@@ -14,12 +14,13 @@ const routes = {
     createUser:"/create-user",
     clientOnBoarding:"/client-onboarding",
     worksheet:"/worksheets",
-    userMaster:"//master-data",
+    userMaster:"/master-data",
     userProfile:"/user-profile",
     worksheetNew:"/worksheets/new",
     worksheetEdit:"/worksheets/edit",
     worksheetDetails:"/worksheet-details",
-    worksheetReport:"/worksheet-report"
+    worksheetReport:"/worksheet-report",
+    joblisting:"job-listing"
 }
 
 export default routes
