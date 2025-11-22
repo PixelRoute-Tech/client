@@ -30,10 +30,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { jobStorage } from "@/utils/jobStorage";
 import { useDroppable } from "@dnd-kit/core";
 import { Job } from "@/types/job.type";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { getJobByUser, updateJobData } from "@/services/job.services";
 const statusCheck = {
-  Pending: true,
-  "In progress": true,
-  Completed: true,
+  Pending: "pending",
+  "In progress": "inProgress",
+  Completed: "inProgress",
 };
 function DroppableColumn({ id, children }: any) {
   const { setNodeRef } = useDroppable({ id });
@@ -45,11 +48,10 @@ function DroppableColumn({ id, children }: any) {
   );
 }
 export default function JobListing() {
-  const [jobs, setJobs] = useState<Job[]>([]);
   const [activeJob, setActiveJob] = useState<Job | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
-
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -58,69 +60,107 @@ export default function JobListing() {
     })
   );
 
-  useEffect(() => {
-    setJobs(jobStorage.getAll());
-  }, []);
+  const { data: userJobList } = useQuery({
+    queryKey: ["joblistbyuserid", user?.id],
+    queryFn: async () => getJobByUser(user?.id),
+  });
+
+  const { mutate: statusChange } = useMutation({
+    mutationFn: updateJobData,
+    onSuccess: (result) => {
+      if (result.success) {
+        queryClient.setQueryData(
+          ["joblistbyuserid", user?.id],
+          (prev: any) => result
+        );
+        toast({
+          title: "Status Updated",
+          description: `Job moved to ${result.message}`,
+        });
+      }
+    },
+    onError: (e: any) => {
+      toast({
+        title: "Error",
+        description: e?.message || "Something went wrong",
+      });
+    },
+  });
 
   const handleDragStart = (event: DragStartEvent) => {
-    const job = jobs.find((j) => j.jobId === event.active.id);
-    setActiveJob(job || null);
+    const containerId = event?.active?.data.current?.sortable?.containerId;
+    let job = null;
+    if (containerId == "Pending") {
+      job = userJobList?.data?.pending?.find((j) => j._id === event.active.id);
+    }
+    if (containerId == "In progress") {
+      job = userJobList?.data?.inProgress?.find(
+        (j) => j._id === event.active.id
+      );
+    }
+    if (containerId == "Completed") {
+      job = userJobList?.data?.completed?.find(
+        (j) => j._id === event.active.id
+      );
+    }
+    setActiveJob(job);
     console.log("Dragging:", event.active);
+  };
+
+  const handleDragChange = (newStatus: keyof typeof statusCheck, obj: Job) => {
+    let pending = [...userJobList.data.pending];
+    let inProgress = [...userJobList.data.inProgress];
+    let completed = [...userJobList.data.completed];
+    if (newStatus == "Pending") {
+      pending = [obj, ...pending];
+      inProgress = inProgress.filter((i) => i._id != obj._id);
+      completed = completed.filter((i) => i._id != obj._id);
+    }
+    if (newStatus == "In progress") {
+      pending = pending.filter((i) => i._id != obj._id);
+      inProgress = [obj, ...inProgress];
+      completed = completed.filter((i) => i._id != obj._id);
+    }
+    if (newStatus == "Completed") {
+      pending = pending.filter((i) => i._id != obj._id);
+      inProgress = inProgress.filter((i) => i._id != obj._id);
+      completed = [obj, ...completed];
+    }
+
+    queryClient.setQueryData(["joblistbyuserid", user?.id], (prev: any) => ({
+      ...userJobList,
+      data: { pending, inProgress, completed },
+    }));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveJob(null);
     if (!over) return;
-    const activeJob = jobs.find((j) => j.jobId === active.id);
+    let activeJob = null;
+
+    if (active?.data.current?.sortable?.containerId == "Pending") {
+      activeJob = userJobList?.data?.pending?.find((j) => j._id === active.id);
+    }
+    if (active?.data.current?.sortable?.containerId == "In progress") {
+      activeJob = userJobList?.data?.inProgress?.find(
+        (j) => j._id === active.id
+      );
+    }
+    if (active?.data.current?.sortable?.containerId == "Completed") {
+      activeJob = userJobList?.data?.completed?.find(
+        (j) => j._id === active.id
+      );
+    }
+
     if (!activeJob) return;
     const newStatus = over.id as Job["status"];
+
     if (activeJob.status !== newStatus && statusCheck[newStatus]) {
-      jobStorage.updateStatus(activeJob.jobId, newStatus);
-      setJobs(jobStorage.getAll());
-
-      toast({
-        title: "Status Updated",
-        description: `Job moved to ${newStatus.replace("-", " ")}`,
-      });
+      activeJob = { ...activeJob, status: newStatus };
+      statusChange(activeJob);
+      handleDragChange(newStatus, activeJob);
     }
-  };
-
-  // const handleDragOver = (event: any) => {
-  //   const { active, over } = event;
-  //   if (!over) return;
-
-  //   console.log(`Hovering job over → ${over.id}`);
-  // };
-
-  const handleAddJob = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-
-    const newJob = jobStorage.save({
-      jobId: "JOB00047",
-      testMethod: formData.get("workName") as string,
-      testSpec: "test spec",
-      acceptanceSpec: "jgjhgfjh",
-      toTable: "weqr",
-      testProcedure: "test procedure",
-      tech: "ERP00003",
-      status: "Pending",
-      createdAt: "2025-11-22T11:54:47.629Z",
-      updatedAt: "2025-11-22T11:54:47.629Z",
-    });
-
-    setJobs(jobStorage.getAll());
-    setIsDialogOpen(false);
-
-    toast({
-      title: "Job Created",
-      description: `${newJob.testMethod} has been added`,
-    });
-  };
-
-  const getJobsByStatus = (status: Job["status"]) => {
-    return jobs.filter((job) => job.status === status);
   };
 
   const columns: { id: Job["status"]; color: string }[] = [
@@ -147,7 +187,7 @@ export default function JobListing() {
             <p className="text-muted-foreground">Manage and track your jobs</p>
           </div>
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          {/* <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -186,7 +226,7 @@ export default function JobListing() {
                 </Button>
               </form>
             </DialogContent>
-          </Dialog>
+          </Dialog> */}
         </div>
 
         <DndContext
@@ -205,21 +245,66 @@ export default function JobListing() {
                   <div className="flex items-center justify-between">
                     <h2 className="font-semibold text-lg">{column.id}</h2>
                     <span className="text-sm text-muted-foreground">
-                      {getJobsByStatus(column.id).length} jobs
+                      {column.id == "Pending" &&
+                        `${userJobList?.data?.pending?.length} ${
+                          userJobList?.data?.pending?.length > 1
+                            ? "Jobs"
+                            : "Job"
+                        }`}
+                      {column.id == "In progress" &&
+                        `${userJobList?.data?.inProgress?.length} ${
+                          userJobList?.data?.inProgress?.length > 1
+                            ? "Jobs"
+                            : "Job"
+                        }`}
+                      {column.id == "Completed" &&
+                        `${userJobList?.data?.completed?.length} ${
+                          userJobList?.data?.completed?.length > 1
+                            ? "Jobs"
+                            : "Job"
+                        }`}
                     </span>
                   </div>
 
                   <SortableContext
-                    items={getJobsByStatus(column.id).map((j) => j.jobId)}
+                    items={[]}
                     strategy={verticalListSortingStrategy}
                     id={column.id}
                   >
                     <ScrollArea className="h-[calc(100vh-280px)]">
                       <div className="space-y-3 pr-4">
-                        {getJobsByStatus(column.id).map((job) => (
-                          <JobCard key={job.jobId} job={job} />
-                        ))}
-                        {getJobsByStatus(column.id).length === 0 && (
+                        {column.id == "Pending" &&
+                          userJobList?.data?.pending?.map((job) => (
+                            <JobCard key={job._id} job={job} />
+                          ))}
+                        {column.id == "In progress" &&
+                          userJobList?.data?.inProgress?.map((job) => (
+                            <JobCard key={job._id} job={job} />
+                          ))}
+                        {column.id == "Completed" &&
+                          userJobList?.data?.completed?.map((job) => (
+                            <JobCard key={job._id} job={job} />
+                          ))}
+                        {Boolean(
+                          userJobList?.data?.pending?.length === 0 &&
+                            column.id == "Pending"
+                        ) && (
+                          <div className="text-center py-8 text-muted-foreground text-sm">
+                            No jobs in {column.id}
+                          </div>
+                        )}
+                        {Boolean(
+                          userJobList?.data?.inProgress?.length === 0 &&
+                            column.id == "In progress"
+                        ) && (
+                          <div className="text-center py-8 text-muted-foreground text-sm">
+                            No jobs in {column.id}
+                          </div>
+                        )}
+                        {Boolean(
+                          userJobList?.data?.completed?.length === 0 &&
+                            column.id == "Completed"
+                        ) && (
                           <div className="text-center py-8 text-muted-foreground text-sm">
                             No jobs in {column.id}
                           </div>

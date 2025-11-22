@@ -1,5 +1,5 @@
 import network from "@/config/network.config";
-import { JobRequest } from "@/types/job.type";
+import { Job, JobRequest } from "@/types/job.type";
 import { ApiResponseType } from "@/types/network.type";
 import apis from "./apis";
 
@@ -33,6 +33,22 @@ export const getJobRequests = async (id: string): ApiResponseType<JobRequest[]> 
 export const getJobDetails = async (id:string):ApiResponseType<JobRequest> =>{
      try {
        return (await network.get(`${apis.jobRequestDetails}/${id}`)).data
+     } catch (error) {
+      throw new Error(error.response.data.message || "Oops! Something went wrong")
+     }
+}
+
+export const getJobByUser = async (id:string):ApiResponseType<{pending:Job[],inProgress:Job[],completed:Job[]}>=>{
+     try {
+       return (await network.get(`${apis.jobsByUserId}/${id}`)).data
+     } catch (error) {
+      throw new Error(error.response.data.message || "Oops! Something went wrong")
+     }
+}
+
+export const updateJobData = async (payload:Job):ApiResponseType<{pending:Job[],inProgress:Job[],completed:Job[]}>=>{
+        try {
+       return (await network.put(`${apis.jobsByUserId}/${payload._id}`,payload)).data
      } catch (error) {
       throw new Error(error.response.data.message || "Oops! Something went wrong")
      }

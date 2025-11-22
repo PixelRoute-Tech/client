@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, GripVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import { Job } from '@/types/job.type';
+import moment from 'moment';
 
 interface JobCardProps {
   job: Job;
@@ -18,7 +19,7 @@ export function JobCard({ job }: JobCardProps) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: job.jobId });
+  } = useSortable({ id: job._id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -56,7 +57,7 @@ export function JobCard({ job }: JobCardProps) {
                 {job.jobId}
               </Badge>
             </div>
-            <CardTitle className="text-lg">{job.testMethod}</CardTitle>
+            <CardTitle className="text-sm text-primary">{job.worksheetName}</CardTitle>
           </div>
           <Badge variant={getStatusColor(job.status)} className="ml-2">
             {job.status}
@@ -66,12 +67,12 @@ export function JobCard({ job }: JobCardProps) {
       <CardContent className="space-y-2">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="h-4 w-4" />
-          <span>Assigned: {format(new Date(job.createdAt), 'MMM dd, yyyy')}</span>
+          <span>Assigned: {moment(job.jobDetails.createdAt).format("DD MMMM YYYY")}</span>
         </div>
-        {/* <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="h-4 w-4" />
-          <span>Due: {format(new Date(job.lastDate), 'MMM dd, yyyy')}</span>
-        </div> */}
+          <span>Due: {moment(job.jobDetails.lastDate).format("DD MMMM YYYY")}</span>
+        </div>
       </CardContent>
     </Card>
   );

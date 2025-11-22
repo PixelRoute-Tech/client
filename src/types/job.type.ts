@@ -26,14 +26,17 @@ export interface JobRequest {
 }
 
 export interface Job {
+ _id: string;
   jobId: string;
-  testMethod: string;
-  testSpec: string;
-  acceptanceSpec: string;
-  toTable: string;
-  testProcedure: string;
   tech: string;
   status: "Pending" | "Completed" | "In progress";
-  createdAt: string;
-  updatedAt: string;
+  testMethod: string;
+  jobDetails: {
+    createdAt: string;
+    clientName: string;
+    lastDate: string;
+  };
+
+  worksheetName: string;
+  technician: string;
 }
