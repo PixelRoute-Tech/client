@@ -1,11 +1,14 @@
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, GripVertical } from 'lucide-react';
-import { format } from 'date-fns';
-import { Job } from '@/types/job.type';
-import moment from 'moment';
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Clock, GripVertical, FilePenLine,FileText,Building2 } from "lucide-react";
+import { format } from "date-fns";
+import { Job } from "@/types/job.type";
+import moment from "moment";
+import routes from "@/routes/routeList";
+import { useNavigate } from "react-router-dom";
+import { Button } from "./ui/button";
 
 interface JobCardProps {
   job: Job;
@@ -20,24 +23,37 @@ export function JobCard({ job }: JobCardProps) {
     transition,
     isDragging,
   } = useSortable({ id: job._id });
-
+  const navigate = useNavigate();
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const getStatusColor = (status: Job['status']) => {
+  const getStatusColor = (status: Job["status"]) => {
     switch (status) {
-      case 'Pending':
-        return 'secondary';
-      case 'In progress':
-        return 'default';
-      case 'Completed':
-        return 'outline';
+      case "Pending":
+        return "secondary";
+      case "In progress":
+        return "default";
+      case "Completed":
+        return "outline";
       default:
-        return 'secondary';
+        return "secondary";
     }
+  };
+
+  const handleEdit = () => {
+    console.log(job);
+    navigate(
+      `${routes.worksheetDetails}?sheetid=${job.testMethod}&jobid=${job?.jobId}&clientId=${job.jobDetails.clientId}`
+    );
+  };
+
+  const handleReport = () => {
+    navigate(
+      `${routes.worksheetReport}/record_${job.jobId}_${job.testMethod}`
+    );
   };
 
   return (
@@ -57,7 +73,9 @@ export function JobCard({ job }: JobCardProps) {
                 {job.jobId}
               </Badge>
             </div>
-            <CardTitle className="text-sm text-primary">{job.worksheetName}</CardTitle>
+            <CardTitle className="text-sm text-primary">
+              {job.worksheetName}
+            </CardTitle>
           </div>
           <Badge variant={getStatusColor(job.status)} className="ml-2">
             {job.status}
@@ -66,12 +84,34 @@ export function JobCard({ job }: JobCardProps) {
       </CardHeader>
       <CardContent className="space-y-2">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Building2 className="h-4 w-4" />
+          <span>
+            Client: {job.jobDetails.clientName}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="h-4 w-4" />
-          <span>Assigned: {moment(job.jobDetails.createdAt).format("DD MMMM YYYY")}</span>
+          <span>
+            Assigned: {moment(job.jobDetails.createdAt).format("DD MMMM YYYY")}
+          </span>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="h-4 w-4" />
-          <span>Due: {moment(job.jobDetails.lastDate).format("DD MMMM YYYY")}</span>
+          <span>
+            Due: {moment(job.jobDetails.lastDate).format("DD MMMM YYYY")}
+          </span>
+        </div>
+        <div className="flex justify-end">
+          {job.status == "In progress" && (
+            <Button onClick={handleEdit} size="sm">
+              <FilePenLine />
+            </Button>
+          )}
+          {job.status == "Completed" && (
+            <Button onClick={handleReport} size="sm">
+             <FileText />
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -173,7 +173,7 @@ export default function WorksheetBuilder() {
   return (
     <div className="flex h-screen bg-background">
       {/* Components Panel */}
-      <div className="w-64 border-r bg-card p-4 overflow-y-auto">
+      {/* <div className="w-64 border-r bg-card p-4 overflow-y-auto">
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Components</h2>
           <div className="space-y-2">
@@ -198,7 +198,7 @@ export default function WorksheetBuilder() {
             ))}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Main Canvas */}
       <div className="flex-1 overflow-auto">

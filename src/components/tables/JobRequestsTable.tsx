@@ -82,7 +82,7 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsT
                 <TableHead>Date</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Test Methods</TableHead>
-                <TableHead>Division Rules</TableHead>
+                <TableHead>Details provided</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -131,7 +131,7 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsT
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm">{truncateText(job.divisionRules, 20)}</div>
+                      <div className="text-sm">{truncateText(job.detailsProvided, 20)}</div>
                     </TableCell>
                     <TableCell>{moment(job.createdAt).format("MMMM Do, YYYY")}</TableCell>
                     <TableCell className="text-right">

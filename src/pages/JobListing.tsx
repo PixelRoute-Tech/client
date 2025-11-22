@@ -70,7 +70,7 @@ export default function JobListing() {
     onSuccess: (result) => {
       if (result.success) {
         queryClient.setQueryData(
-          ["joblistbyuserid", user?.id],
+          [`joblistbyuserid${user?.id}`, user?.id],
           (prev: any) => result
         );
         toast({

@@ -31,9 +31,9 @@ import {
 
 const mainItems = [
   { title: "Dashboard", url: "/", icon: Home },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
-  { title: "Data Tables", url: "/tables", icon: Table },
-  { title: "Forms", url: "/forms", icon: FileText },
+  // { title: "Analytics", url: "/analytics", icon: BarChart3 },
+  // { title: "Data Tables", url: "/tables", icon: Table },
+  // { title: "Forms", url: "/forms", icon: FileText },
   { title: "Create User", url: "/create-user", icon: UserPlus },
   { title: "Client Onboarding", url: "/client-onboarding", icon: Building2 },
   { title: "Job Request", url: "/job-request", icon: ClipboardList },

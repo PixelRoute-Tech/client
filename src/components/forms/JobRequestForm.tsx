@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -87,7 +87,7 @@ export type JobRequestFormData = z.infer<typeof jobRequestSchema>;
 interface JobRequestFormProps {
   onSubmit: (data: JobRequestFormData) => void;
   selectedClient?: ClientType;
-  initialData?: JobRequestFormData & {jobId:string};
+  initialData?: JobRequestFormData & { jobId: string };
   isEditing?: boolean;
 }
 
@@ -237,6 +237,21 @@ export function JobRequestForm({
       tech: "",
     });
   };
+
+  const checkContainsTechnician = (text: string) => {
+    return text.toLowerCase().includes("technician".toLowerCase());
+  };
+
+  const technicianList = useMemo(() => {
+    return usersList?.data.map((u) => {
+      if (
+        u.userRole.toLowerCase().includes("technician".toLowerCase()) ||
+        u.designation.toLowerCase().includes("technician".toLowerCase())
+      ) {
+        return u;
+      }
+    });
+  }, [usersList?.data]);
 
   return (
     <div className="w-full max-w-6xl space-y-6">
@@ -622,12 +637,12 @@ export function JobRequestForm({
                                       </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                      {usersList?.data?.map((tech) => (
+                                      {technicianList?.map((tech) => (
                                         <SelectItem
-                                          key={`${tech._id}`}
-                                          value={tech.id}
+                                          key={`${tech?._id}`}
+                                          value={tech?.id}
                                         >
-                                          {tech.userName}
+                                          {tech?.userName}
                                         </SelectItem>
                                       ))}
                                     </SelectContent>
