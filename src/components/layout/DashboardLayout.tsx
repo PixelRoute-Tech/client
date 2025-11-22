@@ -62,11 +62,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
        }
   }})
 
-const handleUpdateUnRead = (value)=>{
-  console.log(value)
-  if(value == "unread" || notifications.length > 0){
-     updateUnReaded({id:user.id,isRead:true})
-  }
+const handleUpdateUnRead = ()=>{
+updateUnReaded({id:user.id,isRead:true})
 }
 
   const notification = useSocketListen("notification") as Notification;
@@ -124,7 +121,7 @@ const handleUpdateUnRead = (value)=>{
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="center" className="w-fit">
-                  <NotificationList onTabChange={handleUpdateUnRead} notifications={notifications || []} />
+                  <NotificationList onMarkAllAsRead={handleUpdateUnRead} notifications={notifications || []} />
                 </DropdownMenuContent>
               </DropdownMenu>
 
