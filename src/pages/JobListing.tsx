@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -15,19 +15,9 @@ import {
 
 import { JobCard } from "@/components/JobCard";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { RotateCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { jobStorage } from "@/utils/jobStorage";
 import { useDroppable } from "@dnd-kit/core";
 import { Job } from "@/types/job.type";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -60,7 +50,7 @@ export default function JobListing() {
     })
   );
 
-  const { data: userJobList } = useQuery({
+  const { data: userJobList,refetch,isLoading } = useQuery({
     queryKey: ["joblistbyuserid", user?.id],
     queryFn: async () => getJobByUser(user?.id),
   });
@@ -80,6 +70,7 @@ export default function JobListing() {
       }
     },
     onError: (e: any) => {
+      refetch()
       toast({
         title: "Error",
         description: e?.message || "Something went wrong",
@@ -163,6 +154,10 @@ export default function JobListing() {
     }
   };
 
+  const handleRefresh = ()=>{
+     refetch()
+  }
+
   const columns: { id: Job["status"]; color: string }[] = [
     {
       id: "Pending",
@@ -182,11 +177,15 @@ export default function JobListing() {
     <>
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Job Listing</h1>
+          <div className="flex justify-between items-center w-full">
+           <div>
+             <h1 className="text-3xl font-bold">Job Listing</h1> 
             <p className="text-muted-foreground">Manage and track your jobs</p>
-          </div>
+           </div>
 
+            <Button loading={isLoading} size="sm" onClick={handleRefresh}>Refresh <RotateCw /></Button>
+          </div>
+ 
           {/* <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>
