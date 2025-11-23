@@ -120,7 +120,7 @@ updateUnReaded({id:user.id,isRead:true})
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="w-fit">
+                <DropdownMenuContent align="center" className="max-w-[27vw] min-w-[27vw]">
                   <NotificationList onMarkAllAsRead={handleUpdateUnRead} notifications={notifications || []} />
                 </DropdownMenuContent>
               </DropdownMenu>

@@ -245,19 +245,19 @@ export default function JobListing() {
                     <h2 className="font-semibold text-lg">{column.id}</h2>
                     <span className="text-sm text-muted-foreground">
                       {column.id == "Pending" &&
-                        `${userJobList?.data?.pending?.length} ${
+                        `${userJobList?.data?.pending?.length || 0} ${
                           userJobList?.data?.pending?.length > 1
                             ? "Jobs"
                             : "Job"
                         }`}
                       {column.id == "In progress" &&
-                        `${userJobList?.data?.inProgress?.length} ${
+                        `${userJobList?.data?.inProgress?.length || 0} ${
                           userJobList?.data?.inProgress?.length > 1
                             ? "Jobs"
                             : "Job"
                         }`}
                       {column.id == "Completed" &&
-                        `${userJobList?.data?.completed?.length} ${
+                        `${userJobList?.data?.completed?.length || 0} ${
                           userJobList?.data?.completed?.length > 1
                             ? "Jobs"
                             : "Job"
