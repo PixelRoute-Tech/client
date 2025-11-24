@@ -117,11 +117,11 @@ export default function WorksheetReport() {
       case "autocomplete-chips":
         return Array.isArray(value) ? value.join(", ") : "-";
       case "file":
-        return value || "-";
+        return value || " ";
       case "table":
         return null; // Tables rendered separately
       default:
-        return value || "-";
+        return value || " ";
     }
   };
 
@@ -332,7 +332,7 @@ export default function WorksheetReport() {
                                             <X className="w-4 h-4 text-red-500" />
                                           )
                                         ) : (
-                                          row[col.columnId] || "-"
+                                          row[col.columnId] || " "
                                         )}
                                       </td>
                                     ))}
@@ -351,10 +351,10 @@ export default function WorksheetReport() {
                         className="grid grid-cols-3 gap-4 text-sm"
                       >
                         <div className="font-bold text-gray-900">
-                          {field.name}:
+                          {field.name}
                         </div>
-                        <div className="col-span-2 text-gray-700">
-                          {renderFieldValue(field)}
+                        <div className="col-span-2 text-gray-700 flex items-end justify-start">
+                         : {renderFieldValue(field)}
                         </div>
                       </div>
                     );
