@@ -3,6 +3,7 @@ import router from "@/routes/routes";
 import { clearStorage, getItem, storageKeys } from "@/utils/storage";
 import axios from "axios";
 export const baseURL = `${location.protocol}//${location.hostname}:${import.meta.env.VITE_PORT}`
+// export const baseURL = `http://170.64.178.38:8000`
 console.log("url = ",baseURL)
 const network = axios.create({
   baseURL,

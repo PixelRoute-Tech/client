@@ -20,7 +20,8 @@ const routes = {
     worksheetEdit:"/worksheets/edit",
     worksheetDetails:"/worksheet-details",
     worksheetReport:"/worksheet-report",
-    joblisting:"job-listing"
+    joblisting:"/job-listing",
+    reportImages:"/report-images"
 }
 
 export default routes
