@@ -502,7 +502,7 @@ export default function WorksheetReport() {
               {/* <p className="mt-2">Page 1 of 1</p> */}
             </div>
           </div>
-          <div className="p-6">
+          {/* <div className="p-6">
             <h4 className="underline text-center font-bold">Photographs</h4>
             <div className="pt-5 grid grid-cols-2 ">
               <div>
@@ -512,7 +512,7 @@ export default function WorksheetReport() {
                 />
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
