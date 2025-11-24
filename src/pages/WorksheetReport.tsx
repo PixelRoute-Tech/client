@@ -20,7 +20,7 @@ import moment from "moment";
 import { useAuth } from "@/hooks/useAuth";
 import { ClientType } from "@/types/client.type";
 import { UserType } from "@/types/auth";
-
+import "../styles/print.css"
 export default function WorksheetReport() {
   const { id } = useParams();
   const { toast } = useToast();
@@ -147,24 +147,7 @@ export default function WorksheetReport() {
         {/* Printable Report */}
         <div ref={printRef} className="bg-white">
           <style>
-            {`
-              @media print {
-                @page {
-                  size: A4;
-                  margin: 5mm;
-                }
-                body {
-                  print-color-adjust: exact;
-                  -webkit-print-color-adjust: exact;
-                }
-                .no-print {
-                  display: none !important;
-                }
-                  #onborder{
-                     border:none; 
-                  }
-              }
-            `}
+
           </style>
 
           {/* Header */}
@@ -200,62 +183,62 @@ export default function WorksheetReport() {
           <div className="p-6">
             <div className="space-y-2 grid grid-cols-2">
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900">Job description</div>
-                <div className="col-span-2 text-gray-700">
+                <div className="font-bold text-gray-900 break-words">Job description</div>
+                <div className="col-span-2 text-gray-700 break-words">
                   : {worksheet?.description}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900">Report no</div>
-                <div className="col-span-2 text-gray-700">
+                <div className="font-bold text-gray-900 break-words">Report no</div>
+                <div className="col-span-2 text-gray-700 break-words">
                   : {createReportNo()}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900">Client</div>
-                <div className="col-span-2 text-gray-700">
+                <div className="font-bold text-gray-900 break-words">Client</div>
+                <div className="col-span-2 text-gray-700 break-words">
                   : {client?.businessName}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900">Report date</div>
-                <div className="col-span-2 text-gray-700">
+                <div className="font-bold text-gray-900 break-words">Report date</div>
+                <div className="col-span-2 text-gray-700 break-words">
                   : {moment().format("DD-MM-YYYY")}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900">Address</div>
-                <div className="col-span-2 text-gray-700">
+                <div className="font-bold text-gray-900 break-words">Address</div>
+                <div className="col-span-2 text-gray-700 break-words">
                   : {client?.businessAddress}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900">Job no</div>
-                <div className="col-span-2 text-gray-700">
+                <div className="font-bold text-gray-900 break-words">Job no</div>
+                <div className="col-span-2 text-gray-700 break-words">
                   : {jobData?.jobId}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900">Job address</div>
-                <div className="col-span-2 text-gray-700">
+                <div className="font-bold text-gray-900 break-words">Job address</div>
+                <div className="col-span-2 text-gray-700 break-words">
                   : {client?.businessAddress}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900">P/O no</div>
-                <div className="col-span-2 text-gray-700">
+                <div className="font-bold text-gray-900 break-words">P/O no</div>
+                <div className="col-span-2 text-gray-700 break-words">
                   : {client?.postalAddress}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900">Client job no</div>
-                <div className="col-span-2 text-gray-700">
+                <div className="font-bold text-gray-900 break-words">Client job no</div>
+                <div className="col-span-2 text-gray-700 break-words">
                   : {jobData?.jobId?.slice(3, jobData?.jobId?.length)}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900">Attention</div>
-                <div className="col-span-2 text-gray-700">
+                <div className="font-bold text-gray-900 break-words">Attention</div>
+                <div className="col-span-2 text-gray-700 break-words">
                   : {technician?.userName}
                 </div>
               </div>
@@ -264,16 +247,16 @@ export default function WorksheetReport() {
 
             <div className="space-y-2 grid grid-cols-2 my-3">
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900">Technician</div>
-                <div className="col-span-2 text-gray-700">
+                <div className="font-bold text-gray-900 break-words">Technician</div>
+                <div className="col-span-2 text-gray-700 break-words">
                   : {user.userName}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900">
+                <div className="font-bold text-gray-900 break-words">
                   Date of Inspection
                 </div>
-                <div className="col-span-2 text-gray-700">
+                <div className="col-span-2 text-gray-700 break-words">
                   : {moment().format("DD-MM-YYYY")}
                 </div>
               </div>
@@ -348,13 +331,13 @@ export default function WorksheetReport() {
                     return (
                       <div
                         key={field.fieldId}
-                        className="grid grid-cols-3 gap-4 text-sm"
+                        className="grid grid-cols-3 gap-4 text-sm items-end justify-start"
                       >
-                        <div className="font-bold text-gray-900">
-                          {field.name}
+                        <div className="font-bold text-gray-900 break-words">
+                          {field.name} 
                         </div>
-                        <div className="col-span-2 text-gray-700 flex items-end justify-start">
-                         : {renderFieldValue(field)}
+                        <div className="col-span-2 text-gray-700 break-words">
+                         :  {renderFieldValue(field)}
                         </div>
                       </div>
                     );
