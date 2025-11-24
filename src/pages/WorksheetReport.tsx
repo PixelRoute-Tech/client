@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer, Check, X } from "lucide-react";
+import { ArrowLeft, Printer, Check, X, Image } from "lucide-react";
 import {
   Worksheet,
   WorksheetField,
@@ -20,7 +20,8 @@ import moment from "moment";
 import { useAuth } from "@/hooks/useAuth";
 import { ClientType } from "@/types/client.type";
 import { UserType } from "@/types/auth";
-import "../styles/print.css"
+import "../styles/print.css";
+import routes from "@/routes/routeList";
 export default function WorksheetReport() {
   const { id } = useParams();
   const { toast } = useToast();
@@ -62,7 +63,7 @@ export default function WorksheetReport() {
             setWorkSheet(data?.worksheet);
             setClient(data?.client);
             setJobData(data.job);
-            setTechnician(data.technician)
+            setTechnician(data.technician);
           }
         }
       } catch (error) {
@@ -106,6 +107,10 @@ export default function WorksheetReport() {
     );
   }
 
+  const hnadleImageData = ()=>{
+     navigate(`${routes.reportImages}/${record.recordId}?worksheet=${worksheet.name}`)
+  } 
+
   const data = record.data;
 
   const renderFieldValue = (field: WorksheetField) => {
@@ -138,18 +143,21 @@ export default function WorksheetReport() {
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          <Button onClick={handlePrint} className="gap-2">
-            <Printer className="h-4 w-4" />
-            Print Report
-          </Button>
+          <div className="flex items-center justify-center gap-3">
+            <Button variant="outline" onClick={hnadleImageData} className="gap-2">
+              <Image className="h-4 w-4" />
+              Add images
+            </Button>
+            <Button onClick={handlePrint} className="gap-2">
+              <Printer className="h-4 w-4" />
+              Print Report
+            </Button>
+          </div>
         </div>
 
         {/* Printable Report */}
         <div ref={printRef} className="bg-white">
-          <style>
-
-          </style>
-
+          <style></style>
           {/* Header */}
           <div className="border-b-2 border-gray-800 p-6 grid grid-cols-12 items-center">
             <div className="flex items-center gap-4 col-span-3">
@@ -178,66 +186,85 @@ export default function WorksheetReport() {
               <p>{user.company.contactNo}</p>
             </div>
           </div>
-
           {/* Report Details Grid */}
           <div className="p-6">
             <div className="space-y-2 grid grid-cols-2">
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900 break-words">Job description</div>
+                <div className="font-bold text-gray-900 break-words">
+                  Job description
+                </div>
                 <div className="col-span-2 text-gray-700 break-words">
                   : {worksheet?.description}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900 break-words">Report no</div>
+                <div className="font-bold text-gray-900 break-words">
+                  Report no
+                </div>
                 <div className="col-span-2 text-gray-700 break-words">
                   : {createReportNo()}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900 break-words">Client</div>
+                <div className="font-bold text-gray-900 break-words">
+                  Client
+                </div>
                 <div className="col-span-2 text-gray-700 break-words">
                   : {client?.businessName}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900 break-words">Report date</div>
+                <div className="font-bold text-gray-900 break-words">
+                  Report date
+                </div>
                 <div className="col-span-2 text-gray-700 break-words">
                   : {moment().format("DD-MM-YYYY")}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900 break-words">Address</div>
+                <div className="font-bold text-gray-900 break-words">
+                  Address
+                </div>
                 <div className="col-span-2 text-gray-700 break-words">
                   : {client?.businessAddress}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900 break-words">Job no</div>
+                <div className="font-bold text-gray-900 break-words">
+                  Job no
+                </div>
                 <div className="col-span-2 text-gray-700 break-words">
                   : {jobData?.jobId}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900 break-words">Job address</div>
+                <div className="font-bold text-gray-900 break-words">
+                  Job address
+                </div>
                 <div className="col-span-2 text-gray-700 break-words">
                   : {client?.businessAddress}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900 break-words">P/O no</div>
+                <div className="font-bold text-gray-900 break-words">
+                  P/O no
+                </div>
                 <div className="col-span-2 text-gray-700 break-words">
                   : {client?.postalAddress}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900 break-words">Client job no</div>
+                <div className="font-bold text-gray-900 break-words">
+                  Client job no
+                </div>
                 <div className="col-span-2 text-gray-700 break-words">
                   : {jobData?.jobId?.slice(3, jobData?.jobId?.length)}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900 break-words">Attention</div>
+                <div className="font-bold text-gray-900 break-words">
+                  Attention
+                </div>
                 <div className="col-span-2 text-gray-700 break-words">
                   : {technician?.userName}
                 </div>
@@ -247,7 +274,9 @@ export default function WorksheetReport() {
 
             <div className="space-y-2 grid grid-cols-2 my-3">
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="font-bold text-gray-900 break-words">Technician</div>
+                <div className="font-bold text-gray-900 break-words">
+                  Technician
+                </div>
                 <div className="col-span-2 text-gray-700 break-words">
                   : {user.userName}
                 </div>
@@ -334,10 +363,10 @@ export default function WorksheetReport() {
                         className="grid grid-cols-3 gap-4 text-sm items-end justify-start"
                       >
                         <div className="font-bold text-gray-900 break-words">
-                          {field.name} 
+                          {field.name}
                         </div>
                         <div className="col-span-2 text-gray-700 break-words">
-                         :  {renderFieldValue(field)}
+                          : {renderFieldValue(field)}
                         </div>
                       </div>
                     );
@@ -366,7 +395,10 @@ export default function WorksheetReport() {
                     {/* DRAW SIGNATURE */}
                     {!signature && (
                       <div>
-                        <div id="onborder" className="border border-dashed border-gray-400 w-fit">
+                        <div
+                          id="onborder"
+                          className="border border-dashed border-gray-400 w-fit"
+                        >
                           <SignaturePad
                             ref={sigRef}
                             penColor="black"
@@ -468,6 +500,17 @@ export default function WorksheetReport() {
                 {new Date(record.updatedAt).toLocaleTimeString()}
               </p>
               {/* <p className="mt-2">Page 1 of 1</p> */}
+            </div>
+          </div>
+          <div className="p-6">
+            <h4 className="underline text-center font-bold">Photographs</h4>
+            <div className="pt-5 grid grid-cols-2 ">
+              <div>
+                <img
+                  className="h-full w-full"
+                  src="https://cad.onshape.com/help/Content/Resources/Images/drawings-tools/drawings-sample.png"
+                />
+              </div>
             </div>
           </div>
         </div>
