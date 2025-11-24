@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { FieldBuilder } from './FieldBuilder';
 import { Plus, Trash2, Grid2X2, Columns2, Columns3, Columns4 } from 'lucide-react';
+import { createRandomId } from '@/utils/cryptog';
 
 interface SectionBuilderProps {
   section: WorksheetSection;
@@ -23,7 +24,7 @@ const LAYOUT_OPTIONS: { value: SectionLayout; label: string; icon: any }[] = [
 export function SectionBuilder({ section, onUpdate, onDelete }: SectionBuilderProps) {
   const addField = () => {
     const newField: WorksheetField = {
-      fieldId: crypto.randomUUID(),
+      fieldId: createRandomId("SECTION"),
       name: '',
       type: 'textfield',
       required: false,

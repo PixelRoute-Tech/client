@@ -1,4 +1,5 @@
 import { io } from "socket.io-client";
+import { baseURL } from "./network.config";
 
 let socket = null;
 export const socketEvents = {
@@ -8,7 +9,7 @@ export const socketEvents = {
 }
 export function initSocket({token,userId}) {
   if (!socket) {
-    socket = io(import.meta.env.VITE_API_URL, {
+    socket = io(baseURL, {
       auth: { token },
       transports: ["websocket"],   // production recommended
       reconnection: true,

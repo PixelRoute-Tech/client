@@ -6,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Plus } from 'lucide-react';
 import { TableBuilder } from './TableBuilder';
+import { createRandomId } from '@/utils/cryptog';
 
 interface FieldBuilderProps {
   field: WorksheetField;
@@ -33,7 +34,7 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
 
   const addOption = () => {
     const newOption: FieldOption = {
-      optionId: crypto.randomUUID(),
+      optionId: createRandomId("OPTION"),
       value: '',
     };
     onUpdate({

@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { saveWorkSheet, updateWorkSheet } from "@/services/worksheet.services";
 import routes from "@/routes/routeList";
-import moment from "moment";
+import { createRandomId } from "@/utils/cryptog";
 
 export default function WorksheetBuilder() {
   const navigate = useNavigate();
@@ -84,7 +84,7 @@ export default function WorksheetBuilder() {
 
   const addSection = () => {
     const newSection: WorksheetSection = {
-      sectionId: crypto.randomUUID(),
+      sectionId: createRandomId("SECTION"),
       name: "",
       layout: 1,
       fields: [],

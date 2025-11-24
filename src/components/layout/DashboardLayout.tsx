@@ -23,6 +23,7 @@ import { Notification } from "@/types/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getNotification, updateNotification } from "@/services/notification.services";
 import { useToast } from "@/hooks/use-toast";
+import { baseURL } from "@/config/network.config";
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
@@ -134,7 +135,7 @@ updateUnReaded({id:user.id,isRead:true})
                   >
                     <Avatar className="h-8 w-8">
                       <AvatarImage
-                        src={`${import.meta.env.VITE_API_URL}${
+                        src={`${baseURL}${
                           user?.imageUrl ?? ""
                         }`}
                       />

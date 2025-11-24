@@ -26,6 +26,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash2, Settings } from "lucide-react";
 import FormCheckbox from "../forms/fields/FormCheckbox";
+import { createRandomId } from "@/utils/cryptog";
 
 interface TableBuilderProps {
   columns: TableColumn[];
@@ -53,7 +54,7 @@ export function TableBuilder({
 
   const addColumn = () => {
     const newColumn: TableColumn = {
-      columnId: crypto.randomUUID(),
+      columnId: createRandomId("TABLECOL"),
       name: "",
       type: "textfield",
     };
@@ -77,7 +78,7 @@ export function TableBuilder({
     if (!column) return;
 
     const newOption: FieldOption = {
-      optionId: crypto.randomUUID(),
+      optionId: createRandomId("TABLEOPT"),
       value: "",
     };
     updateColumn(columnId, {
