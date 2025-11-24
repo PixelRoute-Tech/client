@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import moment from "moment"
 import { useNavigate } from "react-router-dom";
 import routes from "@/routes/routeList";
+import { baseURL } from "@/config/network.config";
 interface UserProfile {
 
 }
@@ -49,7 +50,7 @@ export default function UserProfile() {
               {/* Avatar Section */}
               <div className="relative">
                 <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
-                  <AvatarImage src={`${import.meta.env.VITE_API_URL}${user?.imageUrl ?? ""}`} alt={user.userName} />
+                  <AvatarImage src={`${baseURL}${user?.imageUrl ?? ""}`} alt={user.userName} />
                   <AvatarFallback className="text-3xl font-bold bg-primary/10 text-primary">
                     {user.shortName}
                   </AvatarFallback>

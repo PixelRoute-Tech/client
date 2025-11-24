@@ -2,8 +2,10 @@ import routes from "@/routes/routeList";
 import router from "@/routes/routes";
 import { clearStorage, getItem, storageKeys } from "@/utils/storage";
 import axios from "axios";
+export const baseURL = `${location.protocol}//${location.hostname}:${import.meta.env.VITE_PORT}`
+console.log("url = ",baseURL)
 const network = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL,
 });
 
 network.interceptors.request.use(

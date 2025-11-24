@@ -35,6 +35,7 @@ import {
   getDesignation,
   getUserRole,
 } from "@/services/masters.services";
+import { baseURL } from "@/config/network.config";
 
 export function UserForm({ onSubmit }) {
   const location = useLocation();
@@ -61,7 +62,7 @@ export function UserForm({ onSubmit }) {
   const { setUser } = useAuth();
 
   const [avatarPreview, setAvatarPreview] = useState<string>(
-    `${import.meta.env.VITE_API_URL}${user?.imageUrl || ""}`
+    `${baseURL}${user?.imageUrl || ""}`
   );
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);

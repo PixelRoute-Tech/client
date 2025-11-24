@@ -28,6 +28,7 @@ import { UserType } from "@/types/auth";
 import moment from "moment";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
+import { baseURL } from "@/config/network.config";
 
 export interface User {
   id: string;
@@ -151,7 +152,7 @@ export function UsersTable({
                       <TableCell className="text-xs text-foreground font-mono">
                         <Avatar className="h-8 w-8">
                           <AvatarImage
-                            src={`${import.meta.env.VITE_API_URL}${
+                            src={`${baseURL}${
                               user?.imageUrl ?? ""
                             }`}
                           />
