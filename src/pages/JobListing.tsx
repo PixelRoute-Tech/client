@@ -74,6 +74,7 @@ export default function JobListing() {
       toast({
         title: "Error",
         description: e?.message || "Something went wrong",
+        className:"bg-red-500 text-white"
       });
     },
   });

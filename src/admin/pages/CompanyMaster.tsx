@@ -46,12 +46,13 @@ export default function CompanyMaster() {
 
   const handleDelete = (id: string) => {
     const deleted = companyStorage.delete(id);
-    if (deleted) {
-      toast({
-        title: "Success",
-        description: "Company deleted successfully",
-      });
-    }
+    console.log(deleted)
+    // if (deleted) {
+    //   toast({
+    //     title: "Success",
+    //     description: "Company deleted successfully",
+    //   });
+    // }
   };
 
   const handleTabChange = (value: string) => {

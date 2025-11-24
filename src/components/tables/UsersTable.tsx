@@ -66,10 +66,10 @@ export function UsersTable({
 
   const handleDelete = (userId: string, userName: string) => {
     onDelete(userId);
-    toast({
-      title: "User deleted",
-      description: `${userName} has been removed from the system.`,
-    });
+    // toast({
+    //   title: "User deleted",
+    //   description: `${userName} has been removed from the system.`,
+    // });
   };
 
   const getRoleBadgeVariant = (role: string) => {

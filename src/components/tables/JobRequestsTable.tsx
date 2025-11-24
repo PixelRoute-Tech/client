@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import { JobRequest } from "@/types/job.type";
 import moment from "moment";
 
@@ -19,7 +19,7 @@ interface JobRequestsTableProps {
 
 export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const { toast } = useToast();
+  // const { toast } = useToast();
 
   const filteredJobRequests = jobRequests.filter(
     (job) =>
@@ -31,10 +31,10 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsT
 
   const handleDelete = (jobRequestId: string, summary: string) => {
     onDelete(jobRequestId);
-    toast({
-      title: "Job request deleted",
-      description: `Job request "${summary}" has been removed from the system.`,
-    });
+    // toast({
+    //   title: "Job request deleted",
+    //   description: `Job request "${summary}" has been removed from the system.`,
+    // });
   };
 
   const getStatusBadgeVariant = (status: string) => {
