@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { UserType } from "@/types/auth";
 import moment from "moment";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface User {
   id: string;
@@ -53,7 +54,7 @@ export function UsersTable({
 }: UsersTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
-
+  const {user:currentUser} = useAuth()
   const filteredUsers = users.filter(
     (user) =>
       user.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -186,7 +187,7 @@ export function UsersTable({
                                 Edit
                               </Button>
                             )}
-                            {Boolean(onDelete) && (
+                            {(Boolean(onDelete) &&( user.id != currentUser.id )) && (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button variant="outline" size="sm">
