@@ -1,5 +1,5 @@
 import network from "@/config/network.config";
-import { Worksheet, WorksheetRecord } from "@/types/worksheet.type";
+import { ImageRecord, Worksheet, WorksheetRecord } from "@/types/worksheet.type";
 import apis from "./apis";
 import { ApiResponseType } from "@/types/network.type";
 import { JobRequest, TechRow } from "@/types/job.type";
@@ -89,19 +89,24 @@ export type TechRowTemp = ReplaceField<
   }
 >;
 
-export type JobRequestTemp = ReplaceField<JobRequest,"testRows",Array<TechRowTemp>>
+export type JobRequestTemp = ReplaceField<
+  JobRequest,
+  "testRows",
+  Array<TechRowTemp>
+>;
 
 export const getRecordData = async (
   id: string
 ): ApiResponseType<
   {
-    recordId:string;
+    recordId: string;
     record: WorksheetRecord;
     client: ClientType;
     worksheet: Worksheet;
     job: JobRequestTemp;
-    jobrequest:JobRequest;
-    technician:UserType
+    jobrequest: JobRequest;
+    technician: UserType;
+    images:ImageRecord[]
   }[]
 > => {
   try {
@@ -110,3 +115,27 @@ export const getRecordData = async (
     throw new Error(error.response.data.message);
   }
 };
+
+export const uploadRecordImage = async (
+  payload: FormData
+): ApiResponseType<ImageRecord> => {
+  try {
+    return (
+      await network.post(apis.reportImages, payload, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+    ).data;
+  } catch (error) {
+    throw new Error(error.response.data.message);
+  }
+};
+
+export const getImageRecordImages = async (id:string):ApiResponseType<ImageRecord[]>=>{
+  try {
+    return (await network.get(`${apis.reportImages}/${id}`)).data
+  } catch (error) {
+     throw new Error(error.response.data.message);
+  }
+}

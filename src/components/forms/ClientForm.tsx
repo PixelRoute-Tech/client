@@ -25,11 +25,16 @@ const clientSchema = z.object({
   postalAddress: z.string().min(5, "Postal address is required"),
   phone: z.string().min(10, "Valid phone number is required"),
   email: z.string().email("Invalid email address"),
-  accountDeptContact: z.string().min(2, "Account dept contact is required"),
-  accountPhone: z.string().min(10, "Account phone is required"),
+  accountDeptContact: z.string().optional(),
+  accountPhone: z.string().optional(),
   fax: z.string().optional(),
-  accountEmail: z.string().email("Invalid account email address"),
-  invoiceEmail: z.string().email("Invalid invoice email address"),
+  accountEmail: z.string().optional(),
+  invoiceEmail: z.string().optional(),
+  // accountDeptContact: z.string().min(2, "Account dept contact is required"),
+  // accountPhone: z.string().min(10, "Account phone is required"),
+  // fax: z.string().optional(),
+  // accountEmail: z.string().email("Invalid account email address"),
+  // invoiceEmail: z.string().email("Invalid invoice email address"),
 });
 
 type ClientFormData = z.infer<typeof clientSchema>;

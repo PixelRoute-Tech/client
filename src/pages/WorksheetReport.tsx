@@ -4,6 +4,7 @@ import { useReactToPrint } from "react-to-print";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Printer, Check, X, Image } from "lucide-react";
 import {
+  ImageRecord,
   Worksheet,
   WorksheetField,
   WorksheetRecord,
@@ -22,6 +23,7 @@ import { ClientType } from "@/types/client.type";
 import { UserType } from "@/types/auth";
 import "../styles/print.css";
 import routes from "@/routes/routeList";
+import { baseURL } from "@/config/network.config";
 export default function WorksheetReport() {
   const { id } = useParams();
   const { toast } = useToast();
@@ -29,6 +31,7 @@ export default function WorksheetReport() {
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement>(null);
   const [worksheet, setWorkSheet] = useState<Worksheet>();
+  const [images, setImages] = useState<ImageRecord[]>([]);
   const [technician, setTechnician] = useState<UserType>();
   const [jobData, setJobData] = useState<JobRequestTemp>();
   const [record, setRecord] = useState<WorksheetRecord>();
@@ -64,6 +67,7 @@ export default function WorksheetReport() {
             setClient(data?.client);
             setJobData(data.job);
             setTechnician(data.technician);
+            setImages(data.images);
           }
         }
       } catch (error) {
@@ -107,9 +111,11 @@ export default function WorksheetReport() {
     );
   }
 
-  const hnadleImageData = ()=>{
-     navigate(`${routes.reportImages}/${record.recordId}?worksheet=${worksheet.name}`)
-  } 
+  const hnadleImageData = () => {
+    navigate(
+      `${routes.reportImages}/${record.recordId}?worksheet=${worksheet.name}&jobid=${jobData.jobId}&worksheetid=${worksheet.workSheetId}&clientname=${client.businessName}`
+    );
+  };
 
   const data = record.data;
 
@@ -130,6 +136,14 @@ export default function WorksheetReport() {
     }
   };
 
+  const setUpUrl = (url: string) => {
+    if (url.includes("http")) {
+      return url;
+    } else {
+      return `${baseURL}${url}`;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-muted/30 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -144,7 +158,11 @@ export default function WorksheetReport() {
             Back
           </Button>
           <div className="flex items-center justify-center gap-3">
-            <Button variant="outline" onClick={hnadleImageData} className="gap-2">
+            <Button
+              variant="outline"
+              onClick={hnadleImageData}
+              className="gap-2"
+            >
               <Image className="h-4 w-4" />
               Add images
             </Button>
@@ -502,17 +520,27 @@ export default function WorksheetReport() {
               {/* <p className="mt-2">Page 1 of 1</p> */}
             </div>
           </div>
-          {/* <div className="p-6">
-            <h4 className="underline text-center font-bold">Photographs</h4>
-            <div className="pt-5 grid grid-cols-2 ">
-              <div>
-                <img
-                  className="h-full w-full"
-                  src="https://cad.onshape.com/help/Content/Resources/Images/drawings-tools/drawings-sample.png"
-                />
+          {images?.length > 0 && (
+            <div className="p-6">
+              <h4 className="underline text-center font-bold">Photographs</h4>
+              <div className="pt-5 grid grid-cols-2 gap-4">
+                {images.map((imag, index) => (
+                  <div className="flex flex-col gap-2 border rounded ">
+                    <div
+                      key={index}
+                      className="p-2 h-[350px] overflow-hidden"
+                    >
+                      <img
+                        src={setUpUrl(imag.url)}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="text-sm p-1 border-t text-wrap break-words">{imag.description}</div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div> */}
+          )}
         </div>
       </div>
     </div>

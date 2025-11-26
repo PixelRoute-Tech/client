@@ -13,17 +13,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Upload, Camera, Link as LinkIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { CameraCapture } from './CameraCapture';
 
 interface ImageUploadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpload: (imageUrl: string, type: 'Drawing' | 'Photo', description: string) => void;
+  onUpload: (file: File | string, type: 'Drawing' | 'Photo', description: string) => void;
+  loading?:boolean
 }
 
 export const ImageUploadModal = ({
   open,
   onOpenChange,
   onUpload,
+  loading
 }: ImageUploadModalProps) => {
   const [imageType, setImageType] = useState<'Drawing' | 'Photo'>('Photo');
   const [description, setDescription] = useState('');
@@ -73,7 +76,7 @@ export const ImageUploadModal = ({
   const handleUrlSubmit = () => {
     if (urlInput.trim()) {
       setImageUrl(urlInput.trim());
-      setUrlInput('');
+      // setUrlInput('');
     }
   };
 
@@ -86,8 +89,12 @@ export const ImageUploadModal = ({
       });
       return;
     }
+   if(urlInput){
+     onUpload(urlInput, imageType, description);
+    }else{
+     onUpload(fileInputRef.current.files[0], imageType, description);
+   }
 
-    onUpload(imageUrl, imageType, description);
     
     // Reset form
     setImageUrl('');
@@ -96,10 +103,7 @@ export const ImageUploadModal = ({
     setImageType('Photo');
     onOpenChange(false);
     
-    toast({
-      title: 'Image added',
-      description: 'Your image has been added successfully',
-    });
+  
   };
 
   return (
@@ -150,14 +154,14 @@ export const ImageUploadModal = ({
                       <Upload className="h-4 w-4 mr-2" />
                       Browse Files
                     </Button>
-                    <Button
+                    {/* <Button
                       variant="outline"
                       size="sm"
                       onClick={() => cameraInputRef.current?.click()}
                     >
                       <Camera className="h-4 w-4 mr-2" />
                       Take Photo
-                    </Button>
+                    </Button> */}
                   </div>
                 </div>
               </div>
@@ -173,7 +177,7 @@ export const ImageUploadModal = ({
                 if (file) handleFileChange(file);
               }}
             />
-            <input
+            {/* <input
               ref={cameraInputRef}
               type="file"
               accept="image/*"
@@ -183,7 +187,7 @@ export const ImageUploadModal = ({
                 const file = e.target.files?.[0];
                 if (file) handleFileChange(file);
               }}
-            />
+            /> */}
           </div>
 
           {/* URL Input */}
@@ -237,7 +241,7 @@ export const ImageUploadModal = ({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>Add Image</Button>
+          <Button loading={loading} onClick={handleSubmit}>Add Image</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
