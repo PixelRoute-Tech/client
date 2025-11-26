@@ -14,6 +14,7 @@ userRoles:"/api/masters/userrole",
 settings:"/api/settings",
 reportRecordData:"/api/worksheet/record-data",
 notification:"/api/notification",
+reportImages:"/api/report/report-image",
 }
 
 export default apis 

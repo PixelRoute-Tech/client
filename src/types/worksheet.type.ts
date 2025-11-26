@@ -65,3 +65,16 @@ export type WorksheetRecord = {
   createdAt?: string;
   updatedAt?: string;
 };
+
+export interface ImageRecord {
+  _id: string;
+  jobId: string;
+  recordId: string;
+  worksheetId: string;
+  url: string;
+  type: "Photo" | "Drawing";
+  description: string;
+  createdAt: string;   // or Date
+  updatedAt: string;   // or Date
+  __v: number;
+}

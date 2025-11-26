@@ -4,49 +4,98 @@ import { Button } from "@/components/ui/button";
 import { ImageUploadModal } from "@/components/images/ImageUploadModal";
 import { ImageCard } from "@/components/images/ImageCard";
 import { imageStorage } from "@/utils/imageStorage";
-import { ImageData } from "@/types/image";
+
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  getImageRecordImages,
+  uploadRecordImage,
+} from "@/services/worksheet.services";
+import { ImageRecord } from "@/types/worksheet.type";
+import { baseURL } from "@/config/network.config";
 
 export default function ReportImageUpload() {
-  const [images, setImages] = useState<ImageData[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-const [searchParams] = useSearchParams();
-const sheetName = searchParams.get("worksheet");
-  useEffect(() => {
-    loadImages();
-  }, []);
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const sheetName = searchParams.get("worksheet");
+  const worksheetId = searchParams.get("worksheetid");
+  const jobId = searchParams.get("jobid");
+  const clientName = searchParams.get("clientname");
 
-  const loadImages = () => {
-    const loadedImages = imageStorage.getAll();
-    setImages(loadedImages);
-  };
+  const { data: images,refetch} = useQuery({
+    queryKey: [`${id}photosforworksheet`, id],
+    queryFn: async () => getImageRecordImages(id),
+    refetchOnWindowFocus:false
+  });
+
+  const { mutate: save, isPending: saveLoading } = useMutation({
+    mutationFn: uploadRecordImage,
+    onSuccess: (result) => {
+      console.log(result);
+      if (result.success) {
+        refetch()
+        toast({
+          title: "Upload success",
+          description: result.message,
+          className: "bg-green-500 text-white",
+        });
+      } else {
+        toast({
+          title: "Failed to upload",
+          description: result.message,
+          className: "bg-red-500 text-white",
+        });
+      }
+    },
+    onError: (e: any) => {
+      toast({
+        title: "Error",
+        description: e.message || "Oops! something went wrong",
+        className: "bg-red-500 text-white",
+      });
+    },
+  });
 
   const handleUpload = (
-    imageUrl: string,
+    file: File,
     type: "Drawing" | "Photo",
     description: string
   ) => {
-    imageStorage.save({
-      url: imageUrl,
-      type,
-      description,
-    });
-    loadImages();
+    const formData = new FormData();
+    if (typeof file == "string") {
+      formData.append("file", null);
+      formData.append("imageUrl", file);
+    }
+    formData.append("file", file);
+    formData.append("type", type);
+    formData.append("recordId", id);
+    formData.append("description", description);
+    formData.append("worksheetId", worksheetId);
+    formData.append("jobId", jobId);
+    save(formData);
   };
 
   const handleDelete = (id: string) => {
     imageStorage.delete(id);
-    loadImages();
     toast({
       title: "Image deleted",
       description: "The image has been removed",
     });
   };
+
+  const setUpUrl = (url:string)=>{
+     if(url.includes("http")){
+      return url
+     }else{
+      return `${baseURL}${url}`
+     }
+  }
 
   return (
     <>
@@ -60,7 +109,7 @@ const sheetName = searchParams.get("worksheet");
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          <div>
+          <div className="flex gap-2">
             <h5 className="font-bold"> Photographs</h5>
             {/* <p className="text-muted-foreground mt-1">
               Upload images and draw on them with powerful tools
@@ -71,8 +120,10 @@ const sheetName = searchParams.get("worksheet");
             Add Image
           </Button>
         </div>
-
-        {images.length === 0 ? (
+        <h5 className="text-center">
+          {sheetName} ({clientName})
+        </h5>
+        {images?.data?.length === 0 ? (
           <div className="text-center py-12 border-2 border-dashed rounded-lg">
             <p className="text-muted-foreground mb-4">No images yet</p>
             <Button onClick={() => setIsModalOpen(true)}>
@@ -82,14 +133,22 @@ const sheetName = searchParams.get("worksheet");
           </div>
         ) : (
           <div className="grid grid-cols-2 space-y-4 px-5">
-            {images.map((image) => (
-              <ImageCard key={image.id} image={image} onDelete={handleDelete} />
+            {images?.data?.map((image) => (
+              <ImageCard
+                key={image._id}
+                image={{
+                  ...image,
+                  url:setUpUrl(image.url)
+                }}
+                onDelete={handleDelete}
+              />
             ))}
           </div>
         )}
 
         <ImageUploadModal
-          open={isModalOpen}
+          loading={saveLoading}
+          open={isModalOpen || saveLoading}
           onOpenChange={setIsModalOpen}
           onUpload={handleUpload}
         />
