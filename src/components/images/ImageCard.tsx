@@ -1,18 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { ReactSketchCanvas, ReactSketchCanvasRef } from "react-sketch-canvas";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Save, Trash2 } from "lucide-react";
-import { DrawingToolbar } from "./DrawingToolbar";
+import { Save } from "lucide-react";
 
-import { imageStorage } from "@/utils/imageStorage";
+import { baseURL } from "@/config/network.config";
+import { DrawingToolbar } from "./DrawingToolbar";
 import { ImageRecord } from "@/types/worksheet.type";
 
 interface ImageCardProps {
   image: ImageRecord;
-  onDelete: (id: string) => void;
-  onSave?:(file:File,description:string,id:string)=>void
+  onDelete?: (id: string) => void;
+  onSave?: (file: File, description: string, id: string) => void;
 }
 
 export const ImageCard = ({ image, onDelete }: ImageCardProps) => {
@@ -21,36 +21,29 @@ export const ImageCard = ({ image, onDelete }: ImageCardProps) => {
   const [color, setColor] = useState("#000000");
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [isErasing, setIsErasing] = useState(false);
-
-  // Load saved drawing data when component mounts
-  useEffect(() => {
-    if (canvasRef.current && image.url) {
-      try {
-        canvasRef.current.loadPaths(JSON.parse(image.url));
-      } catch (err) {
-        console.error("Failed to load canvas data", err);
-      }
-    }
-  }, [image.url]);
+  const [imageUrl,setImageUrl] = useState<string>("")
+  const setUpUrl = (url: string) => {
+    return url.startsWith("http") ? url : `${baseURL}${url}`;
+  };
 
   const saveCanvas = async () => {
     if (!canvasRef.current) return;
-    const paths = await canvasRef.current.exportPaths();
+    await canvasRef.current.exportPaths();
   };
 
   const handleUndo = async () => {
     await canvasRef.current?.undo();
-    await saveCanvas();
+    saveCanvas();
   };
 
   const handleRedo = async () => {
     await canvasRef.current?.redo();
-    await saveCanvas();
+    saveCanvas();
   };
 
   const handleClear = async () => {
     await canvasRef.current?.clearCanvas();
-    await saveCanvas();
+    saveCanvas();
   };
 
   const handleErase = () => {
@@ -63,8 +56,40 @@ export const ImageCard = ({ image, onDelete }: ImageCardProps) => {
     canvasRef.current?.eraseMode(false);
   };
 
+  // Convert remote image → Base64
+  const fetchImageAsBase64 = async (url: string) => {
+    const res = await fetch(url);
+    const blob = await res.blob();
+
+    return new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const loadImage = async () => {
+    if (!canvasRef.current || !image.url) return;
+
+    try {
+      const base64 = await fetchImageAsBase64(setUpUrl(image.url));
+
+      // Get canvas container dimensions dynamically
+      // const canvasElement = canvasRef.current.canvasContainer;
+      // const width = canvasElement?.clientWidth || 600;
+      // const height = canvasElement?.clientHeight || 350;
+      setImageUrl(base64)
+    } catch (err) {
+      console.error("Failed to load image", err);
+    }
+  };
+
+  useEffect(() => {
+    loadImage();
+  }, [image.url]);
+
   return (
-    <Card className="overflow-hidden">
+    <div className="">
       <CardContent className="p-4">
         <div className="mb-3 flex justify-between items-start">
           <div>
@@ -77,40 +102,28 @@ export const ImageCard = ({ image, onDelete }: ImageCardProps) => {
               </p>
             )}
           </div>
-          <div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDelete(image._id)}
-              className="text-destructive hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDelete(image._id)}
-              className="text-green-500 hover:text-green-400"
-            >
-              <Save />
-            </Button>
-          </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onDelete?.(image._id)}
+            className="text-green-500 hover:text-green-400"
+          >
+            <Save />
+          </Button>
         </div>
 
-        {/* CANVAS WITH IMAGE BACKGROUND */}
+        {/* CANVAS */}
         <div className="border rounded-lg overflow-hidden bg-background mb-3">
           <ReactSketchCanvas
             ref={canvasRef}
-            style={{
-              width: "100%",
-              height: "40vh",
-            }}
+            style={{ width: "100%", height: "40vh" }}
             strokeColor={color}
+            backgroundImage={imageUrl}
             strokeWidth={strokeWidth}
             eraserWidth={strokeWidth + 2}
-            backgroundImage={image.url}
             preserveBackgroundImageAspectRatio="xMidYMid meet"
-            onStroke={() => saveCanvas()}
+            onStroke={saveCanvas}
           />
         </div>
 
@@ -127,6 +140,6 @@ export const ImageCard = ({ image, onDelete }: ImageCardProps) => {
           isErasing={isErasing}
         />
       </CardContent>
-    </Card>
+    </div>
   );
 };

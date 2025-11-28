@@ -1,14 +1,11 @@
-import { useState, useEffect } from "react";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ImageUploadModal } from "@/components/images/ImageUploadModal";
 import { ImageCard } from "@/components/images/ImageCard";
 import { imageStorage } from "@/utils/imageStorage";
-
-import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Plus } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   getImageRecordImages,
@@ -16,6 +13,8 @@ import {
 } from "@/services/worksheet.services";
 import { ImageRecord } from "@/types/worksheet.type";
 import { baseURL } from "@/config/network.config";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function ReportImageUpload() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,11 +26,11 @@ export default function ReportImageUpload() {
   const worksheetId = searchParams.get("worksheetid");
   const jobId = searchParams.get("jobid");
   const clientName = searchParams.get("clientname");
-
-  const { data: images,refetch} = useQuery({
+  const [editImage,setEditImage] = useState<ImageRecord | null>(null)
+  const { data: images, refetch } = useQuery({
     queryKey: [`${id}photosforworksheet`, id],
     queryFn: async () => getImageRecordImages(id),
-    refetchOnWindowFocus:false
+    refetchOnWindowFocus: false,
   });
 
   const { mutate: save, isPending: saveLoading } = useMutation({
@@ -39,7 +38,7 @@ export default function ReportImageUpload() {
     onSuccess: (result) => {
       console.log(result);
       if (result.success) {
-        refetch()
+        refetch();
         toast({
           title: "Upload success",
           description: result.message,
@@ -89,14 +88,6 @@ export default function ReportImageUpload() {
     });
   };
 
-  const setUpUrl = (url:string)=>{
-     if(url.includes("http")){
-      return url
-     }else{
-      return `${baseURL}${url}`
-     }
-  }
-
   return (
     <>
       <div className="p-6 space-y-6">
@@ -132,22 +123,58 @@ export default function ReportImageUpload() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 space-y-4 px-5">
+          <div className="grid grid-cols-2 gap-2 space-y-4 px-5">
             {images?.data?.map((image) => (
-              <ImageCard
-                key={image._id}
-                image={{
-                  ...image,
-                  url:setUpUrl(image.url)
-                }}
-                onDelete={handleDelete}
-              />
+              <Card className="" id={image._id}>
+                <CardContent className="p-4">
+                  <div className="mb-3 flex justify-between items-start">
+                    <div>
+                      <Badge
+                        variant={
+                          image.type === "Drawing" ? "default" : "secondary"
+                        }
+                      >
+                        {image.type}
+                      </Badge>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {setIsModalOpen(true),setEditImage(image)}}
+                        className="text-green-500 hover:text-green-400"
+                      >
+                        <Pencil />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {}}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* CANVAS WITH IMAGE BACKGROUND */}
+                  <div className="border rounded-lg overflow-hidden bg-background mb-3">
+                    <img src={image.url} />
+                  </div>
+                  {image.description && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {image.description}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
 
         <ImageUploadModal
           loading={saveLoading}
+          image={editImage}
           open={isModalOpen || saveLoading}
           onOpenChange={setIsModalOpen}
           onUpload={handleUpload}
