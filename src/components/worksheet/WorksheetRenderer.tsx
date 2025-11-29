@@ -48,7 +48,7 @@ interface WorksheetRendererProps {
   onChange?: (data: WorksheetData) => void;
   onSubmit?: (data: WorksheetData) => void;
   recordId?: string;
-  clientId?:string
+  clientId?: string;
 }
 
 export function WorksheetRenderer({
@@ -57,7 +57,7 @@ export function WorksheetRenderer({
   onChange,
   onSubmit,
   recordId,
-  clientId=""
+  clientId = "",
 }: WorksheetRendererProps) {
   const [formData, setFormData] = useState<WorksheetData>(data);
   const [currentRecordId, setCurrentRecordId] = useState<string>(
@@ -116,7 +116,7 @@ export function WorksheetRenderer({
   };
 
   const handleSave = () => {
-        const jobId = recordId.split("_")[1]
+    const jobId = recordId.split("_")[1];
     const record = {
       jobId,
       recordId,
@@ -212,11 +212,15 @@ export function WorksheetRenderer({
               <SelectValue placeholder={`Select ${field.name}`} />
             </SelectTrigger>
             <SelectContent>
-              {field.options?.map((option) => (
-                <SelectItem key={option.optionId} value={option.value}>
-                  {option.value}
-                </SelectItem>
-              ))}
+              {field.options.length ? (
+                field.options?.map((option) => (
+                  <SelectItem key={option?.optionId} value={option?.value || " "}>
+                    {option.value}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value={"No value"}>No value</SelectItem>
+              )}
             </SelectContent>
           </Select>
         );
@@ -232,11 +236,18 @@ export function WorksheetRenderer({
               <SelectValue placeholder={`Select ${field.name}`} />
             </SelectTrigger>
             <SelectContent>
-              {field.options?.map((option) => (
-                <SelectItem key={option.optionId} value={option.value}>
-                  {option.value}
-                </SelectItem>
-              ))}
+              {field.options.length ? (
+                field.options?.map((option) => (
+                  <SelectItem
+                    key={option?.optionId}
+                    value={option?.value || " "}
+                  >
+                    {option.value || " "}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value={"No values"}>No values </SelectItem>
+              )}
             </SelectContent>
           </Select>
         );
@@ -256,11 +267,18 @@ export function WorksheetRenderer({
                 <SelectValue placeholder={`Select ${field.name}`} />
               </SelectTrigger>
               <SelectContent>
-                {field.options?.map((option) => (
-                  <SelectItem key={option.optionId} value={option.value}>
-                    {option.value}
-                  </SelectItem>
-                ))}
+                {field.options.length ? (
+                  field.options?.map((option) => (
+                    <SelectItem
+                      key={option?.optionId}
+                      value={option?.value || " "}
+                    >
+                      {option.value || " "}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value={"No values"}>No values </SelectItem>
+                )}
               </SelectContent>
             </Select>
             {chipValues.length > 0 && (
@@ -350,11 +368,18 @@ export function WorksheetRenderer({
               <SelectValue placeholder="Select" />
             </SelectTrigger>
             <SelectContent>
-              {column.options?.map((option) => (
-                <SelectItem key={option.optionId} value={option.value}>
-                  {option.value}
-                </SelectItem>
-              ))}
+              {column?.options ? (
+                column.options?.map((option) => (
+                  <SelectItem
+                    key={option?.optionId}
+                    value={option?.value || " "}
+                  >
+                    {option.value || " "}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value={"No values"}>No values </SelectItem>
+              )}
             </SelectContent>
           </Select>
         );
@@ -486,8 +511,8 @@ export function WorksheetRenderer({
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
           </Button>
-<div></div>
-<div></div>
+          <div></div>
+          <div></div>
           <div className="col-span-5 text-center">
             <CardTitle className="text-primary">{worksheet.name}</CardTitle>
           </div>

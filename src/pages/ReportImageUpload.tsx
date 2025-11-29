@@ -61,6 +61,10 @@ export default function ReportImageUpload() {
     },
   });
 
+    const setUpUrl = (url: string) => {
+      return url.startsWith("http") ? url : `${baseURL}${url}`;
+    };
+
   const handleUpload = (
     file: File,
     type: "Drawing" | "Photo",
@@ -106,7 +110,7 @@ export default function ReportImageUpload() {
               Upload images and draw on them with powerful tools
             </p> */}
           </div>
-          <Button onClick={() => setIsModalOpen(true)}>
+          <Button onClick={() => {setIsModalOpen(true),setEditImage(null)}}>
             <Plus className="h-4 w-4 mr-2" />
             Add Image
           </Button>
@@ -159,7 +163,7 @@ export default function ReportImageUpload() {
 
                   {/* CANVAS WITH IMAGE BACKGROUND */}
                   <div className="border rounded-lg overflow-hidden bg-background mb-3">
-                    <img src={image.url} />
+                    <img src={setUpUrl(image.url)} />
                   </div>
                   {image.description && (
                     <p className="text-sm text-muted-foreground mt-2">

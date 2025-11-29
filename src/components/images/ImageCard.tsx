@@ -15,15 +15,22 @@ interface ImageCardProps {
   onSave?: (file: File, description: string, id: string) => void;
 }
 
+export const dimension = {
+  height: 300,
+  width: 350,
+};
+
 export const ImageCard = ({ image, onDelete }: ImageCardProps) => {
   const canvasRef = useRef<ReactSketchCanvasRef>(null);
 
   const [color, setColor] = useState("#000000");
   const [strokeWidth, setStrokeWidth] = useState(3);
-  const [isErasing, setIsErasing] = useState(false);
-  const [imageUrl,setImageUrl] = useState<string>("")
-  const setUpUrl = (url: string) => {
-    return url.startsWith("http") ? url : `${baseURL}${url}`;
+  const [operation, setOperation] = useState<"draw" | "erase">("draw");
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const setUpUrl = () => {
+    const imgurl = image.url.startsWith("http") ? image.url : `${baseURL}${image.url}`;
+    setImageUrl(imgurl)
+    return imgurl
   };
 
   const saveCanvas = async () => {
@@ -47,50 +54,89 @@ export const ImageCard = ({ image, onDelete }: ImageCardProps) => {
   };
 
   const handleErase = () => {
-    setIsErasing(true);
+    setOperation("erase");
     canvasRef.current?.eraseMode(true);
   };
 
   const handleDraw = () => {
-    setIsErasing(false);
+    setOperation("draw");
     canvasRef.current?.eraseMode(false);
   };
 
   // Convert remote image → Base64
-  const fetchImageAsBase64 = async (url: string) => {
-    const res = await fetch(url);
-    const blob = await res.blob();
+  // const handleImageResizeFromUrl = () => {
+  //   const img = new Image();
+  //   img.crossOrigin = "anonymous"; // Allow cross-origin requests
 
-    return new Promise<string>((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.readAsDataURL(blob);
-    });
+  //   img.src = setUpUrl(image.url)
+  //   const splitedEtx = image.url.split(".")
+  //   const ext = splitedEtx[splitedEtx.length - 1]
+  //  console.log("image src = ",img.src,"extention = ",ext)
+  //   img.onload = () => {
+  //     const canvas = document.createElement("canvas");
+  //     const ctx = canvas.getContext("2d");
+  //     canvas.width = dimension.width;
+  //     canvas.height = dimension.height;
+
+  //     if (ctx) {
+  //       ctx.drawImage(img, 0, 0, dimension.width, dimension.width);
+  //       canvas.toBlob(
+  //         (blob) => {
+  //           if (blob) {
+  //             const resizedUrl = URL.createObjectURL(blob);
+  //             console.log(resizedUrl);
+  //             setImageUrl(resizedUrl);
+  //           }
+  //         },
+  //         `image/${ext}`,
+  //         0.8
+  //       );
+  //     }
+  //   };
+
+  //   img.onerror = () => {
+  //     console.error("Failed to load image from URL.");
+  //   };
+  // };
+
+  const canvasStyle = {
+    draw: "border rounded-lg overflow-hidden bg-background mb-3 cursor-pen",
+    erase: "border rounded-lg overflow-hidden bg-background mb-3 cursor-erase",
   };
 
-  const loadImage = async () => {
-    if (!canvasRef.current || !image.url) return;
-
-    try {
-      const base64 = await fetchImageAsBase64(setUpUrl(image.url));
-
-      // Get canvas container dimensions dynamically
-      // const canvasElement = canvasRef.current.canvasContainer;
-      // const width = canvasElement?.clientWidth || 600;
-      // const height = canvasElement?.clientHeight || 350;
-      setImageUrl(base64)
-    } catch (err) {
-      console.error("Failed to load image", err);
+  const handleSave = async () => {
+    const paths = await canvasRef.current.exportPaths();
+    console.log(paths);
+    let allPath = JSON.parse(localStorage.getItem("imagePath") || "{}")
+        console.log("allPath = ",allPath);
+    if(allPath[image._id]){
+      allPath[image._id] = paths;
+    }else{
+      allPath = {...allPath,[image._id]:paths} 
     }
+    localStorage.setItem("imagePath", JSON.stringify(allPath));
   };
+
+  const loadPath = async ()=>{
+      try {
+         const pathData = await fetch("http://localhost:8000/uploads/drawPaths/imgpathone.json")
+         const pathjson =await pathData.json()
+         console.log("pathjson = ",pathjson)
+         canvasRef.current.loadPaths(pathjson)
+      } catch (error) {
+        console.log("error",error)
+      }
+  }
 
   useEffect(() => {
-    loadImage();
+    // handleImageResizeFromUrl();
+    loadPath()
+    setUpUrl()
   }, [image.url]);
 
   return (
     <div className="">
-      <CardContent className="p-4">
+      <CardContent className="">
         <div className="mb-3 flex justify-between items-start">
           <div>
             <Badge variant={image.type === "Drawing" ? "default" : "secondary"}>
@@ -106,7 +152,7 @@ export const ImageCard = ({ image, onDelete }: ImageCardProps) => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onDelete?.(image._id)}
+            onClick={handleSave}
             className="text-green-500 hover:text-green-400"
           >
             <Save />
@@ -114,10 +160,10 @@ export const ImageCard = ({ image, onDelete }: ImageCardProps) => {
         </div>
 
         {/* CANVAS */}
-        <div className="border rounded-lg overflow-hidden bg-background mb-3">
+        <div className={canvasStyle[operation]}>
           <ReactSketchCanvas
             ref={canvasRef}
-            style={{ width: "100%", height: "40vh" }}
+            style={dimension}
             strokeColor={color}
             backgroundImage={imageUrl}
             strokeWidth={strokeWidth}
@@ -137,7 +183,7 @@ export const ImageCard = ({ image, onDelete }: ImageCardProps) => {
           onRedo={handleRedo}
           onClear={handleClear}
           onDraw={handleDraw}
-          isErasing={isErasing}
+          isErasing={operation == "erase"}
         />
       </CardContent>
     </div>
