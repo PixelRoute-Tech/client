@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,24 +7,27 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Upload, Camera, Link as LinkIcon } from "lucide-react";
+import { Upload, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CameraCapture } from "./CameraCapture";
 import { ImageRecord } from "@/types/worksheet.type";
 import { ImageCard } from "./ImageCard";
+import { ReactSketchCanvasRef,CanvasPath } from "react-sketch-canvas";
+import { filetypes } from "@/utils/fileTypes";
+export type OnUploadParams = {
+  file: File | string;
+  type: "Drawing" | "Photo";
+  path: CanvasPath[];
+  description: string;
+};
 
 interface ImageUploadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpload: (
-    file: File | string,
-    type: "Drawing" | "Photo",
-    description: string
-  ) => void;
+  onUpload: (params: OnUploadParams) => void;
   loading?: boolean;
   image?: ImageRecord | null;
 }
@@ -42,9 +45,46 @@ export const ImageUploadModal = ({
   const [urlInput, setUrlInput] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const blobRef = useRef<Blob>(null);
+  const canvasRef = useRef<ReactSketchCanvasRef>(null);
   const { toast } = useToast();
 
-  const handleFileChange = (file: File) => {
+  function resizeImage(file: File): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        // Maintain aspect ratio
+        const scale = Math.min(400 / width, 450 / height);
+        width = width * scale;
+        height = height * scale;
+        const fileType = file.type;
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+
+        ctx!.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob);
+            else reject("Compression failed.");
+          },
+          fileType,
+          0.9 // quality (0–1)
+        );
+      };
+
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
+  const handleFileChange = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast({
         title: "Invalid file",
@@ -54,11 +94,8 @@ export const ImageUploadModal = ({
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setImageUrl(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+    blobRef.current = await resizeImage(file);
+    setImageUrl(URL.createObjectURL(blobRef.current));
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -80,14 +117,7 @@ export const ImageUploadModal = ({
     setIsDragging(false);
   };
 
-  const handleUrlSubmit = () => {
-    if (urlInput.trim()) {
-      setImageUrl(urlInput.trim());
-      // setUrlInput('');
-    }
-  };
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!imageUrl) {
       toast({
         title: "No image",
@@ -96,11 +126,20 @@ export const ImageUploadModal = ({
       });
       return;
     }
-    if (urlInput) {
-      onUpload(urlInput, imageType, description);
-    } else {
-      onUpload(fileInputRef.current.files[0], imageType, description);
-    }
+    const ext = filetypes[blobRef.current.type];
+    // if (urlInput) {
+    //   onUpload(urlInput, imageType, description);
+    // } else {
+    //   onUpload(fileInputRef.current.files[0], imageType, description);
+    // }
+    onUpload({
+      file: new File([blobRef.current], `selctedImage.${ext}`, {
+        type: blobRef.current.type,
+      }),
+      type: imageType,
+      path: await canvasRef.current.exportPaths(),
+      description,
+    });
 
     // Reset form
     setImageUrl("");
@@ -110,157 +149,144 @@ export const ImageUploadModal = ({
     onOpenChange(false);
   };
 
+  useEffect(() => {
+    return () => {
+      setImageUrl("");
+      setDescription("");
+      setUrlInput("");
+      setImageType("Photo");
+      onOpenChange(false);
+      if (imageUrl.includes("blob")) {
+        console.log("condition true");
+        URL.revokeObjectURL(imageUrl);
+      }
+    };
+  }, []);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
-        <div className="pt-5">
-          <DialogHeader>
-            <DialogTitle>Add New Image</DialogTitle>
-          </DialogHeader>
+        <div className="mb-5">
+          {Boolean(image?.url) ? (
+            <ImageCard image={image.url} canvasRef={canvasRef} />
+          ) : (
+            <>
+              <DialogHeader className="mb-3">
+                <DialogTitle>Add New Image</DialogTitle>
+              </DialogHeader>
 
-          <div className="space-y-4">
-            {/* Image Upload Area */}
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                isDragging ? "border-primary bg-primary/5" : "border-border"
-              }`}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-            >
-              {imageUrl ? (
-                <div className="space-y-3">
-                  <img
-                    src={imageUrl}
-                    alt="Preview"
-                    className="max-h-64 mx-auto rounded-lg object-contain"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={() => setImageUrl("")}
-                    size="sm"
-                  >
-                    Change Image
-                  </Button>
-                </div>
-              ) : Boolean(image?.url) ? (
-                <ImageCard image={image} />
-              ) : (
-                <div className="space-y-4">
-                  <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
-                  <ImageCard image={image} />
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      Drag and drop an image here, or click to browse
-                    </p>
-                    <div className="flex gap-2 justify-center flex-wrap">
+              <div className="max-h-[70dvh] overflow-y-auto space-y-4">
+                {/* Image Upload Area */}
+                <div
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                    isDragging ? "border-primary bg-primary/5" : "border-border"
+                  }`}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                >
+                  {imageUrl ? (
+                    <div className="space-y-3">
+                      <ImageCard image={imageUrl} canvasRef={canvasRef} />
                       <Button
                         variant="outline"
+                        onClick={() => setImageUrl("")}
                         size="sm"
-                        onClick={() => fileInputRef.current?.click()}
                       >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Browse Files
+                        Change Image
                       </Button>
-                      {/* <Button
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          Drag and drop an image here, or click to browse
+                        </p>
+                        <div className="flex gap-2 justify-center flex-wrap">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            Browse Files
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFileChange(file);
+                    }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Image Type</Label>
+                  <RadioGroup
+                    value={imageType}
+                    onValueChange={(value) =>
+                      setImageType(value as "Drawing" | "Photo")
+                    }
+                    className="flex gap-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="Photo" id="photo" />
+                      <Label htmlFor="photo" className="cursor-pointer">
+                        Photo
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="Drawing" id="drawing" />
+                      <Label htmlFor="drawing" className="cursor-pointer">
+                        Drawing
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                {/* Description */}
+                <div className="space-y-2">
+                  <Label>Description (Optional)</Label>
+                  <Textarea
+                    placeholder="Add a description for this image..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <DialogFooter className="mt-2">
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button loading={loading} onClick={handleSubmit}>
+                  Add Image
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+{
+  /* <Button
                       variant="outline"
                       size="sm"
                       onClick={() => cameraInputRef.current?.click()}
                     >
                       <Camera className="h-4 w-4 mr-2" />
                       Take Photo
-                    </Button> */}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleFileChange(file);
-                }}
-              />
-              {/* <input
-              ref={cameraInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleFileChange(file);
-              }}
-            /> */}
-            </div>
-
-            {/* URL Input */}
-            <div className="space-y-2">
-              <Label>Or add image from URL</Label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="https://example.com/image.jpg"
-                  value={urlInput}
-                  onChange={(e) => setUrlInput(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleUrlSubmit()}
-                />
-                <Button onClick={handleUrlSubmit} variant="outline">
-                  <LinkIcon className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Image Type */}
-            <div className="space-y-2">
-              <Label>Image Type</Label>
-              <RadioGroup
-                value={imageType}
-                onValueChange={(value) =>
-                  setImageType(value as "Drawing" | "Photo")
-                }
-                className="flex gap-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Photo" id="photo" />
-                  <Label htmlFor="photo" className="cursor-pointer">
-                    Photo
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Drawing" id="drawing" />
-                  <Label htmlFor="drawing" className="cursor-pointer">
-                    Drawing
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label>Description (Optional)</Label>
-              <Textarea
-                placeholder="Add a description for this image..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button loading={loading} onClick={handleSubmit}>
-              Add Image
-            </Button>
-          </DialogFooter>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
+                    </Button> */
+}

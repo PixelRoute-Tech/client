@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ImageUploadModal } from "@/components/images/ImageUploadModal";
+import { ImageUploadModal, OnUploadParams } from "@/components/images/ImageUploadModal";
 import { ImageCard } from "@/components/images/ImageCard";
 import { imageStorage } from "@/utils/imageStorage";
 import { useToast } from "@/hooks/use-toast";
@@ -65,22 +65,20 @@ export default function ReportImageUpload() {
       return url.startsWith("http") ? url : `${baseURL}${url}`;
     };
 
-  const handleUpload = (
-    file: File,
-    type: "Drawing" | "Photo",
-    description: string
-  ) => {
+  const handleUpload = ({description,file,path,type}:OnUploadParams) => {
     const formData = new FormData();
     if (typeof file == "string") {
       formData.append("file", null);
       formData.append("imageUrl", file);
     }
     formData.append("file", file);
+    formData.append("imagePath",JSON.stringify(path,null,2))
     formData.append("type", type);
     formData.append("recordId", id);
     formData.append("description", description);
     formData.append("worksheetId", worksheetId);
     formData.append("jobId", jobId);
+    console.log({description,file,path,type})
     save(formData);
   };
 
@@ -118,7 +116,7 @@ export default function ReportImageUpload() {
         <h5 className="text-center">
           {sheetName} ({clientName})
         </h5>
-        {images?.data?.length === 0 ? (
+        {!Boolean(images?.data?.length) ? (
           <div className="text-center py-12 border-2 border-dashed rounded-lg">
             <p className="text-muted-foreground mb-4">No images yet</p>
             <Button onClick={() => setIsModalOpen(true)}>
@@ -163,7 +161,7 @@ export default function ReportImageUpload() {
 
                   {/* CANVAS WITH IMAGE BACKGROUND */}
                   <div className="border rounded-lg overflow-hidden bg-background mb-3">
-                    <img src={setUpUrl(image.url)} />
+                    <img  className="w-full h-[50vh] object-contain rounded-md" src={image.url} />
                   </div>
                   {image.description && (
                     <p className="text-sm text-muted-foreground mt-2">
