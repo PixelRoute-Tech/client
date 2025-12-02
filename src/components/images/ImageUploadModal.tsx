@@ -15,8 +15,9 @@ import { useToast } from "@/hooks/use-toast";
 import { CameraCapture } from "./CameraCapture";
 import { ImageRecord } from "@/types/worksheet.type";
 import { ImageCard } from "./ImageCard";
-import { ReactSketchCanvasRef,CanvasPath } from "react-sketch-canvas";
+import { ReactSketchCanvasRef, CanvasPath } from "react-sketch-canvas";
 import { filetypes } from "@/utils/fileTypes";
+import { baseURL } from "@/config/network.config";
 export type OnUploadParams = {
   file: File | string;
   type: "Drawing" | "Photo";
@@ -118,7 +119,7 @@ export const ImageUploadModal = ({
   };
 
   const handleSubmit = async () => {
-    if (!imageUrl) {
+    if (!imageUrl && !image.url) {
       toast({
         title: "No image",
         description: "Please select or provide an image",
@@ -127,11 +128,6 @@ export const ImageUploadModal = ({
       return;
     }
     const ext = filetypes[blobRef.current.type];
-    // if (urlInput) {
-    //   onUpload(urlInput, imageType, description);
-    // } else {
-    //   onUpload(fileInputRef.current.files[0], imageType, description);
-    // }
     onUpload({
       file: new File([blobRef.current], `selctedImage.${ext}`, {
         type: blobRef.current.type,
@@ -147,6 +143,10 @@ export const ImageUploadModal = ({
     setUrlInput("");
     setImageType("Photo");
     onOpenChange(false);
+  };
+
+  const setUpUrl = (url: string) => {
+    return url.startsWith("http") ? url : `${baseURL}${url}`;
   };
 
   useEffect(() => {
@@ -168,7 +168,17 @@ export const ImageUploadModal = ({
       <DialogContent className="max-w-2xl">
         <div className="mb-5">
           {Boolean(image?.url) ? (
-            <ImageCard image={image.url} canvasRef={canvasRef} />
+            <div>
+              <ImageCard image={setUpUrl(image.url)} canvasRef={canvasRef} />
+              <DialogFooter className="mt-2">
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button loading={loading} onClick={handleSubmit}>
+                  Update Image
+                </Button>
+              </DialogFooter>
+            </div>
           ) : (
             <>
               <DialogHeader className="mb-3">
