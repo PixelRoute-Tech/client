@@ -79,7 +79,7 @@ export default function ReportImageUpload() {
     formData.append("description", description);
     formData.append("worksheetId", worksheetId);
     formData.append("jobId", jobId);
-    console.log(formData)
+    // formData.forEach(i=>console.log(i))
     // save(formData);
   };
 
@@ -132,7 +132,7 @@ export default function ReportImageUpload() {
         ) : (
           <div className="grid grid-cols-2 gap-2 space-y-4 px-5">
             {images?.data?.map((image) => (
-              <Card className="" id={image._id}>
+              <Card key={image?._id} className="" id={image._id}>
                 <CardContent className="p-4">
                   <div className="mb-3 flex justify-between items-start">
                     <div>

@@ -16,10 +16,11 @@ import { CameraCapture } from "./CameraCapture";
 import { ImageRecord } from "@/types/worksheet.type";
 import { ImageCard } from "./ImageCard";
 import { ReactSketchCanvasRef, CanvasPath } from "react-sketch-canvas";
-import { filetypes } from "@/utils/fileTypes";
+import { filetypes } from "@/utils/fileOperations";
 import { baseURL } from "@/config/network.config";
 export type OnUploadParams = {
   file: File | string;
+  preview: File | string;
   type: "Drawing" | "Photo";
   path: CanvasPath[];
   description: string;
@@ -43,7 +44,6 @@ export const ImageUploadModal = ({
   const [imageType, setImageType] = useState<"Drawing" | "Photo">("Photo");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [urlInput, setUrlInput] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const blobRef = useRef<Blob>(null);
@@ -118,6 +118,7 @@ export const ImageUploadModal = ({
     setIsDragging(false);
   };
 
+
   const handleSubmit = async () => {
     if (!imageUrl && !image.url) {
       toast({
@@ -127,20 +128,21 @@ export const ImageUploadModal = ({
       });
       return;
     }
+    console.log(await canvasRef.current.exportImage("png"));
+    console.log(blobRef.current);
     const ext = filetypes[blobRef.current.type];
-    onUpload({
-      file: new File([blobRef.current], `selctedImage.${ext}`, {
-        type: blobRef.current.type,
-      }),
-      type: imageType,
-      path: await canvasRef.current.exportPaths(),
-      description,
-    });
+    // onUpload({
+    //   file: new File([blobRef.current], `selctedImage.${ext}`, {
+    //     type: blobRef.current.type,
+    //   }),
+    //   type: imageType,
+    //   path: await canvasRef.current.exportPaths(),
+    //   description,
+    // });
 
     // Reset form
     setImageUrl("");
     setDescription("");
-    setUrlInput("");
     setImageType("Photo");
     onOpenChange(false);
   };
@@ -149,19 +151,28 @@ export const ImageUploadModal = ({
     return url.startsWith("http") ? url : `${baseURL}${url}`;
   };
 
+  const loadPath = async () => {
+    if (image?.fileName) {
+      const result = await fetch(
+        `${baseURL}/uploads/imagepath/${image.fileName}.json`
+      );
+      const loadedPath = await result.json();
+      canvasRef.current.loadPaths(loadedPath);
+    }
+  };
+
   useEffect(() => {
+    loadPath();
     return () => {
       setImageUrl("");
       setDescription("");
-      setUrlInput("");
       setImageType("Photo");
-      onOpenChange(false);
       if (imageUrl.includes("blob")) {
         console.log("condition true");
         URL.revokeObjectURL(imageUrl);
       }
     };
-  }, []);
+  }, [image, open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

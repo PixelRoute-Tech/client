@@ -39,3 +39,29 @@ export const filetypes: Record<string, string> = {
   "image/x-pentax-pef": "pef",
   "image/x-sigma-x3f": "x3f",
 };
+
+export function base64ToFile(base64String: string, fileName: string): Promise<File> {
+  return new Promise((resolve, reject) => {
+    try {
+      const arr = base64String.split(",");
+      const mimeMatch = arr[0].match(/:(.*?);/);
+
+      if (!mimeMatch) {
+        return reject(new Error("Invalid base64 string"));
+      }
+
+      const mime = mimeMatch[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+
+      resolve(new File([u8arr], fileName, { type: mime }));
+    } catch (err) {
+      reject(new Error("Image can't process"));
+    }
+  });
+}
