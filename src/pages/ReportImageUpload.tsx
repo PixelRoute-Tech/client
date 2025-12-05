@@ -11,6 +11,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Pencil, Trash2, Plus } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
+  deleteRecordImage,
   getImageRecordImages,
   updateRecordImage,
   uploadRecordImage,
@@ -92,6 +93,33 @@ export default function ReportImageUpload() {
     },
   });
 
+  const { mutate: deleteFile, isPending: deleteLoading } = useMutation({
+    mutationFn: deleteRecordImage,
+    onSuccess: (result) => {
+      if (result.success) {
+        refetch();
+        toast({
+          title: "Upload success",
+          description: result.message,
+          className: "bg-green-500 text-white",
+        });
+      } else {
+        toast({
+          title: "Failed to upload",
+          description: result.message,
+          className: "bg-red-500 text-white",
+        });
+      }
+    },
+    onError: (e: any) => {
+      toast({
+        title: "Error",
+        description: e.message || "Oops! something went wrong",
+        className: "bg-red-500 text-white",
+      });
+    },
+  });
+
   const handleUpload = ({
     description,
     preview,
@@ -100,8 +128,8 @@ export default function ReportImageUpload() {
     type,
   }: OnUploadParams) => {
     const formData = new FormData();
+
     formData.append("preview", preview);
-    formData.append("file", file);
     formData.append("imagePath", JSON.stringify(path, null, 2));
     formData.append("type", type);
     formData.append("recordId", id);
@@ -120,16 +148,13 @@ export default function ReportImageUpload() {
       formData.append("id", editImage._id);
       update(formData);
     } else {
+      formData.append("file", file);
       save(formData);
     }
   };
 
-  const handleDelete = (id: string) => {
-    imageStorage.delete(id);
-    toast({
-      title: "Image deleted",
-      description: "The image has been removed",
-    });
+  const handleDelete = (image: ImageRecord) => {
+    deleteFile({ id: image._id, imageUrl: image.url, preview: image.preview });
   };
 
   const handleEditImage = (image: ImageRecord) => {
@@ -191,6 +216,7 @@ export default function ReportImageUpload() {
                     </div>
                     <div className="flex gap-2">
                       <Button
+                        loading={deleteLoading}
                         variant="outline"
                         size="sm"
                         onClick={() => handleEditImage(image)}
@@ -201,7 +227,9 @@ export default function ReportImageUpload() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {}}
+                        onClick={() => {
+                          handleDelete(image);
+                        }}
                         className="text-destructive hover:text-destructive"
                       >
                         <Trash2 className="h-4 w-4" />

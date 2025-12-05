@@ -137,11 +137,24 @@ export const updateRecordImage = async (
 ): ApiResponseType<ImageRecord> => {
   try {
     return (
-      await network.put(`${apis.reportImages}/${payload.get("id")}?previousfilepath${payload.get("previousFilePath")}&previouspreviewpath=${payload.get("previousPreviewPath")}`, payload, {
+      await network.put(`${apis.reportImages}/${payload.get("id")}?previousfilepath=${payload.get("previousFilePath")}&previouspreviewpath=${payload.get("previousPreviewPath")}`, payload, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       })
+    ).data;
+  } catch (error) {
+    throw new Error(error.response.data.message);
+  }
+};
+
+export const deleteRecordImage = async (
+  payload:{id:string,imageUrl:string,preview:string}
+): ApiResponseType<ImageRecord> => {
+  try {
+    console.log(payload)
+    return (
+      await network.delete(`${apis.reportImages}/${payload.id}?previousfilepath=${payload.imageUrl}&previouspreviewpath=${payload.preview}`)
     ).data;
   } catch (error) {
     throw new Error(error.response.data.message);
