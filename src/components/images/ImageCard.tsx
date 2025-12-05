@@ -4,14 +4,13 @@ import { DrawingToolbar } from "./DrawingToolbar";
 
 interface ImageCardProps {
   image: string;
-  canvasRef:RefObject<ReactSketchCanvasRef>
+  canvasRef: RefObject<ReactSketchCanvasRef>;
 }
 
-
-export const ImageCard = ({ image , canvasRef = null}: ImageCardProps) => {
+export const ImageCard = ({ image, canvasRef = null }: ImageCardProps) => {
   const [color, setColor] = useState("#000000");
   const [strokeWidth, setStrokeWidth] = useState(3);
-  const [operation,setOperation] = useState<"draw"|"erase">("draw")
+  const [operation, setOperation] = useState<"draw" | "erase">("draw");
   const saveCanvas = async () => {
     if (!canvasRef?.current) return;
     await canvasRef?.current.exportPaths();
@@ -50,19 +49,19 @@ export const ImageCard = ({ image , canvasRef = null}: ImageCardProps) => {
   return (
     <div className="">
       <div className="flex flex-col justify-center items-center">
-
         {/* CANVAS */}
         <div role="button" className={canvasStyle[operation]}>
           <ReactSketchCanvas
             ref={canvasRef}
-            style={{height:450,width:400}}
+            style={{ height: 450, width: 400 }}
             strokeColor={color}
+            canvasColor="transparent"
             backgroundImage={image}
+            exportWithBackgroundImage={true}
             strokeWidth={strokeWidth}
             eraserWidth={strokeWidth + 2}
-            preserveBackgroundImageAspectRatio="xMidYMid meet"
+            // preserveBackgroundImageAspectRatio=""
             onStroke={saveCanvas}
-            
           />
         </div>
 

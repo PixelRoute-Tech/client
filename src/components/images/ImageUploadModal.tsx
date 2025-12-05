@@ -16,7 +16,7 @@ import { CameraCapture } from "./CameraCapture";
 import { ImageRecord } from "@/types/worksheet.type";
 import { ImageCard } from "./ImageCard";
 import { ReactSketchCanvasRef, CanvasPath } from "react-sketch-canvas";
-import { filetypes } from "@/utils/fileOperations";
+import { base64ToFile, filetypes } from "@/utils/fileOperations";
 import { baseURL } from "@/config/network.config";
 export type OnUploadParams = {
   file: File | string;
@@ -50,30 +50,26 @@ export const ImageUploadModal = ({
   const canvasRef = useRef<ReactSketchCanvasRef>(null);
   const { toast } = useToast();
 
-  function resizeImage(file: File): Promise<Blob> {
+  function resizeImage(file: File | string): Promise<Blob> {
     return new Promise((resolve, reject) => {
       const img = new Image();
-
+      img.src = typeof file == "string" ? file : URL.createObjectURL(file);
       img.onload = () => {
-        let width = img.width;
-        let height = img.height;
-
-        // Maintain aspect ratio
-        const scale = Math.min(400 / width, 450 / height);
-        width = width * scale;
-        height = height * scale;
-        const fileType = file.type;
+        const fileType = typeof file == "string" ? "image/jpeg" : file?.type;
         const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = 400;
+        canvas.height = 450;
         const ctx = canvas.getContext("2d");
 
-        ctx!.drawImage(img, 0, 0, width, height);
+        ctx!.drawImage(img, 0, 0, 400, 450);
 
         canvas.toBlob(
           (blob) => {
-            if (blob) resolve(blob);
-            else reject("Compression failed.");
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject("Compression failed.");
+            }
           },
           fileType,
           0.9 // quality (0–1)
@@ -81,7 +77,6 @@ export const ImageUploadModal = ({
       };
 
       img.onerror = reject;
-      img.src = URL.createObjectURL(file);
     });
   }
 
@@ -118,7 +113,6 @@ export const ImageUploadModal = ({
     setIsDragging(false);
   };
 
-
   const handleSubmit = async () => {
     if (!imageUrl && !image.url) {
       toast({
@@ -129,16 +123,19 @@ export const ImageUploadModal = ({
       return;
     }
     console.log(await canvasRef.current.exportImage("png"));
-    console.log(blobRef.current);
     const ext = filetypes[blobRef.current.type];
-    // onUpload({
-    //   file: new File([blobRef.current], `selctedImage.${ext}`, {
-    //     type: blobRef.current.type,
-    //   }),
-    //   type: imageType,
-    //   path: await canvasRef.current.exportPaths(),
-    //   description,
-    // });
+    onUpload({
+      file: new File([blobRef.current], `selctedImage.${ext}`, {
+        type: blobRef.current.type,
+      }),
+      preview: await base64ToFile(
+        await canvasRef.current.exportImage("png"),
+        "preview.png"
+      ),
+      type: imageType,
+      path: await canvasRef.current.exportPaths(),
+      description,
+    });
 
     // Reset form
     setImageUrl("");

@@ -63,15 +63,12 @@ export default function ReportImageUpload() {
 
 
 
-  const handleUpload = ({description,file,path,type}:OnUploadParams) => {
+  const handleUpload = ({description,preview,file,path,type}:OnUploadParams) => {
     const formData = new FormData();
-    if (typeof file == "string") {
-      formData.append("file", null);
-      formData.append("imageUrl", file);
-    }
     if(editImage){
        formData.append("previousPath",editImage.url)
     }
+    formData.append("preview",preview)
     formData.append("file", file);
     formData.append("imagePath",JSON.stringify(path,null,2))
     formData.append("type", type);
@@ -79,8 +76,8 @@ export default function ReportImageUpload() {
     formData.append("description", description);
     formData.append("worksheetId", worksheetId);
     formData.append("jobId", jobId);
-    // formData.forEach(i=>console.log(i))
-    // save(formData);
+    formData.get("preview")
+    save(formData);
   };
 
   const handleDelete = (id: string) => {
