@@ -123,11 +123,15 @@ export const ImageUploadModal = ({
       return;
     }
     console.log(await canvasRef.current.exportImage("png"));
-    const ext = filetypes[blobRef.current.type];
-    onUpload({
-      file: new File([blobRef.current], `selctedImage.${ext}`, {
+    let file = null
+    if(blobRef.current){
+       const ext = filetypes[blobRef.current.type];
+       file = new File([blobRef.current], `selctedImage.${ext}`, {
         type: blobRef.current.type,
-      }),
+      })
+    }
+    onUpload({
+      file,
       preview: await base64ToFile(
         await canvasRef.current.exportImage("png"),
         "preview.png"

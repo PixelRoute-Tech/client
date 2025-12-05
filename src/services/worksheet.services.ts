@@ -132,6 +132,22 @@ export const uploadRecordImage = async (
   }
 };
 
+export const updateRecordImage = async (
+  payload: FormData
+): ApiResponseType<ImageRecord> => {
+  try {
+    return (
+      await network.put(`${apis.reportImages}/${payload.get("id")}?previousfilepath${payload.get("previousFilePath")}&previouspreviewpath=${payload.get("previousPreviewPath")}`, payload, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+    ).data;
+  } catch (error) {
+    throw new Error(error.response.data.message);
+  }
+};
+
 export const getImageRecordImages = async (id:string):ApiResponseType<ImageRecord[]>=>{
   try {
     return (await network.get(`${apis.reportImages}/${id}`)).data

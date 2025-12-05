@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ImageUploadModal, OnUploadParams } from "@/components/images/ImageUploadModal";
+import {
+  ImageUploadModal,
+  OnUploadParams,
+} from "@/components/images/ImageUploadModal";
 import { ImageCard } from "@/components/images/ImageCard";
 import { imageStorage } from "@/utils/imageStorage";
 import { useToast } from "@/hooks/use-toast";
@@ -9,6 +12,7 @@ import { ArrowLeft, Pencil, Trash2, Plus } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   getImageRecordImages,
+  updateRecordImage,
   uploadRecordImage,
 } from "@/services/worksheet.services";
 import { ImageRecord } from "@/types/worksheet.type";
@@ -26,7 +30,7 @@ export default function ReportImageUpload() {
   const worksheetId = searchParams.get("worksheetid");
   const jobId = searchParams.get("jobid");
   const clientName = searchParams.get("clientname");
-  const [editImage,setEditImage] = useState<ImageRecord | null>(null)
+  const [editImage, setEditImage] = useState<ImageRecord | null>(null);
   const { data: images, refetch } = useQuery({
     queryKey: [`${id}photosforworksheet`, id],
     queryFn: async () => getImageRecordImages(id),
@@ -61,23 +65,63 @@ export default function ReportImageUpload() {
     },
   });
 
+  const { mutate: update, isPending: updateLoading } = useMutation({
+    mutationFn: updateRecordImage,
+    onSuccess: (result) => {
+      if (result.success) {
+        refetch();
+        toast({
+          title: "Upload success",
+          description: result.message,
+          className: "bg-green-500 text-white",
+        });
+      } else {
+        toast({
+          title: "Failed to upload",
+          description: result.message,
+          className: "bg-red-500 text-white",
+        });
+      }
+    },
+    onError: (e: any) => {
+      toast({
+        title: "Error",
+        description: e.message || "Oops! something went wrong",
+        className: "bg-red-500 text-white",
+      });
+    },
+  });
 
-
-  const handleUpload = ({description,preview,file,path,type}:OnUploadParams) => {
+  const handleUpload = ({
+    description,
+    preview,
+    file,
+    path,
+    type,
+  }: OnUploadParams) => {
     const formData = new FormData();
-    if(editImage){
-       formData.append("previousPath",editImage.url)
-    }
-    formData.append("preview",preview)
+    formData.append("preview", preview);
     formData.append("file", file);
-    formData.append("imagePath",JSON.stringify(path,null,2))
+    formData.append("imagePath", JSON.stringify(path, null, 2));
     formData.append("type", type);
     formData.append("recordId", id);
     formData.append("description", description);
     formData.append("worksheetId", worksheetId);
     formData.append("jobId", jobId);
-    formData.get("preview")
-    save(formData);
+    formData.get("preview");
+    if (editImage) {
+      if (file) {
+        formData.append("previousFilePath", editImage.url);
+      }
+      if (preview) {
+        formData.append("previousPreviewPath", editImage.preview);
+      }
+      formData.append("filename", editImage.fileName || null);
+      formData.append("id", editImage._id);
+      update(formData);
+    } else {
+      save(formData);
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -88,9 +132,9 @@ export default function ReportImageUpload() {
     });
   };
 
-  const handleEditImage = (image:ImageRecord)=>{
-    setIsModalOpen(true),setEditImage(image)
-  }
+  const handleEditImage = (image: ImageRecord) => {
+    setIsModalOpen(true), setEditImage(image);
+  };
 
   return (
     <>
@@ -110,7 +154,11 @@ export default function ReportImageUpload() {
               Upload images and draw on them with powerful tools
             </p> */}
           </div>
-          <Button onClick={() => {setIsModalOpen(true),setEditImage(null)}}>
+          <Button
+            onClick={() => {
+              setIsModalOpen(true), setEditImage(null);
+            }}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Image
           </Button>
@@ -163,7 +211,10 @@ export default function ReportImageUpload() {
 
                   {/* CANVAS WITH IMAGE BACKGROUND */}
                   <div className="border rounded-lg overflow-hidden bg-background mb-3">
-                    <img  className="w-full h-[50vh] object-contain rounded-md" src={`${baseURL}${image.url}`} />
+                    <img
+                      className="w-full h-[50vh] object-contain rounded-md"
+                      src={`${baseURL}${image.preview}`}
+                    />
                   </div>
                   {image.description && (
                     <p className="text-sm text-muted-foreground mt-2">
@@ -177,9 +228,9 @@ export default function ReportImageUpload() {
         )}
 
         <ImageUploadModal
-          loading={saveLoading}
+          loading={saveLoading || updateLoading}
           image={editImage}
-          open={isModalOpen || saveLoading}
+          open={isModalOpen || saveLoading || updateLoading}
           onOpenChange={setIsModalOpen}
           onUpload={handleUpload}
         />

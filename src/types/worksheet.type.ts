@@ -72,6 +72,7 @@ export interface ImageRecord {
   recordId: string;
   worksheetId: string;
   url: string; 
+  preview:string;
   type: string;
   description: string;
   fileName: string;
