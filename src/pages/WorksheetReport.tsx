@@ -531,7 +531,7 @@ export default function WorksheetReport() {
                       className="p-2 h-[350px] overflow-hidden"
                     >
                       <img
-                        src={setUpUrl(imag.url)}
+                        src={setUpUrl(imag.preview)}
                         className="w-full h-full object-contain"
                       />
                     </div>

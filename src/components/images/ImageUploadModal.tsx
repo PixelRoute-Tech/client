@@ -26,6 +26,11 @@ export type OnUploadParams = {
   description: string;
 };
 
+export const dimention = {
+   width:535,
+   height:450
+}
+
 interface ImageUploadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -57,11 +62,11 @@ export const ImageUploadModal = ({
       img.onload = () => {
         const fileType = typeof file == "string" ? "image/jpeg" : file?.type;
         const canvas = document.createElement("canvas");
-        canvas.width = 400;
-        canvas.height = 450;
+        canvas.width = dimention.width;
+        canvas.height = dimention.height;
         const ctx = canvas.getContext("2d");
 
-        ctx!.drawImage(img, 0, 0, 400, 450);
+        ctx!.drawImage(img, 0, 0, dimention.width, dimention.height);
 
         canvas.toBlob(
           (blob) => {
@@ -123,12 +128,12 @@ export const ImageUploadModal = ({
       return;
     }
     console.log(await canvasRef.current.exportImage("png"));
-    let file = null
-    if(blobRef.current){
-       const ext = filetypes[blobRef.current.type];
-       file = new File([blobRef.current], `selctedImage.${ext}`, {
+    let file = null;
+    if (blobRef.current) {
+      const ext = filetypes[blobRef.current.type];
+      file = new File([blobRef.current], `selctedImage.${ext}`, {
         type: blobRef.current.type,
-      })
+      });
     }
     onUpload({
       file,
@@ -177,12 +182,61 @@ export const ImageUploadModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <div className="mb-5">
-          {Boolean(image?.url) ? (
-            <div>
-              <ImageCard image={setUpUrl(image.url)} canvasRef={canvasRef} />
-              <DialogFooter className="mt-2">
+      <DialogContent className="max-w-3xl p-0 overflow-hidden">
+        <div className="p-6">
+          {/* If editing an existing image */}
+          {image?.url ? (
+            <>
+              <div className="max-h-[72vh] overflow-y-auto space-y-6 pr-2">
+                {/* Image Preview */}
+                <div className="rounded-lg p-4">
+                  <ImageCard
+                    image={setUpUrl(image.url)}
+                    canvasRef={canvasRef}
+                  />
+                </div>
+
+                {/* Image Type */}
+                <section className="space-y-2">
+                  <Label className="text-[13px] font-medium text-gray-700">
+                    Image Type
+                  </Label>
+                  <RadioGroup
+                    value={imageType}
+                    onValueChange={(val) =>
+                      setImageType(val as "Drawing" | "Photo")
+                    }
+                    className="flex gap-6"
+                  >
+                    {["Photo", "Drawing"].map((type) => (
+                      <label
+                        key={type}
+                        className="flex cursor-pointer items-center gap-2 text-sm"
+                      >
+                        <RadioGroupItem value={type} id={type} />
+                        {type}
+                      </label>
+                    ))}
+                  </RadioGroup>
+                </section>
+
+                {/* Description */}
+                <section className="space-y-2">
+                  <Label className="text-[13px] font-medium text-gray-700">
+                    Description (Optional)
+                  </Label>
+                  <Textarea
+                    placeholder="Add a description for this image..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
+                    className="resize-none"
+                  />
+                </section>
+              </div>
+
+              {/* Footer */}
+              <DialogFooter className="pt-4 border-t mt-4">
                 <Button variant="outline" onClick={() => onOpenChange(false)}>
                   Cancel
                 </Button>
@@ -190,52 +244,57 @@ export const ImageUploadModal = ({
                   Update Image
                 </Button>
               </DialogFooter>
-            </div>
+            </>
           ) : (
             <>
-              <DialogHeader className="mb-3">
-                <DialogTitle>Add New Image</DialogTitle>
+              <DialogHeader className="mb-4">
+                <DialogTitle className="text-lg font-semibold tracking-wide">
+                  Add New Image
+                </DialogTitle>
               </DialogHeader>
 
-              <div className="max-h-[70dvh] overflow-y-auto space-y-4">
-                {/* Image Upload Area */}
+              <div className="max-h-[72vh] overflow-y-auto space-y-6 pr-2">
+                {/* Upload Box */}
                 <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                    isDragging ? "border-primary bg-primary/5" : "border-border"
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition ${
+                    isDragging
+                      ? "border-primary bg-primary/5"
+                      : "border-gray-300 hover:border-primary/40"
                   }`}
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                 >
                   {imageUrl ? (
-                    <div className="space-y-3">
-                      <ImageCard image={imageUrl} canvasRef={canvasRef} />
+                    <div className="space-y-4">
+                      <div className="rounded-lg p-4">
+                        <ImageCard image={imageUrl} canvasRef={canvasRef} />
+                      </div>
+
                       <Button
+                        size="sm"
                         variant="outline"
                         onClick={() => setImageUrl("")}
-                        size="sm"
                       >
                         Change Image
                       </Button>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
-                      <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground">
-                          Drag and drop an image here, or click to browse
-                        </p>
-                        <div className="flex gap-2 justify-center flex-wrap">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => fileInputRef.current?.click()}
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            Browse Files
-                          </Button>
-                        </div>
-                      </div>
+                      <Upload className="h-12 w-12 mx-auto text-gray-400" />
+                      <p className="text-sm text-gray-500">
+                        Drag & drop an image, or click below
+                      </p>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="mt-2"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Browse Files
+                      </Button>
                     </div>
                   )}
 
@@ -250,43 +309,47 @@ export const ImageUploadModal = ({
                     }}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Image Type</Label>
+
+                {/* Type */}
+                <section className="space-y-2">
+                  <Label className="text-[13px] font-medium text-gray-700">
+                    Image Type
+                  </Label>
                   <RadioGroup
                     value={imageType}
-                    onValueChange={(value) =>
-                      setImageType(value as "Drawing" | "Photo")
+                    onValueChange={(val) =>
+                      setImageType(val as "Drawing" | "Photo")
                     }
-                    className="flex gap-4"
+                    className="flex gap-6"
                   >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="Photo" id="photo" />
-                      <Label htmlFor="photo" className="cursor-pointer">
-                        Photo
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="Drawing" id="drawing" />
-                      <Label htmlFor="drawing" className="cursor-pointer">
-                        Drawing
-                      </Label>
-                    </div>
+                    {["Photo", "Drawing"].map((type) => (
+                      <label
+                        key={type}
+                        className="flex cursor-pointer items-center gap-2 text-sm"
+                      >
+                        <RadioGroupItem value={type} id={type} />
+                        {type}
+                      </label>
+                    ))}
                   </RadioGroup>
-                </div>
+                </section>
 
                 {/* Description */}
-                <div className="space-y-2">
-                  <Label>Description (Optional)</Label>
+                <section className="space-y-2">
+                  <Label className="text-[13px] font-medium text-gray-700">
+                    Description (Optional)
+                  </Label>
                   <Textarea
-                    placeholder="Add a description for this image..."
+                    placeholder="Add a description..."
+                    rows={3}
+                    className="resize-none"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    rows={3}
                   />
-                </div>
+                </section>
               </div>
 
-              <DialogFooter className="mt-2">
+              <DialogFooter className="border-t mt-4 pt-4">
                 <Button variant="outline" onClick={() => onOpenChange(false)}>
                   Cancel
                 </Button>

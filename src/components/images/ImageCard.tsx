@@ -1,6 +1,7 @@
 import { RefObject, useState } from "react";
 import { ReactSketchCanvas, ReactSketchCanvasRef } from "react-sketch-canvas";
 import { DrawingToolbar } from "./DrawingToolbar";
+import { dimention } from "./ImageUploadModal";
 
 interface ImageCardProps {
   image: string;
@@ -53,7 +54,7 @@ export const ImageCard = ({ image, canvasRef = null }: ImageCardProps) => {
         <div role="button" className={canvasStyle[operation]}>
           <ReactSketchCanvas
             ref={canvasRef}
-            style={{ height: 450, width: 400 }}
+            style={dimention}
             strokeColor={color}
             canvasColor="transparent"
             backgroundImage={image}
