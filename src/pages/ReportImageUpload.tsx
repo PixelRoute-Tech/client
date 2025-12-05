@@ -200,9 +200,9 @@ export default function ReportImageUpload() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-2 space-y-4 px-5">
-            {images?.data?.map((image) => (
-              <Card key={image?._id} className="" id={image._id}>
+          <div className="grid grid-cols-2 gap-2 px-5">
+            {images?.data?.map((image, index) => (
+              <Card key={image?._id + index} className="" id={image._id}>
                 <CardContent className="p-4">
                   <div className="mb-3 flex justify-between items-start">
                     <div>

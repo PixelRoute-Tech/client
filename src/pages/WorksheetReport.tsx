@@ -525,17 +525,17 @@ export default function WorksheetReport() {
               <h4 className="underline text-center font-bold">Photographs</h4>
               <div className="pt-5 grid grid-cols-2 gap-4">
                 {images.map((imag, index) => (
-                  <div className="flex flex-col gap-2 border rounded ">
+                  <div className={imag.type == "Drawing" ? "col-span-full flex flex-col gap-2 border rounded" : "flex flex-col gap-2 border rounded"}>
                     <div
                       key={index}
-                      className="p-2 h-[350px] overflow-hidden"
+                      className={imag.type == "Drawing" ? "p-2 h-[450px] overflow-hidden" : "p-2 h-[350px] overflow-hidden"}
                     >
                       <img
                         src={setUpUrl(imag.preview)}
                         className="w-full h-full object-contain"
                       />
                     </div>
-                    <div className="text-sm p-1 border-t text-wrap break-words">{imag.description}</div>
+                    <div className={imag.description ? "text-sm p-1 border-t text-wrap break-words" : ""}>{imag.description}</div>
                   </div>
                 ))}
               </div>

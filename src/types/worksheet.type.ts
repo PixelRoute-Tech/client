@@ -73,7 +73,7 @@ export interface ImageRecord {
   worksheetId: string;
   url: string; 
   preview:string;
-  type: string;
+  type: "Drawing" | "Photo";
   description: string;
   fileName: string;
   createdAt?: string; 

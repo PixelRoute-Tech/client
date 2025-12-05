@@ -169,6 +169,10 @@ export const ImageUploadModal = ({
 
   useEffect(() => {
     loadPath();
+    if(image?.type || image?.description){
+     setImageType(image.type || "Photo")
+     setDescription(image.description || "")
+    }
     return () => {
       setImageUrl("");
       setDescription("");
