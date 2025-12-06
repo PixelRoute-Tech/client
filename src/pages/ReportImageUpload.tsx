@@ -4,8 +4,6 @@ import {
   ImageUploadModal,
   OnUploadParams,
 } from "@/components/images/ImageUploadModal";
-import { ImageCard } from "@/components/images/ImageCard";
-import { imageStorage } from "@/utils/imageStorage";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Pencil, Trash2, Plus } from "lucide-react";
