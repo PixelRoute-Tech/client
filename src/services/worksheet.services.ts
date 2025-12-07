@@ -168,3 +168,11 @@ export const getImageRecordImages = async (id:string):ApiResponseType<ImageRecor
      throw new Error(error.response.data.message);
   }
 }
+
+export const getPreviousData = async (id:string):ApiResponseType<{worksheet:Worksheet,records:WorksheetRecord[]}>=>{
+  try {
+    return (await network.get(`${apis.previousData}/${id}`)).data
+  } catch (error) {
+    throw new Error(error.response.data.message || "Opps! Something went wrong");
+  }
+}

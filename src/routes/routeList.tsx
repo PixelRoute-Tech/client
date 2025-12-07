@@ -21,7 +21,8 @@ const routes = {
     worksheetDetails:"/worksheet-details",
     worksheetReport:"/worksheet-report",
     joblisting:"/job-listing",
-    reportImages:"/report-images"
+    reportImages:"/report-images",
+    previousReport:"/previous-reports"
 }
 
 export default routes

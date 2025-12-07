@@ -253,12 +253,13 @@ export function WorksheetRenderer({
         );
 
       case "autocomplete-chips":
-        const chipValues = value || [];
+        const chipValues = value ? [value] : []
+        console.log("chipValues = ",chipValues)
         return (
           <div className="space-y-2">
             <Select
               onValueChange={(val) => {
-                if (!chipValues.includes(val)) {
+                if (!chipValues?.includes(val)) {
                   handleFieldChange(field.fieldId, [...chipValues, val]);
                 }
               }}
@@ -281,9 +282,9 @@ export function WorksheetRenderer({
                 )}
               </SelectContent>
             </Select>
-            {chipValues.length > 0 && (
+            {chipValues?.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {chipValues.map((chip: string, idx: number) => (
+                {chipValues?.map((chip: string, idx: number) => (
                   <Badge key={idx} variant="secondary" className="gap-1">
                     {chip}
                     <X
@@ -291,7 +292,7 @@ export function WorksheetRenderer({
                       onClick={() =>
                         handleFieldChange(
                           field.fieldId,
-                          chipValues.filter((_: string, i: number) => i !== idx)
+                          chipValues?.filter((_: string, i: number) => i !== idx)
                         )
                       }
                     />
