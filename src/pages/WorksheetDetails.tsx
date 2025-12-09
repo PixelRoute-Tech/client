@@ -61,7 +61,7 @@ function WorksheetDetails() {
 
   const handlePaste = () => {
     const copiedData = getItem(storageKeys.copied);
-    queryClient.setQueryData([recordId, sheetid], {data:copiedData[sheetid]});
+    queryClient.setQueryData([recordId, sheetid], {data:copiedData[sheetid],message:"OK",status:200});
     delete copiedData[sheetid];
     setItem(storageKeys.copied, copiedData);
     setOpenModal(false);
@@ -74,9 +74,7 @@ function WorksheetDetails() {
     }
   }, []);
  
-  useEffect(()=>{
-    console.log("record = ",record)
-  },[record])
+
   return (
     <div className="p-1">
       <div className="flex justify-end items-center gap-3 p-2">

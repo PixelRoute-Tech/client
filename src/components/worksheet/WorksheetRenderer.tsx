@@ -134,14 +134,20 @@ export function WorksheetRenderer({
   };
 
   const handleReset = () => {
-    setFormData({});
-    setCurrentRecordId("");
+      setFormData({});
+    // setCurrentRecordId("");
     onChange?.({});
     toast({
       title: "Reset Complete",
       description: "Form has been cleared",
     });
   };
+
+  useEffect(()=>{
+    if(Object.entries(data).length > 0){
+       setFormData(data)
+    }
+  },[data])
 
   const renderField = (field: WorksheetField) => {
     const value = formData[field.fieldId];
@@ -214,7 +220,10 @@ export function WorksheetRenderer({
             <SelectContent>
               {field.options.length ? (
                 field.options?.map((option) => (
-                  <SelectItem key={option?.optionId} value={option?.value || " "}>
+                  <SelectItem
+                    key={option?.optionId}
+                    value={option?.value || " "}
+                  >
                     {option.value}
                   </SelectItem>
                 ))
@@ -253,8 +262,7 @@ export function WorksheetRenderer({
         );
 
       case "autocomplete-chips":
-        const chipValues = value ? [value] : []
-        console.log("chipValues = ",chipValues)
+        const chipValues = value ? [value] : [];
         return (
           <div className="space-y-2">
             <Select
@@ -292,7 +300,9 @@ export function WorksheetRenderer({
                       onClick={() =>
                         handleFieldChange(
                           field.fieldId,
-                          chipValues?.filter((_: string, i: number) => i !== idx)
+                          chipValues?.filter(
+                            (_: string, i: number) => i !== idx
+                          )
                         )
                       }
                     />
