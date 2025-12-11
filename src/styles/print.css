@@ -3,7 +3,7 @@
     /* Set standardized page size and margins */
     @page {
         size: A4 portrait;
-        margin: 15mm !important;
+        margin: 5mm !important;
         /* Larger margins look more professional */
     }
 
@@ -48,5 +48,8 @@
         width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
+    }
+    #onborder{
+        border:0px
     }
 }

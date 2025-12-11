@@ -173,10 +173,14 @@ export function WorksheetRenderer({
   };
 
   useEffect(() => {
-    const sheetData = getItem(storageKeys.copied);
+   try {
+     const sheetData = getItem(storageKeys.copied);
     if (worksheet?.workSheetId && sheetData[worksheet?.workSheetId]) {
       setShowPasteBtn(true);
     }
+   } catch (error) {
+     console.log(error)
+   }
   }, []);
 
   const renderField = (field: WorksheetField) => {
