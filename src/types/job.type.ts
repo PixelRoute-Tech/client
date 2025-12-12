@@ -23,6 +23,7 @@ export interface JobRequest {
   divisionRules?: string;
   testRows: Array<TechRow>;
   status?: string;
+  purchaseOrder?:string
 }
 
 export interface Job {

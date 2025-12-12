@@ -32,6 +32,7 @@ export interface WorksheetField {
   name: string;
   type: FieldType;
   required: boolean;
+  inReport:boolean,
   options?: FieldOption[];
   tableColumns?: TableColumn[];
   tableActions?: TableActions;

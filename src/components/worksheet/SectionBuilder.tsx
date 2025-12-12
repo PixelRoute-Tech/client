@@ -28,6 +28,7 @@ export function SectionBuilder({ section, onUpdate, onDelete }: SectionBuilderPr
       name: '',
       type: 'textfield',
       required: false,
+      inReport:true
     };
     onUpdate({
       ...section,

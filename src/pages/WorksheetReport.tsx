@@ -375,7 +375,7 @@ export default function WorksheetReport() {
                     }
 
                     return (
-                      <div
+                      field.inReport ? <div
                         key={field.fieldId}
                         className="grid grid-cols-3 gap-4 text-sm items-end justify-start avoid-break"
                       >
@@ -385,7 +385,7 @@ export default function WorksheetReport() {
                         <div className="col-span-2 text-gray-700 break-words">
                           : {renderFieldValue(field)}
                         </div>
-                      </div>
+                      </div> : null
                     );
                   })}
                 </div>
