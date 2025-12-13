@@ -23,10 +23,10 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsT
 
   const filteredJobRequests = jobRequests.filter(
     (job) =>
-      job.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.summary.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.divisionRules.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.status.toLowerCase().includes(searchTerm.toLowerCase())
+      job?.clientName?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+      job?.summary?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+      job?.divisionRules?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+      job?.status?.toLowerCase()?.includes(searchTerm?.toLowerCase())
   );
 
   const handleDelete = (jobRequestId: string, summary: string) => {
