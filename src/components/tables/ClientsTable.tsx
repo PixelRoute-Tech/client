@@ -28,12 +28,8 @@ export function ClientsTable({clients, onEdit, onDelete, onSelect }: ClientsTabl
       client.accountDeptContact.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDelete = (clientId: string, businessName: string) => {
+  const handleDelete = (clientId: string) => {
     onDelete(clientId);
-    // toast({
-    //   title: "Client deleted",
-    //   description: `${businessName} has been removed from the system.`,
-    // });
   };
 
   return (
@@ -147,7 +143,7 @@ export function ClientsTable({clients, onEdit, onDelete, onSelect }: ClientsTabl
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDelete(client.clientId, client.businessName)}
+                                onClick={() => handleDelete(client._id,)}
                                 className="bg-destructive text-destructive-foreground"
                               >
                                 Delete
