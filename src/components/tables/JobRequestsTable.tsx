@@ -14,10 +14,11 @@ import moment from "moment";
 interface JobRequestsTableProps {
   jobRequests: JobRequest[];
   onEdit: (jobRequest: JobRequest) => void;
-  onDelete: (jobRequestId: string) => void;
+  onDelete: (jobRequest: JobRequest) => void;
+  deleteLoading?:boolean
 }
 
-export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsTableProps) {
+export function JobRequestsTable({ jobRequests, onEdit, onDelete,deleteLoading }: JobRequestsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   // const { toast } = useToast();
 
@@ -29,8 +30,8 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsT
       job?.status?.toLowerCase()?.includes(searchTerm?.toLowerCase())
   );
 
-  const handleDelete = (jobRequestId: string, summary: string) => {
-    onDelete(jobRequestId);
+  const handleDelete = (jobRequest:JobRequest) => {
+    onDelete(jobRequest);
     // toast({
     //   title: "Job request deleted",
     //   description: `Job request "${summary}" has been removed from the system.`,
@@ -77,6 +78,7 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsT
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Id</TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead>Summary</TableHead>
                 <TableHead>Date</TableHead>
@@ -97,6 +99,7 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsT
               ) : (
                 filteredJobRequests.map((job) => (
                   <TableRow key={job.jobId}>
+                    <TableCell className="font-mono text-xs">#{job.jobId}</TableCell>
                     <TableCell className="font-medium">{job.clientName}</TableCell>
                     <TableCell>
                       <div className="space-y-1">
@@ -146,7 +149,7 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsT
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm">
+                            <Button loading={deleteLoading} variant="outline" size="sm">
                               <Trash2 className="h-4 w-4 mr-1" />
                               Delete
                             </Button>
@@ -156,13 +159,13 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete }: JobRequestsT
                               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                               <AlertDialogDescription>
                                 This action cannot be undone. This will permanently delete the job request
-                                "{truncateText(job.summary, 30)}" from the system.
+                                "{truncateText(job.jobId, 30)}" from the system.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDelete(job.jobId, job.summary)}
+                                onClick={() => handleDelete(job)}
                                 className="bg-destructive text-destructive-foreground"
                               >
                                 Delete

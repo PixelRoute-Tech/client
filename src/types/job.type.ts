@@ -8,6 +8,7 @@ export type TechRow = {
   tech: string;
 };
 export interface JobRequest {
+  _id?:string;
   jobId?: string;
   createdBy: string;
   createdAt?: Date;

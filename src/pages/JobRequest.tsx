@@ -20,12 +20,14 @@ import {
 import { ClientType } from "@/types/client.type";
 import { useNavigate } from "react-router-dom";
 import routes from "@/routes/routeList";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { getClients } from "@/services/client.services";
 import moment from "moment";
 import { JobRequest } from "@/types/job.type";
-import { getJobRequests } from "@/services/job.services";
+import { getJobRequests, deleteJobRequest} from "@/services/job.services";
 import { getWorkSheetslList } from "@/services/worksheet.services";
+import { useToast } from "@/hooks/use-toast";
+
 
 export default function JobRequestPage() {
   const { data: clients, refetch } = useQuery({
@@ -33,6 +35,7 @@ export default function JobRequestPage() {
     queryFn: getClients,
     refetchOnWindowFocus: false,
   });
+  const {toast} = useToast()
   const navigate = useNavigate();
   const [selectedClient, setSelectedClient] = useState<ClientType | null>(null);
   const [editingJobRequest, setEditingJobRequest] = useState<JobRequest | null>(
@@ -48,6 +51,22 @@ export default function JobRequestPage() {
     enabled:Boolean(selectedClient?.clientId),
     refetchOnWindowFocus:false
   });
+
+  const {mutate:deleteJob,isPending:deletePending} = useMutation({mutationFn:deleteJobRequest,onSuccess:(result)=>{
+      if(result.success){
+         toast({
+           title:"Deleted successfully",
+           description:`Job request "${result.data.jobId}" deleted successfully`,
+           className:"bg-green-500 text-white"
+         })
+         jobRequestRefetch()
+      }else{
+         toast({
+           title:"Deleted successfully",
+           description:`Job request "${result.data.jobId}" deleted successfully`
+         })
+      }
+  }})
 
   const handleClientSelect = (client: ClientType) => {
     setSelectedClient(client);
@@ -70,8 +89,9 @@ export default function JobRequestPage() {
       jobRequestRefetch()
   };
 
-  const handleDelete = (jobRequestId: string) => {
-
+  const handleDelete = (jobRequest: JobRequest) => {
+      console.log("jobRequest",jobRequest) 
+      deleteJob(jobRequest._id)
   };
 
   const backToClientSelection = () => {
@@ -191,6 +211,7 @@ export default function JobRequestPage() {
           jobRequests={jobRequests?.data || []}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          deleteLoading={deletePending}
         />
       )}
 
