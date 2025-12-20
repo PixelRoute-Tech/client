@@ -22,6 +22,16 @@ export const updateJobRequest = async (
   }
 };
 
+export const deleteJobRequest = async (
+  id: string
+): ApiResponseType<JobRequest> => {
+  try {
+    return (await network.delete(`${apis.jobRequest}/${id}`)).data;
+  } catch (error) {
+    throw new Error(error.response.data.message);
+  }
+};
+
 export const getJobRequests = async (id: string): ApiResponseType<JobRequest[]> => {
   try {
     return (await network.get(`${apis.jobRequest}/${id}`)).data;

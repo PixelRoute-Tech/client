@@ -92,7 +92,7 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
             </Select>
           </div>
 
-          <div className="flex items-end space-x-2">
+          <div className="flex items-end space-x-3">
             <div className="flex items-center space-x-2">
               <Checkbox
                 id={`field-required-${field.fieldId}`}
@@ -102,6 +102,16 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
                 }
               />
               <Label htmlFor={`field-required-${field.fieldId}`}>Is Required</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id={`field-inreport-${field.fieldId}`}
+                checked={field.inReport}
+                onCheckedChange={(checked) => 
+                  onUpdate({ ...field, inReport: checked as boolean })
+                }
+              />
+              <Label htmlFor={`field-inreport-${field.fieldId}`}>In Report</Label>
             </div>
           </div>
         </div>

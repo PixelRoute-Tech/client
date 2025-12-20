@@ -15,6 +15,7 @@ settings:"/api/settings",
 reportRecordData:"/api/worksheet/record-data",
 notification:"/api/notification",
 reportImages:"/api/report/report-image",
+previousData:"/api/worksheet/previous-data",
 }
 
 export default apis 

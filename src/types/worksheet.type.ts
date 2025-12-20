@@ -32,6 +32,7 @@ export interface WorksheetField {
   name: string;
   type: FieldType;
   required: boolean;
+  inReport:boolean,
   options?: FieldOption[];
   tableColumns?: TableColumn[];
   tableActions?: TableActions;
@@ -58,8 +59,8 @@ export interface Worksheet {
 
 export type WorksheetRecord = {
   recordId: string;
-  jobId?:string;
-  clientId?:string;
+  jobId?: string;
+  clientId?: string;
   worksheetId: string;
   data: any;
   createdAt?: string;
@@ -67,14 +68,15 @@ export type WorksheetRecord = {
 };
 
 export interface ImageRecord {
-  _id: string;
+  _id?: string;
   jobId: string;
   recordId: string;
   worksheetId: string;
-  url: string;
-  type: "Photo" | "Drawing";
+  url: string; 
+  preview:string;
+  type: "Drawing" | "Photo";
   description: string;
-  createdAt: string;   // or Date
-  updatedAt: string;   // or Date
-  __v: number;
+  fileName: string;
+  createdAt?: string; 
+  updatedAt?: string;
 }

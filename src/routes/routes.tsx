@@ -10,6 +10,8 @@ import { authenticatedLoader } from "@/loaders/authLoaders";
 import ErrorBoundary from "@/components/ErrorPage/ErrorBoundary";
 import WorksheetReport from "@/pages/WorksheetReport";
 import { adminRouter } from "@/admin/routes/routes";
+const LandingPage =  lazy(()=>import("@/pages/LandingPage"));
+const PreviousReports = lazy(() => import( "@/pages/PreviousReports"));
 const ReportImageUpload = lazy(() => import( "@/pages/ReportImageUpload"));
 const JobListing = lazy(() => import("@/pages/JobListing"));
 const WorksheetDetails = lazy(() => import("@/pages/WorksheetDetails"));
@@ -221,6 +223,17 @@ const router = createBrowserRouter([
             ),
           },
           {
+            path: `${routes.previousReport}/:id`,
+            loader: authenticatedLoader,
+            element: (
+              <Suspense
+                fallback={<SkeletonLoader config={skeletonConfigs.form} />}
+              >
+                <PreviousReports />
+              </Suspense>
+            ),
+          },
+          {
             path: routes.userProfile,
             loader: authenticatedLoader,
             element: (
@@ -257,6 +270,14 @@ const router = createBrowserRouter([
         ],
       },
     ],
+  },
+  {
+    path: routes.landing,
+    element: (
+      <Suspense fallback={<SkeletonLoader config={skeletonConfigs.dashboard} />}>
+        <LandingPage />
+      </Suspense>
+    ),
   },
   {
     path: routes.login,

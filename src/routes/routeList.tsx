@@ -2,6 +2,7 @@ const routes = {
     root:"/",
     login:"/login",
     signout:"/signout",
+    landing:"/landing",
     pageNotFound:"*",
     jobRequest:"/job-request",
     jobRequestDetails:"/job-details",
@@ -21,7 +22,8 @@ const routes = {
     worksheetDetails:"/worksheet-details",
     worksheetReport:"/worksheet-report",
     joblisting:"/job-listing",
-    reportImages:"/report-images"
+    reportImages:"/report-images",
+    previousReport:"/previous-reports"
 }
 
 export default routes

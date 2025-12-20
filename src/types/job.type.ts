@@ -8,6 +8,7 @@ export type TechRow = {
   tech: string;
 };
 export interface JobRequest {
+  _id?:string;
   jobId?: string;
   createdBy: string;
   createdAt?: Date;
@@ -23,6 +24,7 @@ export interface JobRequest {
   divisionRules?: string;
   testRows: Array<TechRow>;
   status?: string;
+  purchaseOrder?:string
 }
 
 export interface Job {

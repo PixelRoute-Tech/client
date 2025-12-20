@@ -69,6 +69,7 @@ const jobRequestSchema = z.object({
   lastDate: z.date({
     required_error: "Date-Time-Day is required",
   }),
+  purchaseOrder: z.string().optional(),
   summary: z.string().min(5, "Summary must be at least 5 characters"),
   detailsProvided: z
     .string()
@@ -424,6 +425,19 @@ export function JobRequestForm({
                 />
               </div>
 
+              <FormField
+                control={form.control}
+                name="purchaseOrder"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Purchase order</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Enter purchase order" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="summary"
