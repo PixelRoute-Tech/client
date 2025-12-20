@@ -2,6 +2,7 @@ const routes = {
     root:"/",
     login:"/login",
     signout:"/signout",
+    landing:"/landing",
     pageNotFound:"*",
     jobRequest:"/job-request",
     jobRequestDetails:"/job-details",
