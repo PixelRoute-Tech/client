@@ -32,12 +32,15 @@ import {
   Save,
   RotateCcw,
   ArrowLeft,
+  Clipboard,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { worksheetDataStorage } from "@/utils/worksheetDataStorage";
 import { useMutation } from "@tanstack/react-query";
 import { saveRecord, updateRecord } from "@/services/worksheet.services";
 import { useNavigate } from "react-router-dom";
+import { getItem, setItem, storageKeys } from "@/utils/storage";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 export type WorksheetData = {
   [fieldId: string]: any;
 };
@@ -48,7 +51,7 @@ interface WorksheetRendererProps {
   onChange?: (data: WorksheetData) => void;
   onSubmit?: (data: WorksheetData) => void;
   recordId?: string;
-  clientId?:string
+  clientId?: string;
 }
 
 export function WorksheetRenderer({
@@ -57,12 +60,14 @@ export function WorksheetRenderer({
   onChange,
   onSubmit,
   recordId,
-  clientId=""
+  clientId = "",
 }: WorksheetRendererProps) {
   const [formData, setFormData] = useState<WorksheetData>(data);
   const [currentRecordId, setCurrentRecordId] = useState<string>(
     recordId || ""
   );
+  const [showPasteBtn, setShowPasteBtn] = useState<boolean>(false);
+  const [openModal, setOpenModal] = useState<boolean>();
   const { toast } = useToast();
   const navigate = useNavigate();
   // useEffect(() => {
@@ -116,7 +121,7 @@ export function WorksheetRenderer({
   };
 
   const handleSave = () => {
-        const jobId = recordId.split("_")[1]
+    const jobId = recordId.split("_")[1];
     const record = {
       jobId,
       recordId,
@@ -135,13 +140,48 @@ export function WorksheetRenderer({
 
   const handleReset = () => {
     setFormData({});
-    setCurrentRecordId("");
+    // setCurrentRecordId("");
     onChange?.({});
     toast({
       title: "Reset Complete",
       description: "Form has been cleared",
     });
   };
+
+  const handlePaste = () => {
+    const copiedData = getItem(storageKeys.copied);
+    setFormData(copiedData[worksheet?.workSheetId].data);
+    delete copiedData[worksheet?.workSheetId];
+    setItem(storageKeys.copied, copiedData);
+    setShowPasteBtn(false);
+  };
+
+  const handleOpenModal = () => {
+    setOpenModal(true);
+  };
+
+    const handleCancel = (status: boolean | any) => {
+    const copiedData = getItem(storageKeys.copied);
+    delete copiedData[worksheet.workSheetId];
+    setItem(storageKeys.copied, copiedData);
+    setShowPasteBtn(false)
+    if (typeof status == "boolean") {
+      setOpenModal(status);
+    } else {
+      setOpenModal(false);
+    }
+  };
+
+  useEffect(() => {
+   try {
+     const sheetData = getItem(storageKeys.copied);
+    if (worksheet?.workSheetId && sheetData[worksheet?.workSheetId]) {
+      setShowPasteBtn(true);
+    }
+   } catch (error) {
+     console.log(error)
+   }
+  }, []);
 
   const renderField = (field: WorksheetField) => {
     const value = formData[field.fieldId];
@@ -212,11 +252,18 @@ export function WorksheetRenderer({
               <SelectValue placeholder={`Select ${field.name}`} />
             </SelectTrigger>
             <SelectContent>
-              {field.options?.map((option) => (
-                <SelectItem key={option.optionId} value={option.value}>
-                  {option.value}
-                </SelectItem>
-              ))}
+              {field.options.length ? (
+                field.options?.map((option) => (
+                  <SelectItem
+                    key={option?.optionId}
+                    value={option?.value || " "}
+                  >
+                    {option.value}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value={"No value"}>No value</SelectItem>
+              )}
             </SelectContent>
           </Select>
         );
@@ -232,22 +279,29 @@ export function WorksheetRenderer({
               <SelectValue placeholder={`Select ${field.name}`} />
             </SelectTrigger>
             <SelectContent>
-              {field.options?.map((option) => (
-                <SelectItem key={option.optionId} value={option.value}>
-                  {option.value}
-                </SelectItem>
-              ))}
+              {field.options.length ? (
+                field.options?.map((option) => (
+                  <SelectItem
+                    key={option?.optionId}
+                    value={option?.value || " "}
+                  >
+                    {option.value || " "}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value={"No values"}>No values </SelectItem>
+              )}
             </SelectContent>
           </Select>
         );
 
       case "autocomplete-chips":
-        const chipValues = value || [];
+        const chipValues = value ? [value] : [];
         return (
           <div className="space-y-2">
             <Select
               onValueChange={(val) => {
-                if (!chipValues.includes(val)) {
+                if (!chipValues?.includes(val)) {
                   handleFieldChange(field.fieldId, [...chipValues, val]);
                 }
               }}
@@ -256,16 +310,23 @@ export function WorksheetRenderer({
                 <SelectValue placeholder={`Select ${field.name}`} />
               </SelectTrigger>
               <SelectContent>
-                {field.options?.map((option) => (
-                  <SelectItem key={option.optionId} value={option.value}>
-                    {option.value}
-                  </SelectItem>
-                ))}
+                {field.options.length ? (
+                  field.options?.map((option) => (
+                    <SelectItem
+                      key={option?.optionId}
+                      value={option?.value || " "}
+                    >
+                      {option.value || " "}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value={"No values"}>No values </SelectItem>
+                )}
               </SelectContent>
             </Select>
-            {chipValues.length > 0 && (
+            {chipValues?.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {chipValues.map((chip: string, idx: number) => (
+                {chipValues?.map((chip: string, idx: number) => (
                   <Badge key={idx} variant="secondary" className="gap-1">
                     {chip}
                     <X
@@ -273,7 +334,9 @@ export function WorksheetRenderer({
                       onClick={() =>
                         handleFieldChange(
                           field.fieldId,
-                          chipValues.filter((_: string, i: number) => i !== idx)
+                          chipValues?.filter(
+                            (_: string, i: number) => i !== idx
+                          )
                         )
                       }
                     />
@@ -350,11 +413,18 @@ export function WorksheetRenderer({
               <SelectValue placeholder="Select" />
             </SelectTrigger>
             <SelectContent>
-              {column.options?.map((option) => (
-                <SelectItem key={option.optionId} value={option.value}>
-                  {option.value}
-                </SelectItem>
-              ))}
+              {column?.options ? (
+                column.options?.map((option) => (
+                  <SelectItem
+                    key={option?.optionId}
+                    value={option?.value || " "}
+                  >
+                    {option.value || " "}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value={"No values"}>No values </SelectItem>
+              )}
             </SelectContent>
           </Select>
         );
@@ -474,74 +544,103 @@ export function WorksheetRenderer({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="grid grid-cols-12 gap-2 items-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              navigate(-1);
-            }}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-          </Button>
-<div></div>
-<div></div>
-          <div className="col-span-5 text-center">
-            <CardTitle className="text-primary">{worksheet.name}</CardTitle>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {worksheet.sections.map((section) => {
-          // Default to 1 column layout for backward compatibility
-          const layout = section.layout || 1;
-          const gridCols = {
-            1: "grid-cols-1",
-            2: "grid-cols-1 md:grid-cols-2",
-            3: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
-            4: "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
-          };
-
-          return (
-            <div key={section.sectionId} className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground border-b pb-2">
-                {section.name}
-              </h3>
-              <div className={`grid gap-4 ${gridCols[layout]}`}>
-                {section.fields.map((field) => (
-                  <div
-                    key={field.fieldId}
-                    className={`space-y-2 ${
-                      field.type === "table" ? "col-span-full" : ""
-                    }`}
-                  >
-                    <Label>
-                      {field.name}
-                      {field.required && (
-                        <span className="text-destructive ml-1">*</span>
-                      )}
-                    </Label>
-                    {renderField(field)}
-                  </div>
-                ))}
-              </div>
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div className="flex justify-start items-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  navigate(-1);
+                }}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+              </Button>
             </div>
-          );
-        })}
+            <div className="col-span-5 text-center flex justify-between items-center">
+              <CardTitle className="text-primary">{worksheet.name}</CardTitle>
+            </div>
+            <div className="flex justify-end items-center">
+              {showPasteBtn && (
+                <Button variant="link" onClick={handleOpenModal}>
+                  Paste <Clipboard />
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {worksheet.sections.map((section) => {
+            // Default to 1 column layout for backward compatibility
+            const layout = section.layout || 1;
+            const gridCols = {
+              1: "grid-cols-1",
+              2: "grid-cols-1 md:grid-cols-2",
+              3: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
+              4: "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
+            };
 
-        <div className="flex gap-4 pt-6 border-t">
-          <Button loading={saveLoading} onClick={handleSave} className="flex-1">
-            <Save className="h-4 w-4 mr-2" />
-            {currentRecordId ? "Update" : "Save"}
-          </Button>
-          <Button onClick={handleReset} variant="outline" className="flex-1">
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+            return (
+              <div key={section.sectionId} className="space-y-4">
+                <h3 className="text-lg font-semibold text-foreground border-b pb-2">
+                  {section.name}
+                </h3>
+                <div className={`grid gap-4 ${gridCols[layout]}`}>
+                  {section.fields.map((field) => (
+                    <div
+                      key={field.fieldId}
+                      className={`space-y-2 ${
+                        field.type === "table" ? "col-span-full" : ""
+                      }`}
+                    >
+                      <Label>
+                        {field.name}
+                        {field.required && (
+                          <span className="text-destructive ml-1">*</span>
+                        )}
+                      </Label>
+                      {renderField(field)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+
+          <div className="flex gap-4 pt-6 border-t">
+            <Button
+              loading={saveLoading}
+              onClick={handleSave}
+              className="flex-1"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {currentRecordId ? "Update" : "Save"}
+            </Button>
+            <Button onClick={handleReset} variant="outline" className="flex-1">
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reset
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+      <Dialog open={openModal} onOpenChange={handleCancel}>
+        <DialogContent className="max-w-2xl overflow-y-auto p-0">
+          <DialogHeader className="p-3">
+            <DialogTitle>Paste copied data</DialogTitle>
+          </DialogHeader>
+          <div className="py-5 px-3">Do you want to past the copied data</div>
+          <div className="flex justify-end items-center py-4 px-2 gap-3 border-t">
+            <Button size="sm" onClick={handlePaste}>
+              Paste <Clipboard />
+            </Button>
+            <Button size="sm" variant="destructive" onClick={handleCancel}>
+              Cancel <X />
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

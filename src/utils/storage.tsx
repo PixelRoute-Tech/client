@@ -1,6 +1,7 @@
 export const storageKeys = {
     user:"USER",
-    token:"TOKEN"
+    token:"TOKEN",
+    copied:"COPY"
 }
 
 export const setItem = (key:keyof typeof storageKeys | string,data:any):boolean=>{

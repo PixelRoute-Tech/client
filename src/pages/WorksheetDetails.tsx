@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   skeletonConfigs,
   SkeletonLoader,
 } from "@/components/ui/skeleton-loader";
@@ -33,9 +39,16 @@ function WorksheetDetails() {
   const handleShowReport = () => {
     navigate(`${routes.worksheetReport}/${recordId}`);
   };
+  const handleCpoy = () => {
+    navigate(`${routes.previousReport}/${sheetid}`);
+  };
+
   return (
     <div className="p-1">
-      <div className="flex justify-end items-center p-2">
+      <div className="flex justify-end items-center gap-3 p-2">
+        <Button variant="outline" onClick={handleCpoy}>
+          Copy data
+        </Button>
         <Button onClick={handleShowReport}>Report</Button>
       </div>
       {worksheetLoading && "Fetching data"}
@@ -46,13 +59,14 @@ function WorksheetDetails() {
           recordId={recordId}
           clientId={clientId}
         />
-      ) : (worksheetLoading || recordLoading) ? (
+      ) : worksheetLoading || recordLoading ? (
         <SkeletonLoader config={skeletonConfigs.form} />
       ) : (
         <div className="text-red-600 bg-red-50 p-3 rounded-md border border-red-300">
           Failed to load worksheet data. Please try again.
         </div>
       )}
+   
     </div>
   );
 }

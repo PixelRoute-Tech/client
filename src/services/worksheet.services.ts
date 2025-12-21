@@ -132,10 +132,47 @@ export const uploadRecordImage = async (
   }
 };
 
+export const updateRecordImage = async (
+  payload: FormData
+): ApiResponseType<ImageRecord> => {
+  try {
+    return (
+      await network.put(`${apis.reportImages}/${payload.get("id")}?previousfilepath=${payload.get("previousFilePath")}&previouspreviewpath=${payload.get("previousPreviewPath")}`, payload, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+    ).data;
+  } catch (error) {
+    throw new Error(error.response.data.message);
+  }
+};
+
+export const deleteRecordImage = async (
+  payload:{id:string,imageUrl:string,preview:string}
+): ApiResponseType<ImageRecord> => {
+  try {
+    console.log(payload)
+    return (
+      await network.delete(`${apis.reportImages}/${payload.id}?previousfilepath=${payload.imageUrl}&previouspreviewpath=${payload.preview}`)
+    ).data;
+  } catch (error) {
+    throw new Error(error.response.data.message);
+  }
+};
+
 export const getImageRecordImages = async (id:string):ApiResponseType<ImageRecord[]>=>{
   try {
     return (await network.get(`${apis.reportImages}/${id}`)).data
   } catch (error) {
      throw new Error(error.response.data.message);
+  }
+}
+
+export const getPreviousData = async (id:string):ApiResponseType<{worksheet:Worksheet,records:WorksheetRecord[]}>=>{
+  try {
+    return (await network.get(`${apis.previousData}/${id}`)).data
+  } catch (error) {
+    throw new Error(error.response.data.message || "Opps! Something went wrong");
   }
 }

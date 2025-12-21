@@ -7,22 +7,60 @@ export type TechRow = {
   testProcedure: string;
   tech: string;
 };
+
+// 1. For dynamic text inputs (Equipment and HSE Procedures)
+export interface DynamicSafetyItem {
+  value: string;
+}
+
+// 2. For the OHS Checkboxes
+export interface OHSRequirements {
+  swms: boolean;
+  jsa: boolean;
+  safetyBoots: boolean;
+}
+
+// 3. For the PPE Checkboxes
+export interface PPERequired {
+  hardhat: boolean;
+  bumpGap: boolean;
+  highVis: boolean;
+  longSleeve: boolean;
+  safetyGlasses: boolean;
+  safetyBoots: boolean;
+  faceShield: boolean;
+  weldGlass: boolean;
+  hearingProtection: boolean;
+  electricalProtection: boolean;
+  respiratoryProtection: boolean;
+}
+
+// 5. The Main Job Request Interface
 export interface JobRequest {
+  _id?: string;
   jobId?: string;
   createdBy: string;
   createdAt?: Date;
-  startDate?: Date;
-  lastDate?: Date;
+  startDate: Date | string;
+  lastDate: Date | string;
   clientId?: string;
   clientName?: string;
   clientAddress?: string;
   clientEmail?: string;
-  summary?: string;
-  detailsProvided?: string;
+  purchaseOrder?: string;
+  summary: string;
+  detailsProvided: string;
   comment?: string;
-  divisionRules?: string;
-  testRows: Array<TechRow>;
-  status?: string;
+  timeRequired: string;
+  status: string;
+  ohsRequirements: OHSRequirements;
+  ppeRequired: PPERequired;
+  safetyReference?: string;
+  equipmentList: DynamicSafetyItem[];
+  siteInduction?: string;
+  hseProcedures: DynamicSafetyItem[];
+  // requiredDocument: string;
+  testRows: TechRow[];
 }
 
 export interface Job {
