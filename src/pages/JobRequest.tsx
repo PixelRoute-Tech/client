@@ -169,7 +169,7 @@ export default function JobRequestPage() {
         <div className="flex gap-2">
           <Button
             variant={currentView === "form" ? "default" : "outline"}
-            onClick={() => setCurrentView("form")}
+            onClick={() => {setCurrentView("form"), setEditingJobRequest(null);}}
             className="flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
@@ -246,16 +246,7 @@ export default function JobRequestPage() {
         />
       )}
 
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Upload images</DialogTitle>
-          </DialogHeader>
-           <div>
-              
-           </div>
-        </DialogContent>
-      </Dialog>
+     
 
       {/* <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
