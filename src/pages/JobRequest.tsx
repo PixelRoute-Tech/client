@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   JobRequestForm,
   JobRequestFormData,
@@ -14,9 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Plus, List, FileText } from "lucide-react";
-import {
-  WorksheetData,
-} from "@/components/worksheet/WorksheetRenderer";
+import { WorksheetData } from "@/components/worksheet/WorksheetRenderer";
 import { ClientType } from "@/types/client.type";
 import { useNavigate } from "react-router-dom";
 import routes from "@/routes/routeList";
@@ -24,10 +22,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { getClients } from "@/services/client.services";
 import moment from "moment";
 import { JobRequest } from "@/types/job.type";
-import { getJobRequests, deleteJobRequest} from "@/services/job.services";
+import { getJobRequests, deleteJobRequest } from "@/services/job.services";
 import { getWorkSheetslList } from "@/services/worksheet.services";
 import { useToast } from "@/hooks/use-toast";
-
 
 export default function JobRequestPage() {
   const { data: clients, refetch } = useQuery({
@@ -35,7 +32,7 @@ export default function JobRequestPage() {
     queryFn: getClients,
     refetchOnWindowFocus: false,
   });
-  const {toast} = useToast()
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [selectedClient, setSelectedClient] = useState<ClientType | null>(null);
   const [editingJobRequest, setEditingJobRequest] = useState<JobRequest | null>(
@@ -44,29 +41,32 @@ export default function JobRequestPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [showClientSelection, setShowClientSelection] = useState(true);
   const [currentView, setCurrentView] = useState<"form" | "list">("list");
-  
-  const {data: jobRequests,refetch:jobRequestRefetch} = useQuery({
+
+  const { data: jobRequests, refetch: jobRequestRefetch } = useQuery({
     queryKey: ["jobrequestlist", selectedClient],
     queryFn: async () => await getJobRequests(selectedClient?.clientId),
-    enabled:Boolean(selectedClient?.clientId),
-    refetchOnWindowFocus:false
+    enabled: Boolean(selectedClient?.clientId),
+    refetchOnWindowFocus: false,
   });
 
-  const {mutate:deleteJob,isPending:deletePending} = useMutation({mutationFn:deleteJobRequest,onSuccess:(result)=>{
-      if(result.success){
-         toast({
-           title:"Deleted successfully",
-           description:`Job request "${result.data.jobId}" deleted successfully`,
-           className:"bg-green-500 text-white"
-         })
-         jobRequestRefetch()
-      }else{
-         toast({
-           title:"Deleted successfully",
-           description:`Job request "${result.data.jobId}" deleted successfully`
-         })
+  const { mutate: deleteJob, isPending: deletePending } = useMutation({
+    mutationFn: deleteJobRequest,
+    onSuccess: (result) => {
+      if (result.success) {
+        toast({
+          title: "Deleted successfully",
+          description: `Job request "${result.data.jobId}" deleted successfully`,
+          className: "bg-green-500 text-white",
+        });
+        jobRequestRefetch();
+      } else {
+        toast({
+          title: "Deleted successfully",
+          description: `Job request "${result.data.jobId}" deleted successfully`,
+        });
       }
-  }})
+    },
+  });
 
   const handleClientSelect = (client: ClientType) => {
     setSelectedClient(client);
@@ -74,34 +74,50 @@ export default function JobRequestPage() {
   };
 
   const handleJobRequestSubmit = (jobRequestData: any) => {
-     jobRequestRefetch()
+    setIsEditDialogOpen(false);
+    setEditingJobRequest(null);
+    refetch();
+    jobRequestRefetch();
+    setCurrentView("list");
   };
 
   const handleEdit = (jobRequest: JobRequest) => {
+    setCurrentView("form");
     setEditingJobRequest(jobRequest);
     setIsEditDialogOpen(true);
   };
 
   const handleEditSubmit = (jobRequestData: any) => {
-      setIsEditDialogOpen(false);
-      setEditingJobRequest(null);
-      refetch()
-      jobRequestRefetch()
+    setIsEditDialogOpen(false);
+    setEditingJobRequest(null);
+    refetch();
+    jobRequestRefetch();
+    setCurrentView("list");
   };
 
   const handleDelete = (jobRequest: JobRequest) => {
-      console.log("jobRequest",jobRequest) 
-      deleteJob(jobRequest._id)
+    deleteJob(jobRequest._id);
   };
 
   const backToClientSelection = () => {
     setSelectedClient(null);
     setShowClientSelection(true);
+    setIsEditDialogOpen(false);
+    setEditingJobRequest(null);
+    setCurrentView("list");
   };
 
   const handleClientEdit = (data: ClientType) => {
     navigate(routes.clientOnBoarding, { state: data });
   };
+
+  useEffect(() => {
+    return () => {
+      setIsEditDialogOpen(false);
+      setEditingJobRequest(null);
+      setCurrentView("list");
+    };
+  }, []);
 
   if (showClientSelection) {
     return (
@@ -153,7 +169,7 @@ export default function JobRequestPage() {
         <div className="flex gap-2">
           <Button
             variant={currentView === "form" ? "default" : "outline"}
-            onClick={() => setCurrentView("form")}
+            onClick={() => {setCurrentView("form"), setEditingJobRequest(null);}}
             className="flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
@@ -161,7 +177,9 @@ export default function JobRequestPage() {
           </Button>
           <Button
             variant={currentView === "list" ? "default" : "outline"}
-            onClick={() => {setCurrentView("list"),jobRequestRefetch()}}
+            onClick={() => {
+              setCurrentView("list"), jobRequestRefetch();
+            }}
             className="flex items-center gap-2"
           >
             <List className="h-4 w-4" />
@@ -172,14 +190,21 @@ export default function JobRequestPage() {
 
       {currentView === "form" && (
         <div className="space-y-8">
-          <JobRequestForm
-            onSubmit={handleJobRequestSubmit}
-            selectedClient={
-              selectedClient
-                ? { ...selectedClient}
-                : undefined
-            }
-          />
+          {Boolean(editingJobRequest && isEditDialogOpen) ? (
+            <JobRequestForm
+              onSubmit={handleEditSubmit}
+              selectedClient={selectedClient}
+              initialData={editingJobRequest}
+              isEditing={true}
+            />
+          ) : (
+            <JobRequestForm
+              onSubmit={handleJobRequestSubmit}
+              selectedClient={
+                selectedClient ? { ...selectedClient } : undefined
+              }
+            />
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-primary/10 rounded-lg p-4">
@@ -192,13 +217,19 @@ export default function JobRequestPage() {
             </div>
             <div className="bg-yellow-500/10 rounded-lg p-4">
               <div className="text-2xl font-bold text-yellow-600">
-                {jobRequests?.data?.filter((j) => j.status === "Pending").length}
+                {
+                  jobRequests?.data?.filter((j) => j.status === "Pending")
+                    .length
+                }
               </div>
               <div className="text-sm text-muted-foreground">Pending</div>
             </div>
             <div className="bg-green-500/10 rounded-lg p-4">
               <div className="text-2xl font-bold text-green-600">
-                {jobRequests?.data?.filter((j) => j.status === "Completed").length}
+                {
+                  jobRequests?.data?.filter((j) => j.status === "Completed")
+                    .length
+                }
               </div>
               <div className="text-sm text-muted-foreground">Completed</div>
             </div>
@@ -215,7 +246,9 @@ export default function JobRequestPage() {
         />
       )}
 
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+     
+
+      {/* <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Job Request</DialogTitle>
@@ -229,7 +262,7 @@ export default function JobRequestPage() {
             />
           )}
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </div>
   );
 }

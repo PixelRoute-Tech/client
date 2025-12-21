@@ -10,9 +10,10 @@ import { authenticatedLoader } from "@/loaders/authLoaders";
 import ErrorBoundary from "@/components/ErrorPage/ErrorBoundary";
 import WorksheetReport from "@/pages/WorksheetReport";
 import { adminRouter } from "@/admin/routes/routes";
-const LandingPage =  lazy(()=>import("@/pages/LandingPage"));
-const PreviousReports = lazy(() => import( "@/pages/PreviousReports"));
-const ReportImageUpload = lazy(() => import( "@/pages/ReportImageUpload"));
+import AuthGurd from "@/components/Auth/AuthGurd";
+const LandingPage = lazy(() => import("@/pages/LandingPage"));
+const PreviousReports = lazy(() => import("@/pages/PreviousReports"));
+const ReportImageUpload = lazy(() => import("@/pages/ReportImageUpload"));
 const JobListing = lazy(() => import("@/pages/JobListing"));
 const WorksheetDetails = lazy(() => import("@/pages/WorksheetDetails"));
 const MasterData = lazy(() => import("@/pages/MasterData"));
@@ -52,9 +53,11 @@ const router = createBrowserRouter([
         path: "",
         loader: authenticatedLoader,
         element: (
-          <DashboardLayout>
-            <Outlet />
-          </DashboardLayout>
+          <AuthGurd>
+            <DashboardLayout>
+              <Outlet />
+            </DashboardLayout>
+          </AuthGurd>
         ),
         children: [
           {
@@ -274,7 +277,9 @@ const router = createBrowserRouter([
   {
     path: routes.landing,
     element: (
-      <Suspense fallback={<SkeletonLoader config={skeletonConfigs.dashboard} />}>
+      <Suspense
+        fallback={<SkeletonLoader config={skeletonConfigs.dashboard} />}
+      >
         <LandingPage />
       </Suspense>
     ),
@@ -313,7 +318,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/admin",
-    children:adminRouter
+    children: adminRouter,
   },
 ]);
 

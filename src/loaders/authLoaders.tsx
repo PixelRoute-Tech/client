@@ -8,6 +8,6 @@ export const authenticatedLoader = ()=>{
     if(Boolean(data && token)){
         return data
     }else{
-       throw redirect(localStorage.length == 0 ? `${routes.login}` : `${routes.signout}`)
+       throw redirect(localStorage.length == 0 ? `${routes.landing}` : `${routes.signout}`)
     }
 }

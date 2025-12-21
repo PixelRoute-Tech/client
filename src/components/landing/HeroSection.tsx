@@ -64,7 +64,7 @@ export function HeroSection() {
             <Button
               size="lg"
               variant="outline"
-              className="border-slate-600 text-white hover:bg-white/10 px-8 py-6 text-lg group"
+              className="border-slate-600 hover:text-white hover:bg-white/10 px-8 py-6 text-lg group"
               onClick={() => scrollToSection("#features")}
             >
               <Play className="mr-2 h-5 w-5" />

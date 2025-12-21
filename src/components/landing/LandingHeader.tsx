@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogIn } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const navItems = [
@@ -33,11 +33,13 @@ export function LandingHeader() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-background/95 backdrop-blur-md shadow-lg border-b border-border"
-          : "bg-transparent"
-      }`}
+      className={
+        !isMobileMenuOpen
+          ? isScrolled
+            ? "fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-background/95 backdrop-blur-md shadow-lg border-b border-border"
+            : "fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-transparent"
+          : "fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-background/95 backdrop-blur-md shadow-lg border-b border-border"
+      }
     >
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
@@ -47,8 +49,20 @@ export function LandingHeader() {
               M
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">Mantis</h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">ERP Solution</p>
+              <h1
+                className={
+                  isMobileMenuOpen
+                    ? "text-xl font-bold text-foreground"
+                    : isScrolled
+                    ? "text-xl font-bold text-foreground"
+                    : "text-xl font-bold text-white"
+                }
+              >
+                Mantis
+              </h1>
+              <p className="text-xs text-muted-foreground hidden sm:block">
+                ERP Solution
+              </p>
             </div>
           </div>
 
@@ -58,7 +72,11 @@ export function LandingHeader() {
               <button
                 key={item.label}
                 onClick={() => scrollToSection(item.href)}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+                className={
+                  isScrolled
+                    ? "text-sm font-medium text-muted-foreground hover:text-black transition-colors relative group"
+                    : "text-sm font-medium text-muted-foreground hover:text-white transition-colors relative group"
+                }
               >
                 {item.label}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
@@ -69,9 +87,21 @@ export function LandingHeader() {
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center gap-4">
             <Link to="/login">
-              <Button variant="ghost" size="sm">
+              {/* <Button variant="ghost" size="sm">
                 Login
-              </Button>
+              </Button> */}
+              <button
+                className={
+                  isScrolled
+                    ? "text-sm font-medium text-muted-foreground hover:text-black transition-colors relative group"
+                    : "text-sm font-medium text-muted-foreground hover:text-white transition-colors relative group"
+                }
+              >
+                <div className="flex justify-center items-center gap-1">
+                  Login <LogIn size={16} />
+                </div>
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
+              </button>
             </Link>
             <Button
               size="sm"
@@ -84,10 +114,30 @@ export function LandingHeader() {
 
           {/* Mobile Menu Button */}
           <button
-            className="lg:hidden p-2 text-foreground"
+            className="lg:hidden p-2 "
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
-            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMobileMenuOpen ? (
+              <X
+                className={
+                  isMobileMenuOpen
+                    ? "h-6 w-6"
+                    : isScrolled
+                    ? "h-6 w-6"
+                    : "h-6 w-6 text-white"
+                }
+              />
+            ) : (
+              <Menu
+                className={
+                  isMobileMenuOpen
+                    ? "h-6 w-6"
+                    : isScrolled
+                    ? "h-6 w-6"
+                    : "h-6 w-6 text-white"
+                }
+              />
+            )}
           </button>
         </div>
 
@@ -106,9 +156,21 @@ export function LandingHeader() {
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-border">
                 <Link to="/login">
-                  <Button variant="ghost" className="w-full justify-start">
+                  {/* <Button variant="outline" className="w-full justify-start">
                     Login
-                  </Button>
+                  </Button> */}
+                  <button
+                    className={
+                      isScrolled
+                        ? "text-sm font-medium text-muted-foreground hover:text-black transition-colors relative group"
+                        : "text-sm font-medium text-muted-foreground hover:text-white transition-colors relative group"
+                    }
+                  >
+                    <div className="flex justify-center items-center gap-1">
+                      Login <LogIn size={16} />
+                    </div>
+                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
+                  </button>
                 </Link>
                 <Button
                   className="w-full bg-primary hover:bg-primary/90"

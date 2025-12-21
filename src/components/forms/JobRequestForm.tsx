@@ -3,13 +3,21 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { CalendarIcon, Plus, Trash2, ClipboardPenLine } from "lucide-react";
+import {
+  CalendarIcon,
+  Plus,
+  Trash2,
+  ClipboardPenLine,
+  Upload,
+  ShieldCheck,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
   PopoverContent,
@@ -22,6 +30,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import {
   Table,
@@ -46,11 +55,52 @@ import { ClientType } from "@/types/client.type";
 import { getWorkSheets } from "@/services/worksheet.services";
 import moment from "moment";
 import { getUsers } from "@/services/user.services";
-import { useNavigate } from "react-router-dom";
-import routes from "@/routes/routeList";
 import { useAuth } from "@/hooks/useAuth";
-import { TechRow } from "@/types/job.type";
+import { JobRequest, TechRow } from "@/types/job.type";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import routes from "@/routes/routeList";
+import { useNavigate } from "react-router-dom";
+
 export const jobStatus = ["Pending", "Approved", "Completed", "Rejected"];
+const initializationData = {
+  startDate: new Date(),
+  lastDate: new Date(),
+  summary: "",
+  detailsProvided: "",
+  comment: "",
+  timeRequired: "",
+  // requiredDocument: "",
+  ohsRequirements: { swms: false, jsa: false, safetyBoots: false },
+  ppeRequired: {
+    hardhat: false,
+    bumpGap: false,
+    highVis: false,
+    longSleeve: false,
+    safetyGlasses: false,
+    safetyBoots: false,
+    faceShield: false,
+    weldGlass: false,
+    hearingProtection: false,
+    electricalProtection: false,
+    respiratoryProtection: false,
+  },
+  equipmentList: [],
+  hseProcedures: [],
+  testRows: [
+    {
+      testMethod: "",
+      testSpec: "",
+      acceptanceSpec: "",
+      toTable: "",
+      testProcedure: "",
+      tech: "",
+    },
+  ],
+};
+// Helper for dynamic string arrays
+const dynamicStringSchema = z.object({
+  value: z.string().min(1, "Required"),
+});
 
 const testRowSchema = z.object({
   testMethod: z.string().min(1, "Test method is required"),
@@ -62,33 +112,47 @@ const testRowSchema = z.object({
 });
 
 const jobRequestSchema = z.object({
-  // clientId: z.string().min(1, "Client selection is required"),
-  startDate: z.date({
-    required_error: "Date is required",
-  }),
-  lastDate: z.date({
-    required_error: "Date-Time-Day is required",
-  }),
+  startDate: z.date({ required_error: "Date is required" }),
+  lastDate: z.date({ required_error: "Date-Time-Day is required" }),
   purchaseOrder: z.string().optional(),
   summary: z.string().min(5, "Summary must be at least 5 characters"),
-  detailsProvided: z
-    .string()
-    .min(5, "Details provided must be at least 5 characters"),
-  requiredDocument: z
-    .string()
-    .min(5, "Details provided must be at least 5 characters"),
+  detailsProvided: z.string().min(5, "Details provided required"),
+  // requiredDocument: z.string().min(5, "Required documents required"),
   comment: z.string().optional(),
-  timeRequired: z.string().min(1, "Division rules is required"),
-  testRows: z.array(testRowSchema).min(1, "At least one test row is required"),
+  timeRequired: z.string().min(1, "Time required"),
   status: z.string().min(1, "Status required"),
+  ohsRequirements: z.object({
+    swms: z.boolean().default(false),
+    jsa: z.boolean().default(false),
+    safetyBoots: z.boolean().default(false),
+  }),
+  safetyReference: z.string().optional(),
+  ppeRequired: z.object({
+    hardhat: z.boolean().default(false),
+    bumpGap: z.boolean().default(false),
+    highVis: z.boolean().default(false),
+    longSleeve: z.boolean().default(false),
+    safetyGlasses: z.boolean().default(false),
+    safetyBoots: z.boolean().default(false),
+    faceShield: z.boolean().default(false),
+    weldGlass: z.boolean().default(false),
+    hearingProtection: z.boolean().default(false),
+    electricalProtection: z.boolean().default(false),
+    respiratoryProtection: z.boolean().default(false),
+  }),
+  equipmentList: z.array(dynamicStringSchema),
+  siteInduction: z.string().optional(),
+  hseProcedures: z.array(dynamicStringSchema),
+
+  testRows: z.array(testRowSchema).min(1, "At least one test row is required"),
 });
 
 export type JobRequestFormData = z.infer<typeof jobRequestSchema>;
 
 interface JobRequestFormProps {
-  onSubmit: (data: JobRequestFormData) => void;
+  onSubmit: (data: JobRequestFormData | JobRequest) => void;
   selectedClient?: ClientType;
-  initialData?: JobRequestFormData & { jobId: string };
+  initialData?: (JobRequestFormData & { jobId: string }) | JobRequest;
   isEditing?: boolean;
 }
 
@@ -99,38 +163,44 @@ export function JobRequestForm({
   isEditing = false,
 }: JobRequestFormProps) {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const { user } = useAuth();
+  const navigate = useNavigate()
+  const [openFileUpload, setOpenFileUpload] = useState<boolean>(false);
   const form = useForm<JobRequestFormData>({
     resolver: zodResolver(jobRequestSchema),
-    defaultValues: Boolean(initialData)
+    defaultValues: initialData
       ? {
           ...initialData,
           startDate: moment(initialData.startDate).toDate(),
           lastDate: moment(initialData.lastDate).toDate(),
         }
-      : {
-          startDate: new Date(),
-          lastDate: new Date(),
-          summary: "",
-          detailsProvided: "",
-          comment: "",
-          timeRequired: "",
-          requiredDocument: "",
-          testRows: [
-            {
-              testMethod: "",
-              testSpec: "",
-              acceptanceSpec: "",
-              toTable: "",
-              testProcedure: "",
-              tech: "",
-            },
-          ],
-        },
+      : initializationData,
   });
 
-  const { fields, append, remove } = useFieldArray({
+  // Field Arrays for Dynamic Safety Inputs
+  const {
+    fields: equipmentFields,
+    append: appendEquipment,
+    remove: removeEquipment,
+  } = useFieldArray({
+    control: form.control,
+    name: "equipmentList",
+  });
+
+  const {
+    fields: hseFields,
+    append: appendHse,
+    remove: removeHse,
+  } = useFieldArray({
+    control: form.control,
+    name: "hseProcedures",
+  });
+
+  const {
+    fields: testRows,
+    append: appendTestRow,
+    remove: removeTestRow,
+  } = useFieldArray({
     control: form.control,
     name: "testRows",
   });
@@ -153,8 +223,8 @@ export function JobRequestForm({
       onSubmit(result.data);
       form.reset();
       toast({
-        title: "Job request created successfully",
-        description: `Job request has been submitted successfully.`,
+        title: "Success",
+        description: "Job request created.",
         className: "bg-green-500 text-white",
       });
     },
@@ -201,7 +271,7 @@ export function JobRequestForm({
         clientEmail: selectedClient.email,
         startDate: moment(data.startDate).toDate(),
         lastDate: moment(data.lastDate).toDate(),
-      });
+      } as JobRequest);
     } else {
       update({
         ...initialData,
@@ -212,55 +282,33 @@ export function JobRequestForm({
         clientAddress: selectedClient.businessAddress,
         clientName: selectedClient.businessName,
         clientEmail: selectedClient.email,
-      });
+      } as JobRequest);
     }
   };
 
-  const handleFormError = (error: any) => {
+  const handleError = (error) => {
     console.log(error);
   };
 
-  const handleReset = () => {
-    form.reset();
-    toast({
-      title: "Form reset",
-      description: "All fields have been cleared.",
-    });
-  };
-
-  const addTestRow = () => {
-    append({
-      testMethod: "",
-      testSpec: "",
-      acceptanceSpec: "",
-      toTable: "",
-      testProcedure: "",
-      tech: "",
-    });
-  };
-
-  const checkContainsTechnician = (text: string) => {
-    return text.toLowerCase().includes("technician".toLowerCase());
+  const handleOpenFileUpload = () => {
+    setOpenFileUpload(true);
   };
 
   const technicianList = useMemo(() => {
-    return usersList?.data.map((u) => {
-      if (
-        u.userRole.toLowerCase().includes("technician".toLowerCase()) ||
-        u.designation.toLowerCase().includes("technician".toLowerCase())
-      ) {
-        return u;
-      }
-    });
+    return usersList?.data.filter(
+      (u: any) =>
+        u.userRole.toLowerCase().includes("technician") ||
+        u.designation.toLowerCase().includes("technician")
+    );
   }, [usersList?.data]);
 
   return (
     <div className="w-full max-w-6xl space-y-6">
-      {/* Client Details Header */}
+      {/* Client Details Section (Same as before) */}
       {selectedClient && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-primary">
+            <CardTitle className="text-primary text-lg">
               Selected Client Details
             </CardTitle>
           </CardHeader>
@@ -289,52 +337,50 @@ export function JobRequestForm({
         </Card>
       )}
 
-      {/* Job Request Form */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-primary">
+          <CardTitle className="text-primary text-lg flex justify-between">
             {isEditing ? "Edit Job Request" : "Create Job Request"}
+            {/* <Button size="sm" onClick={handleOpenFileUpload}>Upload files</Button> */}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Form methods={form}>
             <form
-              onSubmit={form.handleSubmit(handleSubmit, handleFormError)}
-              className="space-y-6"
+              onSubmit={form.handleSubmit(handleSubmit, handleError)}
+              className="space-y-8"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* BASIC DETAILS GRID */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
                   name="startDate"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Form</FormLabel>
+                      <FormLabel>From</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
-                              variant={"outline"}
+                              variant="outline"
                               className={cn(
-                                "w-full pl-3 text-left font-normal",
+                                "pl-3 text-left font-normal",
                                 !field.value && "text-muted-foreground"
                               )}
                             >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
+                              {field.value
+                                ? format(field.value, "PPP")
+                                : "Pick a date"}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0">
                           <Calendar
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
                             initialFocus
-                            className="pointer-events-auto"
                           />
                         </PopoverContent>
                       </Popover>
@@ -353,28 +399,25 @@ export function JobRequestForm({
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
-                              variant={"outline"}
+                              variant="outline"
                               className={cn(
-                                "w-full pl-3 text-left font-normal",
+                                "pl-3 text-left font-normal",
                                 !field.value && "text-muted-foreground"
                               )}
                             >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick date and time</span>
-                              )}
+                              {field.value
+                                ? format(field.value, "PPP")
+                                : "Pick a date"}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0">
                           <Calendar
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
                             initialFocus
-                            className="pointer-events-auto"
                           />
                         </PopoverContent>
                       </Popover>
@@ -382,19 +425,21 @@ export function JobRequestForm({
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="timeRequired"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Time required</FormLabel>
+                      <FormLabel>Time Required</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter Time required" {...field} />
+                        <Input placeholder="e.g. 4 hours" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="status"
@@ -404,7 +449,6 @@ export function JobRequestForm({
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}
-                        defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -412,9 +456,9 @@ export function JobRequestForm({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {jobStatus.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {status}
+                          {jobStatus.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {s}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -425,155 +469,109 @@ export function JobRequestForm({
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="purchaseOrder"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Purchase order</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Enter purchase order" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="summary"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Summary</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Enter job summary" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* REMAINING TEXT AREAS */}
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="purchaseOrder"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Purchase Order</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="summary"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Summary</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="detailsProvided"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Details Provided</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-              <FormField
-                control={form.control}
-                name="detailsProvided"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Details Provided</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Enter details provided"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="comment"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Work request</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Enter any comments" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="requiredDocument"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Document required on completion</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Enter any comments" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Dynamic Test Table */}
+              {/* TEST METHODS TABLE (Same as before) */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-foreground">
-                    Test Methods
-                  </h3>
+                  <h3 className="text-lg font-bold">Test Methods</h3>
                   <Button
                     type="button"
-                    onClick={addTestRow}
+                    onClick={() =>
+                      appendTestRow({
+                        testMethod: "",
+                        testSpec: "",
+                        acceptanceSpec: "",
+                        toTable: "",
+                        testProcedure: "",
+                        tech: "",
+                      })
+                    }
                     variant="outline"
                     size="sm"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Row
+                    <Plus className="h-4 w-4 mr-2" /> Add Row
                   </Button>
                 </div>
-
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Test Method</TableHead>
-                        <TableHead>Test Spec</TableHead>
-                        <TableHead>Acceptance Spec</TableHead>
+                        <TableHead>Method</TableHead>
+                        <TableHead>Spec</TableHead>
+                        <TableHead>Acceptance</TableHead>
                         <TableHead>To Table</TableHead>
-                        <TableHead>Test Procedure</TableHead>
-                        <TableHead>Technician </TableHead>
+                        <TableHead>Procedure</TableHead>
+                        <TableHead>Tech</TableHead>
                         <TableHead className="w-[50px]">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {fields.map((field, index) => (
+                      {testRows.map((field, index) => (
                         <TableRow key={field.id}>
                           <TableCell>
-                            {/* <FormField
-                              control={form.control}
-                              name={`testRows.${index}.testMethod`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="Test method"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            /> */}
                             <FormField
                               control={form.control}
                               name={`testRows.${index}.testMethod`}
                               render={({ field }) => (
-                                <FormItem>
-                                  <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Test method" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      {activeWorksheets?.data?.map(
-                                        (worksheet) => (
-                                          <SelectItem
-                                            key={worksheet.workSheetId}
-                                            value={worksheet.workSheetId}
-                                          >
-                                            {worksheet.name}
-                                          </SelectItem>
-                                        )
-                                      )}
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Method" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {activeWorksheets?.data?.map((ws) => (
+                                      <SelectItem
+                                        key={ws.workSheetId}
+                                        value={ws.workSheetId}
+                                      >
+                                        {ws.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               )}
                             />
                           </TableCell>
@@ -581,58 +579,28 @@ export function JobRequestForm({
                             <FormField
                               control={form.control}
                               name={`testRows.${index}.testSpec`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <Input placeholder="Test spec" {...field} />
-                                  </FormControl>
-                                </FormItem>
-                              )}
+                              render={({ field }) => <Input {...field} />}
                             />
                           </TableCell>
                           <TableCell>
                             <FormField
                               control={form.control}
                               name={`testRows.${index}.acceptanceSpec`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="Acceptance spec"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
+                              render={({ field }) => <Input {...field} />}
                             />
                           </TableCell>
                           <TableCell>
                             <FormField
                               control={form.control}
                               name={`testRows.${index}.toTable`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <Input placeholder="To table" {...field} />
-                                  </FormControl>
-                                </FormItem>
-                              )}
+                              render={({ field }) => <Input {...field} />}
                             />
                           </TableCell>
                           <TableCell>
                             <FormField
                               control={form.control}
                               name={`testRows.${index}.testProcedure`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="Test procedure"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
+                              render={({ field }) => <Input {...field} />}
                             />
                           </TableCell>
                           <TableCell>
@@ -640,29 +608,23 @@ export function JobRequestForm({
                               control={form.control}
                               name={`testRows.${index}.tech`}
                               render={({ field }) => (
-                                <FormItem>
-                                  <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Technician" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      {technicianList?.map((tech) => (
-                                        <SelectItem
-                                          key={`${tech?._id}`}
-                                          value={tech?.id}
-                                        >
-                                          {tech?.userName}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Tech" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {technicianList?.map((t) => (
+                                      <SelectItem key={t.id} value={t.id}>
+                                        {t.userName}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               )}
                             />
                           </TableCell>
@@ -683,13 +645,13 @@ export function JobRequestForm({
                                   <ClipboardPenLine className="h-4 w-4" />
                                 </Button>
                               )}
-                              {fields.length > 1 && (
+                              {testRows.length > 1 && (
                                 <>
                                   <Button
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => remove(index)}
+                                    onClick={() => removeTestRow(index)}
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
@@ -704,18 +666,211 @@ export function JobRequestForm({
                 </div>
               </div>
 
-              <div className="flex gap-4 pt-4">
+              {/* SAFETY SECTION */}
+              <div className="space-y-6 border py-8 bg-slate-50/50 rounded px-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <ShieldCheck className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-xl font-bold text-blue-900 uppercase tracking-tight">
+                    Safety & HSE Requirements
+                  </h3>
+                </div>
+
+                {/* 1. OHS Requirements */}
+                <div className="space-y-3">
+                  <FormLabel className="text-base font-semibold">
+                    1. OHS Requirements
+                  </FormLabel>
+                  <div className="flex flex-wrap gap-6">
+                    {["swms", "jsa", "safetyBoots"].map((item) => (
+                      <FormField
+                        key={item}
+                        control={form.control}
+                        name={`ohsRequirements.${item}` as any}
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormLabel className="font-normal uppercase">
+                              {item}
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. Reference */}
+                <FormField
+                  control={form.control}
+                  name="safetyReference"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-semibold">
+                        2. Reference
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Enter safety references..."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* 3. PPE Required */}
+                <div className="space-y-4">
+                  <FormLabel className="text-base font-semibold">
+                    3. PPE Required
+                  </FormLabel>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {Object.keys(
+                      form.getValues()?.ppeRequired ||
+                        initializationData.ppeRequired
+                    ).map((key) => (
+                      <FormField
+                        key={key}
+                        control={form.control}
+                        name={`ppeRequired.${key}` as any}
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormLabel className="font-normal capitalize">
+                              {key.replace(/([A-Z])/g, " $1")}
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* 4. Equipment */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <FormLabel className="text-base font-semibold">
+                      4. Equipment
+                    </FormLabel>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => appendEquipment({ value: "" })}
+                    >
+                      <Plus className="h-3 w-3 mr-1" /> Add Equipment
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {equipmentFields.map((field, index) => (
+                      <div key={field.id} className="flex gap-2">
+                        <FormField
+                          control={form.control}
+                          name={`equipmentList.${index}.value`}
+                          render={({ field }) => (
+                            <FormControl>
+                              <Input placeholder="Equipment name" {...field} />
+                            </FormControl>
+                          )}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeEquipment(index)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 5. Site Induction */}
+                <FormField
+                  control={form.control}
+                  name="siteInduction"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-semibold">
+                        5. Site/Remote Induction Required
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Details about induction..."
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {/* 6. HSE Procedures */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <FormLabel className="text-base font-semibold">
+                      6. Specific Relevant HSE Procedures
+                    </FormLabel>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => appendHse({ value: "" })}
+                    >
+                      <Plus className="h-3 w-3 mr-1" /> Add Procedure
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {hseFields.map((field, index) => (
+                      <div key={field.id} className="flex gap-2">
+                        <FormField
+                          control={form.control}
+                          name={`hseProcedures.${index}.value`}
+                          render={({ field }) => (
+                            <FormControl>
+                              <Input
+                                placeholder="Procedure detail"
+                                {...field}
+                              />
+                            </FormControl>
+                          )}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeHse(index)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-4 border-t">
                 <Button
                   loading={saveLoading || updateLoading}
                   type="submit"
                   className="flex-1"
                 >
-                  {isEditing ? "Update Job Request" : "Submit"}
+                  {isEditing ? "Update Job Request" : "Submit Request"}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={handleReset}
+                  onClick={() => form.reset()}
                   className="flex-1"
                 >
                   Reset
@@ -725,6 +880,14 @@ export function JobRequestForm({
           </Form>
         </CardContent>
       </Card>
+      <Dialog open={openFileUpload} onOpenChange={setOpenFileUpload}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Upload images</DialogTitle>
+          </DialogHeader>
+          <div></div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
