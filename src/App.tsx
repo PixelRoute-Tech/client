@@ -10,7 +10,6 @@ import SocketContext from "./contexts/SocketContext";
 const queryClient = new QueryClient();
 
 const App = () => {
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
@@ -19,7 +18,7 @@ const App = () => {
           <Sonner />
           <AuthProvider>
             <SocketContext>
-            <MainRoute />
+              <MainRoute />
             </SocketContext>
           </AuthProvider>
         </TooltipProvider>
