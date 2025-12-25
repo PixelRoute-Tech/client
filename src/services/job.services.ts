@@ -4,7 +4,7 @@ import { ApiResponseType } from "@/types/network.type";
 import apis from "./apis";
 
 export const saveJobRequest = async (
-  payload: JobRequest
+  payload: FormData
 ): ApiResponseType<JobRequest> => {
   try {
     return (await network.post(apis.jobRequest, payload)).data;
@@ -13,7 +13,7 @@ export const saveJobRequest = async (
   }
 };
 export const updateJobRequest = async (
-  payload: JobRequest
+  payload: FormData
 ): ApiResponseType<JobRequest> => {
   try {
     return (await network.put(apis.jobRequest, payload)).data;

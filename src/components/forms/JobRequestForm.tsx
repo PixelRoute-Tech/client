@@ -164,8 +164,9 @@ export function JobRequestForm({
 }: JobRequestFormProps) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [openFileUpload, setOpenFileUpload] = useState<boolean>(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const form = useForm<JobRequestFormData>({
     resolver: zodResolver(jobRequestSchema),
     defaultValues: initialData
@@ -258,31 +259,39 @@ export function JobRequestForm({
   });
 
   const handleSubmit = (data: JobRequestFormData) => {
-    console.log(data);
+    const formData = new FormData();
     if (!isEditing) {
-      save({
-        ...data,
-        createdBy: user?.id,
-        testRows: data.testRows as TechRow[],
-        comment: data.comment,
-        clientId: selectedClient.clientId,
-        clientName: selectedClient.businessName,
-        clientAddress: selectedClient.businessAddress,
-        clientEmail: selectedClient.email,
-        startDate: moment(data.startDate).toDate(),
-        lastDate: moment(data.lastDate).toDate(),
-      } as JobRequest);
+      formData.append(
+        "data",
+        JSON.stringify({
+          ...data,
+          createdBy: user?.id,
+          testRows: data.testRows as TechRow[],
+          comment: data.comment,
+          clientId: selectedClient.clientId,
+          clientName: selectedClient.businessName,
+          clientAddress: selectedClient.businessAddress,
+          clientEmail: selectedClient.email,
+          startDate: moment(data.startDate).toDate(),
+          lastDate: moment(data.lastDate).toDate(),
+        })
+      );
+      save(formData);
     } else {
-      update({
-        ...initialData,
-        ...data,
-        testRows: data.testRows as TechRow[],
-        createdBy: user.id,
-        clientId: selectedClient.clientId,
-        clientAddress: selectedClient.businessAddress,
-        clientName: selectedClient.businessName,
-        clientEmail: selectedClient.email,
-      } as JobRequest);
+      formData.append(
+        "data",
+        JSON.stringify({
+          ...initialData,
+          ...data,
+          testRows: data.testRows as TechRow[],
+          createdBy: user.id,
+          clientId: selectedClient.clientId,
+          clientAddress: selectedClient.businessAddress,
+          clientName: selectedClient.businessName,
+          clientEmail: selectedClient.email,
+        })
+      );
+      update(formData);
     }
   };
 
@@ -292,6 +301,47 @@ export function JobRequestForm({
 
   const handleOpenFileUpload = () => {
     setOpenFileUpload(true);
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024 * 1024) {
+      return `${(bytes / 1024).toFixed(2)} KB`;
+    }
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+
+    const validFiles: File[] = [];
+    const rejectedFiles: string[] = [];
+
+    Array.from(e.target.files).forEach((file) => {
+      if (file.size <= MAX_FILE_SIZE) {
+        validFiles.push(file);
+      } else {
+        rejectedFiles.push(file.name);
+      }
+    });
+
+    if (rejectedFiles.length) {
+      toast({
+        title: "File size exceeded",
+        description: `These files exceed 5MB:\n${rejectedFiles.join(", ")}`,
+        variant: "destructive",
+      });
+    }
+
+    setUploadedFiles((prev) => [...prev, ...validFiles]);
+
+    // Reset input so same file can be reselected
+    e.target.value = "";
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const technicianList = useMemo(() => {
@@ -336,12 +386,13 @@ export function JobRequestForm({
           </CardContent>
         </Card>
       )}
-
       <Card>
         <CardHeader>
           <CardTitle className="text-primary text-lg flex justify-between">
             {isEditing ? "Edit Job Request" : "Create Job Request"}
-            {/* <Button size="sm" onClick={handleOpenFileUpload}>Upload files</Button> */}
+            <Button size="sm" onClick={handleOpenFileUpload}>
+              Upload files
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -883,9 +934,62 @@ export function JobRequestForm({
       <Dialog open={openFileUpload} onOpenChange={setOpenFileUpload}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Upload images</DialogTitle>
+            <DialogTitle>Upload Images / Files</DialogTitle>
           </DialogHeader>
-          <div></div>
+          <div className="space-y-1">
+            {/* Upload Input */}
+            <div className="flex items-center gap-4">
+              <Input
+                type="file"
+                multiple
+                onChange={handleFileChange}
+                className="cursor-pointer"
+              />
+              <Upload className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="text-muted-foreground text-[.6rem] mb-36">
+              Maximum file size 5 MB
+            </div>
+            {/* File List */}
+            {uploadedFiles.length > 0 ? (
+              <div className="border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>File Name</TableHead>
+                      <TableHead>Size</TableHead>
+                      <TableHead className="w-[80px] text-center">
+                        Action
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {uploadedFiles.map((file, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="truncate max-w-[400px]">
+                          {file.name}
+                        </TableCell>
+                        <TableCell>{formatFileSize(file.size)}</TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeFile(index)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <p className="text-sm text-center text-muted-foreground">
+                No files uploaded yet.
+              </p>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
