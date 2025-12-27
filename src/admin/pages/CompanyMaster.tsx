@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { companyStorage } from "@/utils/companyStorage";
-import { toast, useToast } from "@/hooks/use-toast";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { useToast } from "@/hooks/use-toast";
 import CompanyForm from "../components/CompanyForm";
 import CompaniesTable from "../components/CompaniesTable";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -63,7 +62,7 @@ export default function CompanyMaster() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div className="container mx-auto py-6">
         <h1 className="text-3xl font-bold mb-6">Company Master</h1>
         <Tabs value={activeTab} onValueChange={handleTabChange}>
@@ -91,6 +90,6 @@ export default function CompanyMaster() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
