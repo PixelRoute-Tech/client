@@ -3,7 +3,7 @@ import { adminRoutes } from "./routesList";
 import CompanyMaster from "../pages/CompanyMaster";
 import FileManager from "../pages/FileManager";
 import DashboardLayout from "../components/layout/DashboardLayout";
-
+import AdminHome from "../pages/AdminHome";
 export const adminRouter: RouteObject[] = [
   {
     path: "",
@@ -13,6 +13,10 @@ export const adminRouter: RouteObject[] = [
       </DashboardLayout>
     ),
     children: [
+      {
+        index:true,
+        element: <AdminHome />,
+      },
       {
         path: adminRoutes.companyMaster,
         element: <CompanyMaster />,

@@ -1,36 +1,51 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Download, FileText, FileImage, FileVideo, FileAudio, File } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Download,
+  FileText,
+  FileImage,
+  FileVideo,
+  FileAudio,
+  File,
+} from "lucide-react";
+
+/* -------------------------------------------------------------------------- */
+/*                                    TYPES                                   */
+/* -------------------------------------------------------------------------- */
 
 interface FilePreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   fileName: string;
+  fileUrl: string; // 👈 required for preview
   fileSize?: number;
 }
 
-const getFileExtension = (fileName: string): string => {
-  return fileName.split('.').pop()?.toLowerCase() || '';
-};
+/* -------------------------------------------------------------------------- */
+/*                               FILE HELPERS                                 */
+/* -------------------------------------------------------------------------- */
 
-const isImageFile = (fileName: string): boolean => {
-  const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif'];
-  return imageExtensions.includes(getFileExtension(fileName));
-};
+const getFileExtension = (fileName: string): string =>
+  fileName.split(".").pop()?.toLowerCase() || "";
 
-const isPdfFile = (fileName: string): boolean => {
-  return getFileExtension(fileName) === 'pdf';
-};
+const isImageFile = (fileName: string): boolean =>
+  ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico", "avif"].includes(
+    getFileExtension(fileName)
+  );
 
-const isVideoFile = (fileName: string): boolean => {
-  const videoExtensions = ['mp4', 'webm', 'ogg', 'mov', 'avi'];
-  return videoExtensions.includes(getFileExtension(fileName));
-};
+const isPdfFile = (fileName: string): boolean =>
+  getFileExtension(fileName) === "pdf";
 
-const isAudioFile = (fileName: string): boolean => {
-  const audioExtensions = ['mp3', 'wav', 'ogg', 'flac', 'aac'];
-  return audioExtensions.includes(getFileExtension(fileName));
-};
+const isVideoFile = (fileName: string): boolean =>
+  ["mp4", "webm", "ogg", "mov", "avi"].includes(getFileExtension(fileName));
+
+const isAudioFile = (fileName: string): boolean =>
+  ["mp3", "wav", "ogg", "flac", "aac"].includes(getFileExtension(fileName));
 
 const getFileIcon = (fileName: string) => {
   if (isImageFile(fileName)) return FileImage;
@@ -41,76 +56,75 @@ const getFileIcon = (fileName: string) => {
 };
 
 const formatFileSize = (bytes?: number): string => {
-  if (!bytes) return 'Unknown size';
-  const units = ['B', 'KB', 'MB', 'GB'];
+  if (!bytes) return "Unknown size";
+  const units = ["B", "KB", "MB", "GB"];
   let size = bytes;
   let unitIndex = 0;
+
   while (size >= 1024 && unitIndex < units.length - 1) {
     size /= 1024;
     unitIndex++;
   }
+
   return `${size.toFixed(1)} ${units[unitIndex]}`;
 };
 
-export const FilePreviewModal = ({ isOpen, onClose, fileName, fileSize }: FilePreviewModalProps) => {
+/* -------------------------------------------------------------------------- */
+/*                             PREVIEW COMPONENT                               */
+/* -------------------------------------------------------------------------- */
+
+export const FilePreviewModal = ({
+  isOpen,
+  onClose,
+  fileName,
+  fileUrl,
+  fileSize,
+}: FilePreviewModalProps) => {
   const FileIcon = getFileIcon(fileName);
   const extension = getFileExtension(fileName);
 
   const renderPreview = () => {
     if (isImageFile(fileName)) {
       return (
-        <div className="flex items-center justify-center bg-muted/30 rounded-lg p-4 min-h-[300px]">
-          <div className="text-center">
-            <FileImage className="w-24 h-24 mx-auto text-primary/60 mb-4" />
-            <p className="text-sm text-muted-foreground">Image Preview</p>
-            <p className="text-xs text-muted-foreground mt-1">{fileName}</p>
-          </div>
-        </div>
+        <img
+          src={fileUrl}
+          alt={fileName}
+          className="max-h-[400px] max-w-full mx-auto rounded-lg object-contain"
+        />
       );
     }
 
     if (isPdfFile(fileName)) {
       return (
-        <div className="flex items-center justify-center bg-muted/30 rounded-lg p-4 min-h-[300px]">
-          <div className="text-center">
-            <FileText className="w-24 h-24 mx-auto text-red-500/60 mb-4" />
-            <p className="text-sm text-muted-foreground">PDF Document</p>
-            <p className="text-xs text-muted-foreground mt-1">{fileName}</p>
-          </div>
-        </div>
+        <iframe
+          src={fileUrl}
+          title={fileName}
+          className="w-full h-[400px] rounded-lg"
+        />
       );
     }
 
     if (isVideoFile(fileName)) {
       return (
-        <div className="flex items-center justify-center bg-muted/30 rounded-lg p-4 min-h-[300px]">
-          <div className="text-center">
-            <FileVideo className="w-24 h-24 mx-auto text-purple-500/60 mb-4" />
-            <p className="text-sm text-muted-foreground">Video File</p>
-            <p className="text-xs text-muted-foreground mt-1">{fileName}</p>
-          </div>
-        </div>
+        <video
+          src={fileUrl}
+          controls
+          className="w-full max-h-[400px] rounded-lg"
+        />
       );
     }
 
     if (isAudioFile(fileName)) {
-      return (
-        <div className="flex items-center justify-center bg-muted/30 rounded-lg p-4 min-h-[300px]">
-          <div className="text-center">
-            <FileAudio className="w-24 h-24 mx-auto text-green-500/60 mb-4" />
-            <p className="text-sm text-muted-foreground">Audio File</p>
-            <p className="text-xs text-muted-foreground mt-1">{fileName}</p>
-          </div>
-        </div>
-      );
+      return <audio src={fileUrl} controls className="w-full" />;
     }
 
     return (
-      <div className="flex items-center justify-center bg-muted/30 rounded-lg p-4 min-h-[300px]">
+      <div className="flex items-center justify-center bg-muted/30 rounded-lg p-6 min-h-[300px]">
         <div className="text-center">
-          <File className="w-24 h-24 mx-auto text-muted-foreground/60 mb-4" />
-          <p className="text-sm text-muted-foreground">File Preview Not Available</p>
-          <p className="text-xs text-muted-foreground mt-1">{fileName}</p>
+          <File className="w-16 h-16 mx-auto mb-3 text-muted-foreground/60" />
+          <p className="text-sm text-muted-foreground">
+            Preview not available
+          </p>
         </div>
       </div>
     );
@@ -118,7 +132,7 @@ export const FilePreviewModal = ({ isOpen, onClose, fileName, fileSize }: FilePr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[650px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileIcon className="w-5 h-5" />
@@ -133,13 +147,16 @@ export const FilePreviewModal = ({ isOpen, onClose, fileName, fileSize }: FilePr
             <div className="space-y-1">
               <p className="text-sm font-medium">File Details</p>
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <span>Type: {extension.toUpperCase() || 'Unknown'}</span>
+                <span>Type: {extension.toUpperCase() || "Unknown"}</span>
                 <span>Size: {formatFileSize(fileSize)}</span>
               </div>
             </div>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Download className="w-4 h-4" />
-              Download
+
+            <Button variant="outline" size="sm" className="gap-2" asChild>
+              <a href={fileUrl} download>
+                <Download className="w-4 h-4" />
+                Download
+              </a>
             </Button>
           </div>
         </div>

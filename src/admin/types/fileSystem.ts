@@ -3,6 +3,7 @@ export interface FileSystemItem {
   name: string;
   children?: FileSystemItem[];
   size?: number;
+  path?:string
 }
 
 export interface BreadcrumbItem {

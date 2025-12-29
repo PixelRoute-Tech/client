@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import CompanyForm from "../components/CompanyForm";
 import CompaniesTable from "../components/CompaniesTable";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { getCompany, saveCompany } from "../services/services";
+import { getCompany, saveCompany } from "../services/company";
 import { Company } from "../types/company.type";
 
 export default function CompanyMaster() {

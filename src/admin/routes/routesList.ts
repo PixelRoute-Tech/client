@@ -1,4 +1,4 @@
 export const adminRoutes = {
-  companyMaster: "company-master",
-  fileManager: "file-manager",
+  companyMaster: "/admin/company-master",
+  fileManager: "/admin/file-manager",
 };
