@@ -16,7 +16,7 @@ export const updateJobRequest = async (
   payload: FormData
 ): ApiResponseType<JobRequest> => {
   try {
-    return (await network.put(apis.jobRequest, payload)).data;
+    return (await network.put(`${apis.jobRequest}/${payload.get("clientId")}`, payload)).data;
   } catch (error) {
     throw new Error(error.response.data.message);
   }

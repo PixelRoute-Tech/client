@@ -260,6 +260,12 @@ export function JobRequestForm({
 
   const handleSubmit = (data: JobRequestFormData) => {
     const formData = new FormData();
+    if (uploadedFiles.length > 0) {
+      uploadedFiles.forEach((f) => {
+        formData.append("files", f);
+      });
+    }
+    formData.append("clientId",selectedClient.clientId)
     if (!isEditing) {
       formData.append(
         "data",
@@ -334,7 +340,15 @@ export function JobRequestForm({
       });
     }
 
-    setUploadedFiles((prev) => [...prev, ...validFiles]);
+    if (uploadedFiles.length < 50) {
+      setUploadedFiles((prev) => [...prev, ...validFiles]);
+    } else {
+      toast({
+        title: "Maximum File Limit Reached",
+        description: "You can upload a maximum of 50 files.",
+        variant: "destructive",
+      });
+    }
 
     // Reset input so same file can be reselected
     e.target.value = "";
