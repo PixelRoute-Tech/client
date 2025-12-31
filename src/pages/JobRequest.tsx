@@ -40,7 +40,9 @@ export default function JobRequestPage() {
   );
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [showClientSelection, setShowClientSelection] = useState(true);
-  const [currentView, setCurrentView] = useState<"form" | "list">("list");
+  const [currentView, setCurrentView] = useState<"form" | "list" | "edit">(
+    "list"
+  );
 
   const { data: jobRequests, refetch: jobRequestRefetch } = useQuery({
     queryKey: ["jobrequestlist", selectedClient],
@@ -81,8 +83,14 @@ export default function JobRequestPage() {
     setCurrentView("list");
   };
 
-  const handleEdit = (jobRequest: JobRequest) => {
+  const handleNewClick = () => {
     setCurrentView("form");
+    setEditingJobRequest(null);
+    setIsEditDialogOpen(false);
+  };
+
+  const handleEdit = (jobRequest: JobRequest) => {
+    setCurrentView("edit");
     setEditingJobRequest(jobRequest);
     setIsEditDialogOpen(true);
   };
@@ -169,7 +177,7 @@ export default function JobRequestPage() {
         <div className="flex gap-2">
           <Button
             variant={currentView === "form" ? "default" : "outline"}
-            onClick={() => {setCurrentView("form"), setEditingJobRequest(null);}}
+            onClick={handleNewClick}
             className="flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
@@ -190,21 +198,50 @@ export default function JobRequestPage() {
 
       {currentView === "form" && (
         <div className="space-y-8">
-          {Boolean(editingJobRequest && isEditDialogOpen) ? (
-            <JobRequestForm
-              onSubmit={handleEditSubmit}
-              selectedClient={selectedClient}
-              initialData={editingJobRequest}
-              isEditing={true}
-            />
-          ) : (
-            <JobRequestForm
-              onSubmit={handleJobRequestSubmit}
-              selectedClient={
-                selectedClient ? { ...selectedClient } : undefined
-              }
-            />
-          )}
+          <JobRequestForm
+            onSubmit={handleJobRequestSubmit}
+            selectedClient={selectedClient ? { ...selectedClient } : undefined}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-primary/10 rounded-lg p-4">
+              <div className="text-2xl font-bold text-primary">
+                {jobRequests?.data?.length}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Total Job Requests
+              </div>
+            </div>
+            <div className="bg-yellow-500/10 rounded-lg p-4">
+              <div className="text-2xl font-bold text-yellow-600">
+                {
+                  jobRequests?.data?.filter((j) => j.status === "Pending")
+                    .length
+                }
+              </div>
+              <div className="text-sm text-muted-foreground">Pending</div>
+            </div>
+            <div className="bg-green-500/10 rounded-lg p-4">
+              <div className="text-2xl font-bold text-green-600">
+                {
+                  jobRequests?.data?.filter((j) => j.status === "Completed")
+                    .length
+                }
+              </div>
+              <div className="text-sm text-muted-foreground">Completed</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(currentView === "form" || currentView === "edit") && (
+        <div className="space-y-8">
+          {isEditDialogOpen && <JobRequestForm
+            onSubmit={handleEditSubmit}
+            selectedClient={selectedClient}
+            initialData={editingJobRequest}
+            isEditing={true}
+          />}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-primary/10 rounded-lg p-4">
@@ -245,8 +282,6 @@ export default function JobRequestPage() {
           deleteLoading={deletePending}
         />
       )}
-
-     
 
       {/* <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
