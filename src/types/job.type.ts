@@ -34,7 +34,11 @@ export interface PPERequired {
   electricalProtection: boolean;
   respiratoryProtection: boolean;
 }
-
+export type JobRequestFileList = {
+  fileName: string;
+  size:number | string;
+  url: string;
+};
 // 5. The Main Job Request Interface
 export interface JobRequest {
   _id?: string;
@@ -61,6 +65,7 @@ export interface JobRequest {
   hseProcedures: DynamicSafetyItem[];
   // requiredDocument: string;
   testRows: TechRow[];
+  files?: JobRequestFileList[];
 }
 
 export interface Job {

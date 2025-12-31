@@ -56,10 +56,11 @@ import { getWorkSheets } from "@/services/worksheet.services";
 import moment from "moment";
 import { getUsers } from "@/services/user.services";
 import { useAuth } from "@/hooks/useAuth";
-import { JobRequest, TechRow } from "@/types/job.type";
+import { JobRequest, JobRequestFileList, TechRow } from "@/types/job.type";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import routes from "@/routes/routeList";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "../ui/badge";
 
 export const jobStatus = ["Pending", "Approved", "Completed", "Rejected"];
 const initializationData = {
@@ -152,7 +153,9 @@ export type JobRequestFormData = z.infer<typeof jobRequestSchema>;
 interface JobRequestFormProps {
   onSubmit: (data: JobRequestFormData | JobRequest) => void;
   selectedClient?: ClientType;
-  initialData?: (JobRequestFormData & { jobId: string }) | JobRequest;
+  initialData?:
+    | (JobRequestFormData & { jobId: string; files?: JobRequestFileList[] })
+    | JobRequest;
   isEditing?: boolean;
 }
 
@@ -166,7 +169,10 @@ export function JobRequestForm({
   const { user } = useAuth();
   const navigate = useNavigate();
   const [openFileUpload, setOpenFileUpload] = useState<boolean>(false);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<Array<File>>([]);
+  const [oldFiles, setOldFiles] = useState<Array<JobRequestFileList>>(
+    Boolean(initialData?.files) ? initialData?.files : []
+  );
   const form = useForm<JobRequestFormData>({
     resolver: zodResolver(jobRequestSchema),
     defaultValues: initialData
@@ -265,7 +271,7 @@ export function JobRequestForm({
         formData.append("files", f);
       });
     }
-    formData.append("clientId",selectedClient.clientId)
+    formData.append("clientId", selectedClient.clientId);
     if (!isEditing) {
       formData.append(
         "data",
@@ -404,8 +410,20 @@ export function JobRequestForm({
         <CardHeader>
           <CardTitle className="text-primary text-lg flex justify-between">
             {isEditing ? "Edit Job Request" : "Create Job Request"}
-            <Button size="sm" onClick={handleOpenFileUpload}>
+            <Button
+              size="sm"
+              className="relative"
+              onClick={handleOpenFileUpload}
+            >
               Upload files
+              {Boolean(initialData?.files?.length) && (
+                <Badge
+                  variant="default"
+                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-blue-400 text-white"
+                >
+                  {initialData?.files?.length}
+                </Badge>
+              )}
             </Button>
           </CardTitle>
         </CardHeader>
@@ -965,7 +983,8 @@ export function JobRequestForm({
               Maximum file size 5 MB
             </div>
             {/* File List */}
-            {uploadedFiles.length > 0 ? (
+            {Boolean(uploadedFiles.length) ||
+            Boolean(initialData?.files?.length) ? (
               <div className="border rounded-md">
                 <Table>
                   <TableHeader>
@@ -978,12 +997,20 @@ export function JobRequestForm({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {uploadedFiles.map((file, index) => (
+                    {(Boolean(initialData?.files)
+                      ? [...uploadedFiles, ...oldFiles]
+                      : [...uploadedFiles]
+                    ).map((file: File | JobRequestFileList, index) => (
                       <TableRow key={index}>
                         <TableCell className="truncate max-w-[400px]">
-                          {file.name}
+                          {(file as File)?.name ||
+                            (file as JobRequestFileList).fileName}
                         </TableCell>
-                        <TableCell>{formatFileSize(file.size)}</TableCell>
+                        <TableCell>
+                          {Boolean(file.size)
+                            ? formatFileSize(Number(file.size))
+                            : "-"}
+                        </TableCell>
                         <TableCell className="text-center">
                           <Button
                             variant="ghost"
