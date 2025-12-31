@@ -991,14 +991,39 @@ export function JobRequestForm({
           </DialogHeader>
           <div className="space-y-1">
             {/* Upload Input */}
-            <div className="flex items-center gap-4">
-              <Input
-                type="file"
-                multiple
-                onChange={handleFileChange}
-                className="cursor-pointer"
-              />
-              <Upload className="h-5 w-5 text-muted-foreground" />
+            <div className="w-full max-w-xl mx-auto">
+              <div
+                className={cn(
+                  "relative group cursor-pointer",
+                  "flex flex-col items-center justify-center p-10",
+                  "border-2 border-dashed border-muted-foreground/25 rounded-xl",
+                  "bg-muted/5 hover:bg-muted/10 transition-colors",
+                  "focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+                )}
+              >
+                {/* Hidden Input - Stretched to cover the whole area */}
+                <Input
+                  type="file"
+                  multiple
+                  onChange={handleFileChange}
+                  className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                />
+
+                {/* Visual Content */}
+                <div className="flex flex-col items-center text-center gap-3">
+                  <div className="p-4 rounded-full bg-background shadow-sm border group-hover:scale-110 transition-transform">
+                    <Upload className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-base font-medium">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      PDF, PNG, JPG or DOC (Max 5MB per file)
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="text-muted-foreground text-[.6rem] mb-36">
               Maximum file size 5 MB
@@ -1022,6 +1047,11 @@ export function JobRequestForm({
                       (file: File | JobRequestFileList, index) => (
                         <TableRow key={index}>
                           <TableCell className="truncate max-w-[400px]">
+                            {Boolean((file as File)?.name) && (
+                              <span className="bg-green-600 me-2 rounded-full px-2 py-1 text-white">
+                                New
+                              </span>
+                            )}
                             {(file as File)?.name ||
                               (file as JobRequestFileList)?.fileName}
                           </TableCell>
@@ -1057,7 +1087,9 @@ export function JobRequestForm({
               </p>
             )}
             <div className="flex justify-end items-center pt-2">
-                 <Button size="sm" onClick={handleCloseFileUpload}>Done</Button>
+              <Button size="sm" onClick={handleCloseFileUpload}>
+                Done
+              </Button>
             </div>
           </div>
         </DialogContent>
