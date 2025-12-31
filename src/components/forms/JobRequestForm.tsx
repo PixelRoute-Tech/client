@@ -173,6 +173,7 @@ export function JobRequestForm({
   const [oldFiles, setOldFiles] = useState<Array<JobRequestFileList>>(
     Boolean(initialData?.files) ? initialData?.files : []
   );
+  const [deletedFiles,setDeletedFiles] = useState<string[]>([])
   const form = useForm<JobRequestFormData>({
     resolver: zodResolver(jobRequestSchema),
     defaultValues: initialData
@@ -271,7 +272,13 @@ export function JobRequestForm({
         formData.append("files", f);
       });
     }
+    if(deletedFiles?.length){
+      formData.append("deletedFiles",JSON.stringify(deletedFiles))
+    }
     formData.append("clientId", selectedClient.clientId);
+    if (oldFiles?.length) {
+      formData.append("previousFiles", JSON.stringify(oldFiles));
+    }
     if (!isEditing) {
       formData.append(
         "data",
@@ -364,6 +371,16 @@ export function JobRequestForm({
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const removeFilePath = (path: string) => {
+    const updatedList = oldFiles.filter((f) => f.url != path);
+    setOldFiles(updatedList)
+    setDeletedFiles(prev=>[...prev,path])
+  };
+
+  const fileListData = useMemo(()=>{
+      return [...uploadedFiles,...oldFiles]
+  },[oldFiles,uploadedFiles])
+
   const technicianList = useMemo(() => {
     return usersList?.data.filter(
       (u: any) =>
@@ -416,12 +433,12 @@ export function JobRequestForm({
               onClick={handleOpenFileUpload}
             >
               Upload files
-              {Boolean(initialData?.files?.length) && (
+              {Boolean(fileListData?.length) && (
                 <Badge
                   variant="default"
                   className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-blue-400 text-white"
                 >
-                  {initialData?.files?.length}
+                  {fileListData?.length}
                 </Badge>
               )}
             </Button>
@@ -997,25 +1014,28 @@ export function JobRequestForm({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {(Boolean(initialData?.files)
-                      ? [...uploadedFiles, ...oldFiles]
-                      : [...uploadedFiles]
-                    ).map((file: File | JobRequestFileList, index) => (
+                    {fileListData.map((file: File | JobRequestFileList, index) => (
                       <TableRow key={index}>
                         <TableCell className="truncate max-w-[400px]">
                           {(file as File)?.name ||
-                            (file as JobRequestFileList).fileName}
+                            (file as JobRequestFileList)?.fileName}
                         </TableCell>
                         <TableCell>
-                          {Boolean(file.size)
-                            ? formatFileSize(Number(file.size))
+                          {Boolean(file?.size)
+                            ? formatFileSize(Number(file?.size))
                             : "-"}
                         </TableCell>
                         <TableCell className="text-center">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => removeFile(index)}
+                            onClick={() => {
+                              (file as JobRequestFileList)?.fileName
+                                ? removeFilePath(
+                                    (file as JobRequestFileList)?.url
+                                  )
+                                : removeFile(index);
+                            }}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
