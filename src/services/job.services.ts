@@ -7,7 +7,7 @@ export const saveJobRequest = async (
   payload: FormData
 ): ApiResponseType<JobRequest> => {
   try {
-    return (await network.post(apis.jobRequest, payload)).data;
+    return (await network.post(`${apis.jobRequest}/${payload.get("clientId")}`, payload)).data;
   } catch (error) {
     throw new Error(error.response.data.message);
   }

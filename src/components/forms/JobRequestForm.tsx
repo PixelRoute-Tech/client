@@ -173,7 +173,7 @@ export function JobRequestForm({
   const [oldFiles, setOldFiles] = useState<Array<JobRequestFileList>>(
     Boolean(initialData?.files) ? initialData?.files : []
   );
-  const [deletedFiles,setDeletedFiles] = useState<string[]>([])
+  const [deletedFiles, setDeletedFiles] = useState<string[]>([]);
   const form = useForm<JobRequestFormData>({
     resolver: zodResolver(jobRequestSchema),
     defaultValues: initialData
@@ -267,15 +267,15 @@ export function JobRequestForm({
 
   const handleSubmit = (data: JobRequestFormData) => {
     const formData = new FormData();
+    formData.append("clientId", selectedClient.clientId);
     if (uploadedFiles.length > 0) {
       uploadedFiles.forEach((f) => {
         formData.append("files", f);
       });
     }
-    if(deletedFiles?.length){
-      formData.append("deletedFiles",JSON.stringify(deletedFiles))
+    if (deletedFiles?.length) {
+      formData.append("deletedFiles", JSON.stringify(deletedFiles));
     }
-    formData.append("clientId", selectedClient.clientId);
     if (oldFiles?.length) {
       formData.append("previousFiles", JSON.stringify(oldFiles));
     }
@@ -320,6 +320,10 @@ export function JobRequestForm({
 
   const handleOpenFileUpload = () => {
     setOpenFileUpload(true);
+  };
+
+  const handleCloseFileUpload = () => {
+    setOpenFileUpload(false);
   };
 
   const formatFileSize = (bytes) => {
@@ -373,13 +377,13 @@ export function JobRequestForm({
 
   const removeFilePath = (path: string) => {
     const updatedList = oldFiles.filter((f) => f.url != path);
-    setOldFiles(updatedList)
-    setDeletedFiles(prev=>[...prev,path])
+    setOldFiles(updatedList);
+    setDeletedFiles((prev) => [...prev, path]);
   };
 
-  const fileListData = useMemo(()=>{
-      return [...uploadedFiles,...oldFiles]
-  },[oldFiles,uploadedFiles])
+  const fileListData = useMemo(() => {
+    return [...uploadedFiles, ...oldFiles];
+  }, [oldFiles, uploadedFiles]);
 
   const technicianList = useMemo(() => {
     return usersList?.data.filter(
@@ -1014,34 +1018,36 @@ export function JobRequestForm({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {fileListData.map((file: File | JobRequestFileList, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="truncate max-w-[400px]">
-                          {(file as File)?.name ||
-                            (file as JobRequestFileList)?.fileName}
-                        </TableCell>
-                        <TableCell>
-                          {Boolean(file?.size)
-                            ? formatFileSize(Number(file?.size))
-                            : "-"}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              (file as JobRequestFileList)?.fileName
-                                ? removeFilePath(
-                                    (file as JobRequestFileList)?.url
-                                  )
-                                : removeFile(index);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {fileListData.map(
+                      (file: File | JobRequestFileList, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="truncate max-w-[400px]">
+                            {(file as File)?.name ||
+                              (file as JobRequestFileList)?.fileName}
+                          </TableCell>
+                          <TableCell>
+                            {Boolean(file?.size)
+                              ? formatFileSize(Number(file?.size))
+                              : "-"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                (file as JobRequestFileList)?.fileName
+                                  ? removeFilePath(
+                                      (file as JobRequestFileList)?.url
+                                    )
+                                  : removeFile(index);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -1050,6 +1056,9 @@ export function JobRequestForm({
                 No files uploaded yet.
               </p>
             )}
+            <div className="flex justify-end items-center pt-2">
+                 <Button size="sm" onClick={handleCloseFileUpload}>Done</Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
