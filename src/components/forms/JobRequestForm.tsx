@@ -10,6 +10,7 @@ import {
   ClipboardPenLine,
   Upload,
   ShieldCheck,
+  Eye
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import routes from "@/routes/routeList";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "../ui/badge";
+import { baseURL } from "@/config/network.config";
 
 export const jobStatus = ["Pending", "Approved", "Completed", "Rejected"];
 const initializationData = {
@@ -173,6 +175,7 @@ export function JobRequestForm({
   const [oldFiles, setOldFiles] = useState<Array<JobRequestFileList>>(
     Boolean(initialData?.files) ? initialData?.files : []
   );
+  const [isDragging, setIsDragging] = useState(false);
   const [deletedFiles, setDeletedFiles] = useState<string[]>([]);
   const form = useForm<JobRequestFormData>({
     resolver: zodResolver(jobRequestSchema),
@@ -265,6 +268,24 @@ export function JobRequestForm({
     },
   });
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFiles(Array.from(e.dataTransfer.files));
+    }
+  };
+
   const handleSubmit = (data: JobRequestFormData) => {
     const formData = new FormData();
     formData.append("clientId", selectedClient.clientId);
@@ -335,13 +356,47 @@ export function JobRequestForm({
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
+  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   if (!e.target.files) return;
 
+  //   const validFiles: File[] = [];
+  //   const rejectedFiles: string[] = [];
+
+  //   Array.from(e.target.files).forEach((file) => {
+  //     if (file.size <= MAX_FILE_SIZE) {
+  //       validFiles.push(file);
+  //     } else {
+  //       rejectedFiles.push(file.name);
+  //     }
+  //   });
+
+  //   if (rejectedFiles.length) {
+  //     toast({
+  //       title: "File size exceeded",
+  //       description: `These files exceed 5MB:\n${rejectedFiles.join(", ")}`,
+  //       variant: "destructive",
+  //     });
+  //   }
+
+  //   if (uploadedFiles.length < 50) {
+  //     setUploadedFiles((prev) => [...prev, ...validFiles]);
+  //   } else {
+  //     toast({
+  //       title: "Maximum File Limit Reached",
+  //       description: "You can upload a maximum of 50 files.",
+  //       variant: "destructive",
+  //     });
+  //   }
+
+  //   // Reset input so same file can be reselected
+  //   e.target.value = "";
+  // };
+
+  const processFiles = (files: File[]) => {
     const validFiles: File[] = [];
     const rejectedFiles: string[] = [];
 
-    Array.from(e.target.files).forEach((file) => {
+    files.forEach((file) => {
       if (file.size <= MAX_FILE_SIZE) {
         validFiles.push(file);
       } else {
@@ -352,23 +407,22 @@ export function JobRequestForm({
     if (rejectedFiles.length) {
       toast({
         title: "File size exceeded",
-        description: `These files exceed 5MB:\n${rejectedFiles.join(", ")}`,
+        description: `These files exceed 5MB: ${rejectedFiles.join(", ")}`,
         variant: "destructive",
       });
     }
 
-    if (uploadedFiles.length < 50) {
-      setUploadedFiles((prev) => [...prev, ...validFiles]);
-    } else {
-      toast({
-        title: "Maximum File Limit Reached",
-        description: "You can upload a maximum of 50 files.",
-        variant: "destructive",
-      });
-    }
-
-    // Reset input so same file can be reselected
-    e.target.value = "";
+    setUploadedFiles((prev) => {
+      if (prev.length + validFiles.length > 50) {
+        toast({
+          title: "Limit Reached",
+          description: "You can upload a maximum of 50 files.",
+          variant: "destructive",
+        });
+        return prev;
+      }
+      return [...prev, ...validFiles];
+    });
   };
 
   const removeFile = (index: number) => {
@@ -381,6 +435,15 @@ export function JobRequestForm({
     setDeletedFiles((prev) => [...prev, path]);
   };
 
+const handleViewFile = (file: File | JobRequestFileList) => {
+  if ((file as JobRequestFileList)?.fileName) {
+    window.open(`${baseURL}${(file as JobRequestFileList)?.url}`, "_blank", "noopener,noreferrer");
+  } else {
+    const fileURL = URL.createObjectURL(file as File);
+    window.open(fileURL, "_blank");
+    setTimeout(() => URL.revokeObjectURL(fileURL), 1000);
+  }
+};
   const fileListData = useMemo(() => {
     return [...uploadedFiles, ...oldFiles];
   }, [oldFiles, uploadedFiles]);
@@ -985,53 +1048,65 @@ export function JobRequestForm({
         </CardContent>
       </Card>
       <Dialog open={openFileUpload} onOpenChange={setOpenFileUpload}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Upload Images / Files</DialogTitle>
           </DialogHeader>
-          <div className="space-y-1">
+          <div className="space-y-6">
             {/* Upload Input */}
-            <div className="w-full max-w-xl mx-auto">
+            <label
+              htmlFor="filesforjobrequest"
+              className="w-full max-w-xl mx-auto"
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
               <div
                 className={cn(
-                  "relative group cursor-pointer",
+                  "relative group cursor-pointer transition-colors",
                   "flex flex-col items-center justify-center p-10",
-                  "border-2 border-dashed border-muted-foreground/25 rounded-xl",
-                  "bg-muted/5 hover:bg-muted/10 transition-colors",
+                  "border-2 border-dashed rounded-xl",
+                  // Visual feedback when dragging
+                  isDragging
+                    ? "border-primary bg-primary/10"
+                    : "border-muted-foreground/25 bg-muted/5 hover:bg-muted/10",
                   "focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
                 )}
               >
-                {/* Hidden Input - Stretched to cover the whole area */}
                 <Input
+                  id="filesforjobrequest"
                   type="file"
                   multiple
-                  onChange={handleFileChange}
+                  onChange={(e) =>
+                    e.target.files && processFiles(Array.from(e.target.files))
+                  }
                   className="absolute inset-0 opacity-0 cursor-pointer z-10"
                 />
 
                 {/* Visual Content */}
-                <div className="flex flex-col items-center text-center gap-3">
-                  <div className="p-4 rounded-full bg-background shadow-sm border group-hover:scale-110 transition-transform">
-                    <Upload className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-base font-medium">
-                      Click to upload or drag and drop
-                    </p>
+                <div className="flex flex-col items-center text-center gap-3 pointer-events-none">
+                  <Upload
+                    className={cn(
+                      "h-8 w-8 text-primary",
+                      isDragging && "animate-bounce"
+                    )}
+                  />
+                  <p className="text-base font-medium">
+                    {isDragging
+                      ? "Drop files now"
+                      : "Click to upload or drag and drop"}
+                  </p>
+                    <div>
                     <p className="text-sm text-muted-foreground">
-                      PDF, PNG, JPG or DOC (Max 5MB per file)
+                      (Max 5MB per file)
                     </p>
                   </div>
                 </div>
               </div>
-            </div>
-            <div className="text-muted-foreground text-[.6rem] mb-36">
-              Maximum file size 5 MB
-            </div>
+            </label>
             {/* File List */}
-            {Boolean(uploadedFiles.length) ||
-            Boolean(initialData?.files?.length) ? (
-              <div className="border rounded-md">
+            {Boolean(fileListData?.length) ? (
+              <div className="border rounded-md max-h-[50dvh] overflow-y-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -1061,6 +1136,14 @@ export function JobRequestForm({
                               : "-"}
                           </TableCell>
                           <TableCell className="text-center">
+                            <div className="flex gap-2">
+                              <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {handleViewFile(file)}}
+                            >
+                              <Eye className="h-4 w-4 text-destructive" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"
@@ -1074,6 +1157,7 @@ export function JobRequestForm({
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       )
