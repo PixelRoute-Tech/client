@@ -1,10 +1,30 @@
-import { RouteObject } from "react-router-dom";
+import { Outlet, RouteObject } from "react-router-dom";
 import { adminRoutes } from "./routesList";
 import CompanyMaster from "../pages/CompanyMaster";
-
-export const adminRouter:RouteObject[] = [
-   {
-      path:adminRoutes.companyMaster,
-      element:<CompanyMaster />
-   }
-]
+import FileManager from "../pages/FileManager";
+import DashboardLayout from "../components/layout/DashboardLayout";
+import AdminHome from "../pages/AdminHome";
+export const adminRouter: RouteObject[] = [
+  {
+    path: "",
+    element: (
+      <DashboardLayout>
+        <Outlet />
+      </DashboardLayout>
+    ),
+    children: [
+      {
+        index:true,
+        element: <AdminHome />,
+      },
+      {
+        path: adminRoutes.companyMaster,
+        element: <CompanyMaster />,
+      },
+      {
+        path: adminRoutes.fileManager,
+        element: <FileManager />,
+      },
+    ],
+  },
+];
