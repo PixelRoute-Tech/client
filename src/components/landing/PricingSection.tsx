@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 const plans = [
   {
     name: "Gold",
-    icon: "🟡",
+    icon: "/icons/gold.png",
     description: "Perfect for small teams getting started",
     price: "$49",
     period: "/month",
@@ -22,8 +22,8 @@ const plans = [
     popular: false,
   },
   {
-    name: "Diamond",
-    icon: "🔵",
+    name: "Platinum",
+    icon: "/icons/platinum.png",
     description: "Best for growing businesses",
     price: "$99",
     period: "/month",
@@ -41,8 +41,8 @@ const plans = [
     popular: true,
   },
   {
-    name: "Platinum",
-    icon: "🟣",
+    name: "Diamond",
+    icon: "/icons/diamond.png",
     description: "For large enterprises",
     price: "Custom",
     period: "",
@@ -99,7 +99,9 @@ export function PricingSection() {
               )}
 
               <CardHeader className="pb-4">
-                <div className="text-4xl mb-4">{plan.icon}</div>
+                <div className="text-4xl mb-4">
+                  <img src={plan.icon} width={30} height={30} />
+                </div>
                 <h3 className="text-2xl font-bold text-foreground">{plan.name}</h3>
                 <p className="text-muted-foreground text-sm">{plan.description}</p>
               </CardHeader>
