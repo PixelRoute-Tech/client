@@ -119,7 +119,7 @@ export default function UserProfile() {
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">User ID</p>
                 <p className="text-base text-foreground font-mono">
-                  #{user.id}
+                  #{user.userId}
                 </p>
               </div>
             </CardContent>

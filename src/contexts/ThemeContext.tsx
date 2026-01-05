@@ -48,7 +48,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 
   const resetTheme = () => {
     const user = getItem(storageKeys.user)
-    saveTheme({...defaultTheme,userId:user.id})
+    saveTheme({...defaultTheme,userId:user.userId})
   };
 
   const applyThemeToDOM = (SettingsType: SettingsType) => {

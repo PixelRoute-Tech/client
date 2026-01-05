@@ -145,9 +145,9 @@ export function UsersTable({
                   </TableRow>
                 ) : (
                   filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
+                    <TableRow key={user.userId}>
                       <TableCell className="text-xs text-foreground font-mono">
-                        {user.id}
+                        {user.userId}
                       </TableCell>
                       <TableCell className="text-xs text-foreground font-mono">
                         <Avatar className="h-8 w-8">
@@ -188,7 +188,7 @@ export function UsersTable({
                                 Edit
                               </Button>
                             )}
-                            {(Boolean(onDelete) &&( user.id != currentUser.id )) && (
+                            {(Boolean(onDelete) &&( user.userId != currentUser.userId )) && (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button variant="outline" size="sm">
@@ -213,7 +213,7 @@ export function UsersTable({
                                     </AlertDialogCancel>
                                     <AlertDialogAction
                                       onClick={() =>
-                                        handleDelete(user.id, user.userName)
+                                        handleDelete(user.userId, user.userName)
                                       }
                                       className="bg-destructive text-destructive-foreground"
                                     >

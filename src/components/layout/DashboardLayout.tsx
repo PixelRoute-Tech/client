@@ -47,8 +47,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const { isLoading: notificationLoading,refetch } = useQuery({
-    queryKey: ["user-notification", user.id],
-    queryFn: async () => getNotification(user.id),
+    queryKey: ["user-notification", user.userId],
+    queryFn: async () => getNotification(user.userId),
     onSuccess: (result) => {
       if (result.success) {
         setNotifications(result?.data || []);
@@ -64,7 +64,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }})
 
 const handleUpdateUnRead = ()=>{
-updateUnReaded({id:user.id,isRead:true})
+updateUnReaded({id:user.userId,isRead:true})
 }
 
   const notification = useSocketListen("notification") as Notification;

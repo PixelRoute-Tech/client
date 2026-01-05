@@ -157,7 +157,7 @@ const DataTables = () => {
               </TableHeader>
               <TableBody>
                 {currentData.map((user) => (
-                  <TableRow key={user.id} className="hover:bg-muted/50">
+                  <TableRow key={user.userId} className="hover:bg-muted/50">
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">

@@ -324,7 +324,7 @@ export function JobRequestForm({
           ...initialData,
           ...data,
           testRows: data.testRows as TechRow[],
-          createdBy: user.id,
+          createdBy: user.userId,
           clientId: selectedClient.clientId,
           clientAddress: selectedClient.businessAddress,
           clientName: selectedClient.businessName,

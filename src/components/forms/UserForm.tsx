@@ -121,7 +121,7 @@ export function UserForm({ onSubmit }) {
   const { mutate: updateUser, isLoading: updateLoading } = useMutation({
     mutationFn: userUpdation,
     onSuccess: (result) => {
-      if (currentUser.id == result.data.user.id) {
+      if (currentUser.userId == result.data.user.userId) {
         setItem(storageKeys.user, {...result.data.user,company:result.data.company});
         setUser({...result.data.user,company:result.data.company});
       }

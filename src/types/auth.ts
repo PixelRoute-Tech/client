@@ -4,6 +4,7 @@ import { Dispatch, SetStateAction } from "react";
 export type UserType = {
   _id: string;
   id: string;
+  userId:string;
   userName: string;
   shortName: string;
   userRole: string;
