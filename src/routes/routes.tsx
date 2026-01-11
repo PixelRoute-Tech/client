@@ -11,6 +11,7 @@ import ErrorBoundary from "@/components/ErrorPage/ErrorBoundary";
 import WorksheetReport from "@/pages/WorksheetReport";
 import { adminRouter } from "@/admin/routes/routes";
 import AuthGurd from "@/components/Auth/AuthGurd";
+import AuthCallback from "@/pages/AuthCallback";
 const LandingPage = lazy(() => import("@/pages/LandingPage"));
 const PreviousReports = lazy(() => import("@/pages/PreviousReports"));
 const ReportImageUpload = lazy(() => import("@/pages/ReportImageUpload"));
@@ -307,6 +308,10 @@ const router = createBrowserRouter([
         <SessionExpired />
       </Suspense>
     ),
+  },
+  {
+    path: routes.authCheck,
+    element: (<AuthCallback /> ),
   },
   {
     path: routes.pageNotFound,

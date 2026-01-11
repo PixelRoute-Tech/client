@@ -1,8 +1,16 @@
 import { Company } from "@/admin/types/company.type";
 import routes from "@/routes/routeList";
 import router from "@/routes/routes";
+import { logout } from "@/services/auth.services";
 import { AuthContextType, UserType } from "@/types/auth";
-import { clearStorage, getItem, setItem, storageKeys } from "@/utils/storage";
+import {
+  clearAllCookies,
+  clearStorage,
+  getItem,
+  setItem,
+  storageKeys,
+} from "@/utils/storage";
+import { useMutation } from "@tanstack/react-query";
 import {
   createContext,
   FC,
@@ -24,6 +32,26 @@ export const AuthContext = createContext<AuthContextType>({
 const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const startLoading = () => {
+    setLoading(true);
+  };
+
+  const stopLoading = () => {
+    setLoading(false);
+  };
+
+  const { mutate: logoutCall,isPending:logoutLoading } = useMutation({
+    mutationFn: logout,
+    onSuccess: () => {
+      setUser(null);
+      clearStorage();
+      clearAllCookies();
+      router.navigate(routes.login, {
+        replace: true,
+      });
+    },
+  });
   const signin = (data: {
     token: string;
     user: UserType;
@@ -40,19 +68,7 @@ const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   };
 
   const signout = (isLogout?: boolean) => {
-    setUser(null);
-    clearStorage();
-    router.navigate(Boolean(isLogout) ? routes.login : routes.signout, {
-      replace: true,
-    });
-  };
-
-  const startLoading = () => {
-    setLoading(true);
-  };
-
-  const stopLoading = () => {
-    setLoading(false);
+    logoutCall();
   };
 
   useEffect(() => {
@@ -69,7 +85,7 @@ const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
         signout,
         startLoading,
         stopLoading,
-        loading,
+        loading:loading || logoutLoading,
       }}
     >
       {children}

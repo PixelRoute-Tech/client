@@ -1,6 +1,7 @@
 const routes = {
     root:"/",
     login:"/login",
+    authCheck:"/auth-check",
     signout:"/signout",
     landing:"/landing",
     pageNotFound:"*",

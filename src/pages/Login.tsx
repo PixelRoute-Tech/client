@@ -17,12 +17,12 @@ import { useAuth } from "@/hooks/useAuth";
 import FormInput from "@/components/forms/fields/FormInput";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
-import { loginServices } from "@/services/user.services";
 import FormCheckbox from "@/components/forms/fields/FormCheckbox";
 import { useToast } from "@/hooks/use-toast";
 import { AxiosError } from "axios";
 import { useTheme } from "@/contexts/ThemeContext";
 import { baseURL } from "@/config/network.config";
+import { loginServices } from "@/services/auth.services";
 
 const Login = () => {
   const { signin } = useAuth();

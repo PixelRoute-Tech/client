@@ -1,7 +1,7 @@
 import routes from "@/routes/routeList";
 import router from "@/routes/routes";
 import { ApiResponseType } from "@/types/network.type";
-import { clearStorage, getItem, storageKeys } from "@/utils/storage";
+import { clearAllCookies, clearStorage, getItem, storageKeys } from "@/utils/storage";
 import axios from "axios";
 export const baseURL = `${location.protocol}//${location.hostname}:${
   import.meta.env.VITE_PORT
@@ -9,27 +9,28 @@ export const baseURL = `${location.protocol}//${location.hostname}:${
 
 const network = axios.create({
   baseURL,
+  withCredentials: true 
 });
 
-export const tokenServices = async (token: string): ApiResponseType<string> => {
-  const result = await axios.get(``, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return result.data;
-};
+// export const tokenServices = async (token: string): ApiResponseType<string> => {
+//   const result = await axios.get(``, {
+//     headers: {
+//       Authorization: `Bearer ${token}`,
+//     },
+//   });
+//   return result.data;
+// };
 
-network.interceptors.request.use(
-  (config) => {
-    const token = getItem(storageKeys.token);
-    if (token) {
-      config.headers["x-auth-token"] = token;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// network.interceptors.request.use(
+//   (config) => {
+//     const token = getItem(storageKeys.token);
+//     if (token) {
+//       config.headers["x-auth-token"] = token;
+//     }
+//     return config;
+//   },
+//   (error) => Promise.reject(error)
+// );
 
 // let isRefreshing = false;
 // let failedQueue: any[] = [];
@@ -93,7 +94,8 @@ network.interceptors.response.use(
       const { status } = error.response;
       if (status === 401 || status === 403) {
         clearStorage();
-        router.navigate(routes.signout);
+        clearAllCookies();
+        router.navigate(routes.signout,{replace:true});
       }
     }
     return Promise.reject(error);

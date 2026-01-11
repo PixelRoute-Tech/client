@@ -5,17 +5,6 @@ import { ApiResponseType } from "@/types/network.type";
 import { SettingsType } from "@/types/settings.type";
 import { Company } from "@/admin/types/company.type";
 
-export const loginServices = async (payload: {
-  email: string;
-  password: string;
-}): ApiResponseType<{ user: UserType; token: string,settings:SettingsType }> => {
-  try {
-    return (await network.post(apis.login, payload)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
-  }
-};
-
 export const userRegistration = async (
   payload: FormData
 ): ApiResponseType<UserType> => {

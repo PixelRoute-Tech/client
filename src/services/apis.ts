@@ -1,5 +1,6 @@
 const apis = {
-login:"/api/users/login",
+login:"/api/auth/login",
+logout:"/api/auth/logout",
 userRegistration:"/api/users/register",
 usersApi:"/api/users",
 clientApi:"/api/client",
