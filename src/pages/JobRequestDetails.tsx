@@ -24,10 +24,10 @@ export default function JobRequestDetails() {
             <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
             <h2 className="text-2xl font-semibold mb-2">Job Request Not Found</h2>
             <p className="text-muted-foreground mb-6">The requested job details could not be loaded.</p>
-            <Button onClick={() => navigate("/job-request")}>
+            {/* <Button onClick={() => navigate("/job-request")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Job Requests
-            </Button>
+            </Button> */}
           </CardContent>
         </Card>
       </div>
@@ -142,7 +142,7 @@ export default function JobRequestDetails() {
               <FileText className="h-4 w-4" />
               <span className="font-medium">Division Rules</span>
             </div>
-            <p className="text-base leading-relaxed">{jobRequest?.data.divisionRules}</p>
+            <p className="text-base leading-relaxed">{jobRequest?.data?.divisionRules}</p>
           </div>
         </CardContent>
       </Card>
@@ -152,7 +152,7 @@ export default function JobRequestDetails() {
         <CardHeader>
           <CardTitle className="text-primary">Test Methods</CardTitle>
           <CardDescription>
-            {jobRequest?.data.testRows.length} test method{jobRequest?.data.testRows.length !== 1 ? 's' : ''} configured for this job request
+            {jobRequest?.data.testRows?.length} test method{jobRequest?.data.testRows?.length !== 1 ? 's' : ''} configured for this job request
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -169,7 +169,7 @@ export default function JobRequestDetails() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {jobRequest?.data.testRows.map((test, index) => (
+                {jobRequest?.data?.testRows?.map((test, index) => (
                   <TableRow key={index}>
                     <TableCell className="font-medium">{test.testMethod}</TableCell>
                     <TableCell>{test.testSpec}</TableCell>
