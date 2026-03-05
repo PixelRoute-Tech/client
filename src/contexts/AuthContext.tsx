@@ -25,13 +25,13 @@ const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
   const signin = (data: {
-    token: string;
+    access_token: string;
     user: UserType;
     company: Company;
   }) => {
     setUser({ ...data.user, company: data.company });
     setItem(storageKeys.user, { ...data.user, company: data.company });
-    setItem(storageKeys.token, data.token);
+    setItem(storageKeys.accessToken, data.access_token);
     setLoading(true);
     setTimeout(() => {
       setLoading(false);

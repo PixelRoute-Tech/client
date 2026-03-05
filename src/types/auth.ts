@@ -2,20 +2,22 @@ import { Company } from "@/admin/types/company.type";
 import { Dispatch, SetStateAction } from "react";
 
 export type UserType = {
-  _id: string;
-  id: string;
-  userName: string;
-  shortName: string;
-  userRole: string;
-  designation: string;
-  department: string;
+  id: number;
+  user_id: string;
   email: string;
-  imageUrl?: string;
-  joinDate?: Date;
-  rememberMe: boolean;
-  password: string;
-  company:Company;
-  qualification:string
+  first_name: string;
+  last_name: string;
+  short_name: string;
+  phone: string;
+  avatar_url: string | null;
+  designation: string | null;
+  designation_id: number | null;
+  department: string | null;
+  department_id: number | null;
+  user_role: string | null;
+  user_role_id: number | null;
+  company:string | null;
+  company_id:number | null;
 };
 export type AuthContextType = {
   user: UserType | null;

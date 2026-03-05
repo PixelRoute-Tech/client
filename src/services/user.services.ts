@@ -8,7 +8,7 @@ import { Company } from "@/admin/types/company.type";
 export const loginServices = async (payload: {
   email: string;
   password: string;
-}): ApiResponseType<{ user: UserType; token: string,settings:SettingsType }> => {
+}): ApiResponseType<{ user: UserType; access_token: string,settings:SettingsType }> => {
   try {
     return (await network.post(apis.login, payload)).data;
   } catch (error) {
@@ -50,7 +50,7 @@ export const userUpdation = async (
 
 export const getUsers = async (): ApiResponseType<UserType[]> => {
   try {
-    return (await network.get(apis.usersApi)).data;
+    return (await network.get(`${apis.usersApi}?skip=0&take=10`)).data;
   } catch (error) {
     throw new Error(error.response.data.message);
   }

@@ -22,9 +22,9 @@ export const tokenServices = async (token: string): ApiResponseType<string> => {
 
 network.interceptors.request.use(
   (config) => {
-    const token = getItem(storageKeys.token);
+    const token = getItem(storageKeys.accessToken);
     if (token) {
-      config.headers["x-auth-token"] = token;
+      config.headers["Authorization"] = `Bearer ${token}`;
     }
     return config;
   },
