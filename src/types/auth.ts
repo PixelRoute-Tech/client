@@ -16,8 +16,10 @@ export type UserType = {
   department_id: number | null;
   user_role: string | null;
   user_role_id: number | null;
-  company:string | null;
-  company_id:number | null;
+  company: string | null;
+  company_id: number | null;
+  created_at: string;
+  updated_at: string;
 };
 export type AuthContextType = {
   user: UserType | null;

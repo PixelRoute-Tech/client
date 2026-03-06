@@ -39,7 +39,15 @@ const Login = () => {
   const { mutate, isPending } = useMutation({
     mutationFn: loginServices,
     onSuccess: (result) => {
-      signin(result.data);
+      if(result.success){
+        signin(result.data);
+      }else{
+        toast({
+          title: "Error",
+          description: result.message,
+          className: "bg-yellow-500 text-white",
+        });
+      }
       // updateTheme(result.data.settings);
     },
     onError: (e: any) => {

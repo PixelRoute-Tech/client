@@ -62,7 +62,7 @@ export default function CreateUser() {
     }
   };
 
-  const handleDelete = (userId: string) => {
+  const handleDelete = (userId: number) => {
     removeUser(userId)
   };
 
@@ -114,7 +114,7 @@ export default function CreateUser() {
                 </div>
                 <div className="bg-accent/10 rounded-lg p-4">
                   <div className="text-2xl font-bold text-accent-foreground">
-                    {users.filter(u => u.userRole === 'Admin').length}
+                    {/* {users.filter(u => u.userRole === 'Admin').length} */}
                   </div>
                   <div className="text-sm text-muted-foreground">Administrators</div>
                 </div>

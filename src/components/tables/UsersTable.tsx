@@ -44,7 +44,7 @@ interface UsersTableProps {
   users: UserType[];
   loading?: boolean;
   onEdit?: (user: UserType) => void;
-  onDelete?: (userId: string) => void;
+  onDelete?: (userId: number) => void;
 }
 
 export function UsersTable({
@@ -58,13 +58,13 @@ export function UsersTable({
   const {user:currentUser} = useAuth()
   const filteredUsers = users.filter(
     (user) =>
-      user.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.userRole.toLowerCase().includes(searchTerm.toLowerCase())
+      user.user_role.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDelete = (userId: string, userName: string) => {
+  const handleDelete = (userId: number, userName: string) => {
     onDelete(userId);
     // toast({
     //   title: "User deleted",
@@ -73,7 +73,7 @@ export function UsersTable({
   };
 
   const getRoleBadgeVariant = (role: string) => {
-    switch (role.toLowerCase()) {
+    switch (role?.toLowerCase()) {
       case "admin":
         return "destructive";
       case "manager":
@@ -153,27 +153,27 @@ export function UsersTable({
                         <Avatar className="h-8 w-8">
                           <AvatarImage
                             src={`${baseURL}${
-                              user?.imageUrl ?? ""
+                              user?.avatar_url ?? ""
                             }`}
                           />
                           <AvatarFallback className="bg-primary text-primary-foreground">
-                            {user.shortName}
+                            {user.short_name}
                           </AvatarFallback>
                         </Avatar>
                       </TableCell>
                       <TableCell className="font-medium">
-                        {user.userName}
+                        {user.first_name + " " + user.last_name}
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
-                        <Badge variant={getRoleBadgeVariant(user.userRole)}>
-                          {user.userRole}
+                        <Badge variant={getRoleBadgeVariant(user.user_role)}>
+                          {user.user_role}
                         </Badge>
                       </TableCell>
                       <TableCell>{user.designation}</TableCell>
                       <TableCell>{user.department}</TableCell>
                       <TableCell>
-                        {moment(user.joinDate).format("DD-MM-YYYY")}
+                        {moment(user.created_at).format("DD-MM-YYYY")}
                       </TableCell>
                       {Boolean(onEdit || onDelete) && (
                         <TableCell className="text-right">
@@ -204,7 +204,7 @@ export function UsersTable({
                                     <AlertDialogDescription>
                                       This action cannot be undone. This will
                                       permanently delete the user "
-                                      {user.userName}" from the system.
+                                      {user.first_name + " " + user.last_name}" from the system.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
@@ -213,7 +213,7 @@ export function UsersTable({
                                     </AlertDialogCancel>
                                     <AlertDialogAction
                                       onClick={() =>
-                                        handleDelete(user.id, user.userName)
+                                        handleDelete(user.id, user.first_name + " " + user.last_name)
                                       }
                                       className="bg-destructive text-destructive-foreground"
                                     >
