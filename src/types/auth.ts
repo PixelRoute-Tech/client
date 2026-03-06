@@ -22,7 +22,7 @@ export type UserType = {
 export type AuthContextType = {
   user: UserType | null;
   setUser: Dispatch<SetStateAction<UserType | null>>;
-  signin: (data: { token: string; user: UserType }) => void;
+  signin: (data: { access_token: string; user: UserType }) => void;
   signout: (isLogout?: boolean) => void;
   loading: boolean;
   startLoading: () => void;

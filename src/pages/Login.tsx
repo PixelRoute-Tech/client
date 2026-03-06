@@ -39,7 +39,7 @@ const Login = () => {
   const { mutate, isPending } = useMutation({
     mutationFn: loginServices,
     onSuccess: (result) => {
-      signin(result);
+      signin(result.data);
       // updateTheme(result.data.settings);
     },
     onError: (e: any) => {

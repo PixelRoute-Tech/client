@@ -27,10 +27,10 @@ const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const signin = (data: {
     access_token: string;
     user: UserType;
-    company: Company;
+    // company: Company;
   }) => {
-    setUser({ ...data.user, company: data.company });
-    setItem(storageKeys.user, { ...data.user, company: data.company });
+    setUser({ ...data.user,  });
+    setItem(storageKeys.user, { ...data.user });
     setItem(storageKeys.accessToken, data.access_token);
     setLoading(true);
     setTimeout(() => {
