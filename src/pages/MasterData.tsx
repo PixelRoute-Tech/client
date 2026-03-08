@@ -36,9 +36,9 @@ import {
 import { useMasterDataDelete, useMasterDataSave } from "@/hooks/use-master-data";
 
 interface MasterDataItem {
-  id: string;
+  id: number;
   name: string;
-  createdAt: string;
+  created_at: string;
 }
 export const masterQueryKey = {
   department:"masterdepartment",
@@ -61,7 +61,7 @@ const MasterData = () => {
   const deleteMutations = useMasterDataDelete({onSuccess:onHandleSuccess})
   const [itemToDelete, setItemToDelete] = useState<{
     type: keyof typeof deleteMutations;
-    id: string;
+    id: number | string;
   } | null>(null);
 
   const [designation, department, userRole] = useQueries({
@@ -103,7 +103,7 @@ const MasterData = () => {
       return;
     }
 
-    designationMutation.mutate({ label: designationInput });
+    designationMutation.mutate({ name: designationInput });
   };
 
   const addDepartment = () => {
@@ -116,7 +116,7 @@ const MasterData = () => {
       return;
     }
 
-    departmentMutation.mutate({ label: departmentInput });
+    departmentMutation.mutate({ name: departmentInput });
   };
 
   const addUserRole = () => {
@@ -129,16 +129,18 @@ const MasterData = () => {
       return;
     }
 
-    userRoleMutation.mutate({ label: userRoleInput });
+    userRoleMutation.mutate({ name: userRoleInput });
   };
 
-  const confirmDelete = (type:keyof typeof deleteMutations, id: string) => {
+  const confirmDelete = (type:keyof typeof deleteMutations, id: number | string) => {
     setItemToDelete({ type, id });
     setDeleteDialogOpen(true);
   };
 
   const handleDelete = () => {
-      deleteMutations[itemToDelete.type].mutate(itemToDelete.id)
+    if (itemToDelete) {
+      deleteMutations[itemToDelete.type].mutate(itemToDelete.id);
+    }
   };
 
   return (
@@ -209,18 +211,18 @@ const MasterData = () => {
                   </TableHeader>
                   <TableBody>
                     {designation?.data?.data?.map((item) => (
-                      <TableRow key={item._id}>
+                      <TableRow key={item.id}>
                         <TableCell className="font-medium">
-                          {item.label}
+                          {item.name}
                         </TableCell>
-                        <TableCell>{item.createdAt}</TableCell>
+                        <TableCell>{item.created_at}</TableCell>
                         <TableCell className="text-right">
                           <Button
                             variant="destructive"
                             loading={deleteMutations.designationDelete.isPending}
                             size="sm"
                             onClick={() =>
-                              confirmDelete("designationDelete", item._id)
+                              confirmDelete("designationDelete", item.id)
                             }
                           >
                             <Trash2 className="h-4 w-4" />
@@ -285,18 +287,18 @@ const MasterData = () => {
                   </TableHeader>
                   <TableBody>
                     {department?.data?.data?.map((item) => (
-                      <TableRow key={item._id}>
+                      <TableRow key={item.id}>
                         <TableCell className="font-medium">
-                          {item.label}
+                          {item.name}
                         </TableCell>
-                        <TableCell>{item.createdAt}</TableCell>
+                        <TableCell>{item.created_at}</TableCell>
                         <TableCell className="text-right">
                           <Button
                             variant="destructive"
                             loading={deleteMutations.departmentDelete.isPending}
                             size="sm"
                             onClick={() =>
-                              confirmDelete("departmentDelete", item._id)
+                              confirmDelete("departmentDelete", item.id)
                             }
                           >
                             <Trash2 className="h-4 w-4" />
@@ -361,17 +363,17 @@ const MasterData = () => {
                   </TableHeader>
                   <TableBody>
                     {userRole?.data?.data?.map((item) => (
-                      <TableRow key={item._id}>
+                      <TableRow key={item.id}>
                         <TableCell className="font-medium">
-                          {item.label}
+                          {item.name}
                         </TableCell>
-                        <TableCell>{item.createdAt}</TableCell>
+                        <TableCell>{item.created_at}</TableCell>
                         <TableCell className="text-right">
                           <Button
                             variant="destructive"
                             size="sm"
                             loading={deleteMutations.userRoleDelete.isPending}
-                            onClick={() => confirmDelete("userRoleDelete", item._id)}
+                            onClick={() => confirmDelete("userRoleDelete", item.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

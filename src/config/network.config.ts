@@ -91,7 +91,8 @@ network.interceptors.response.use(
   (error) => {
     if (error.response) {
       const { status } = error.response;
-      if (status === 401 || status === 403) {
+      const data = getItem(storageKeys.user);
+      if (status === 401 && data) {
         clearStorage();
         router.navigate(routes.signout);
       }

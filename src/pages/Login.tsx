@@ -51,6 +51,7 @@ const Login = () => {
       // updateTheme(result.data.settings);
     },
     onError: (e: any) => {
+      console.log(e);
       toast({
         title: "",
         description: e?.message,

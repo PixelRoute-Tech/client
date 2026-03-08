@@ -54,6 +54,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         setNotifications(result?.data || []);
       }
     },
+    enabled:false,
     refetchOnWindowFocus: false,
   });
 

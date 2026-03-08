@@ -13,7 +13,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
 export default function CreateUser() {
-  const [users, setUsers] = useState<UserType[]>([]);
+  const [users, setUsers] = useState<{list:UserType[],count:number}>({list:[],count:0});
   // const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentView, setCurrentView] = useState<"form" | "list">("form");
@@ -22,12 +22,27 @@ export default function CreateUser() {
   const location = useLocation()
   const editingUser = location.state
 
-  const {isFetching,refetch} = useQuery({queryKey:["usersList"],queryFn:getUsers,refetchOnWindowFocus:false,  onSuccess: (result) => {
-      setUsers(result.data)
+  const [queryParams, setQueryParams] = useState({
+    skip: 0,
+    take: 10,
+    role: "",
+    department_id: "",
+    is_active: "",
+  });
+
+  const { isFetching, refetch } = useQuery({
+    queryKey: ["usersList", queryParams],
+    queryFn: () => getUsers({
+      ...queryParams,
+      department_id: queryParams.department_id ? parseInt(queryParams.department_id) : undefined,
+      is_active: queryParams.is_active === "true" ? true : queryParams.is_active === "false" ? false : undefined,
+      role: queryParams.role || undefined
+    }),
+    refetchOnWindowFocus: false,
+    onSuccess: (result) => {
+      setUsers(result.data);
     },
-    onError: (error) => {
-      
-    },})
+  });
 
     const {mutate:removeUser} = useMutation({mutationFn:deleteUser,onSuccess:(result)=>{
       refetch()
@@ -109,7 +124,7 @@ export default function CreateUser() {
               <h2 className="text-xl font-semibold text-foreground">Quick Stats</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-primary/10 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-primary">{users.length}</div>
+                  <div className="text-2xl font-bold text-primary">{users.count}</div>
                   <div className="text-sm text-muted-foreground">Total Users</div>
                 </div>
                 <div className="bg-accent/10 rounded-lg p-4">
@@ -126,9 +141,13 @@ export default function CreateUser() {
 
       {currentView === "list" && (
         <UsersTable 
-          users={users} 
+          users={users.list} 
+          totalCount={users.count}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          queryParams={queryParams}
+          setQueryParams={setQueryParams}
+          loading={isFetching}
         />
       )}
 
