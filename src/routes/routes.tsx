@@ -32,6 +32,7 @@ const ClientOnboarding = lazy(() => import("@/pages/ClientOnboarding"));
 const WorksheetListing = lazy(() => import("@/pages/WorksheetListing"));
 const WorksheetBuilder = lazy(() => import("@/pages/WorksheetBuilder"));
 const UserProfile = lazy(() => import("@/pages/UserProfile"));
+const HealthCheck = lazy(() => import("@/pages/HealthCheck"));
 
 const router = createBrowserRouter([
   {
@@ -273,6 +274,16 @@ const router = createBrowserRouter([
         ],
       },
     ],
+  },
+  {
+    path: routes.healthCheck,
+    element: (
+      <Suspense
+        fallback={<SkeletonLoader config={skeletonConfigs.dashboard} />}
+      >
+        <HealthCheck />
+      </Suspense>
+    ),
   },
   {
     path: routes.landing,

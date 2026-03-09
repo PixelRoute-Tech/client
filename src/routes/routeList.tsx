@@ -21,6 +21,7 @@ const routes = {
     worksheetEdit:"/worksheets/edit",
     worksheetDetails:"/worksheet-details",
     worksheetReport:"/worksheet-report",
+    healthCheck:"/health-check",
     joblisting:"/job-listing",
     reportImages:"/report-images",
     previousReport:"/previous-reports"
