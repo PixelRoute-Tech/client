@@ -18,7 +18,14 @@ export const updateJobRequest = async (
 ): ApiResponseType<JobRequest> => {
   try {
     const id = payload instanceof FormData ? payload.get("id") : payload.id;
-    return (await network.patch(`${apis.jobRequest}/${id}`, payload)).data;
+    
+    let dataToSend = payload;
+    if (!(payload instanceof FormData)) {
+      dataToSend = { ...payload };
+      delete dataToSend.id;
+    }
+    
+    return (await network.patch(`${apis.jobRequest}/${id}`, dataToSend)).data;
   } catch (error) {
     throw new Error(error.response.data.message);
   }

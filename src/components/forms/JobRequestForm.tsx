@@ -365,7 +365,7 @@ export function JobRequestForm({
       if (!isEditing) {
       save(requestData);
     } else {
-      update({ ...initialData, ...requestData, id: (initialData as any).id });
+      update({ ...requestData, id: (initialData as any).id });
     }
     // File uploads are stripped temporarily until a separate endpoint is connected
     // As the backend does not accept multipart/form-data for the nested job struct
