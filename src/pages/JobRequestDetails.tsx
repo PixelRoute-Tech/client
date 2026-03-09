@@ -59,9 +59,9 @@ export default function JobRequestDetails() {
             <p className="text-muted-foreground mt-1">Complete information about this job request</p>
           </div>
         </div>
-        <Badge variant={getStatusBadgeVariant(jobRequest?.data.status)} className="text-base px-4 py-2">
-          {jobRequest?.data.status.charAt(0).toUpperCase() + jobRequest?.data.status.slice(1).replace('-', ' ')}
-        </Badge>
+      <Badge variant={getStatusBadgeVariant(jobRequest?.data.status)} className="text-base px-4 py-2">
+        {jobRequest?.data.status?.charAt(0).toUpperCase() + jobRequest?.data.status?.slice(1).replace('_', ' ')}
+      </Badge>
       </div>
 
       {/* Client and Basic Information */}
@@ -79,7 +79,7 @@ export default function JobRequestDetails() {
                 <User className="h-4 w-4" />
                 <span className="font-medium">Client Name</span>
               </div>
-              <p className="text-lg font-semibold">{jobRequest?.data.clientName}</p>
+              <p className="text-lg font-semibold">{jobRequest?.data.client?.business_name || "N/A"}</p>
             </div>
 
             <div className="space-y-2">
@@ -87,7 +87,7 @@ export default function JobRequestDetails() {
                 <Calendar className="h-4 w-4" />
                 <span className="font-medium">Request Date</span>
               </div>
-              <p className="text-lg">{format(jobRequest?.data.startDate, "PPP")}</p>
+              <p className="text-lg">{jobRequest?.data.from_date ? format(new Date(jobRequest.data.from_date), "PPP") : "N/A"}</p>
             </div>
 
             <div className="space-y-2">
@@ -95,7 +95,7 @@ export default function JobRequestDetails() {
                 <Clock className="h-4 w-4" />
                 <span className="font-medium">Scheduled Date & Time</span>
               </div>
-              <p className="text-lg">{format(jobRequest?.data.lastDate, "PPP 'at' p")}</p>
+              <p className="text-lg">{jobRequest?.data.to_date ? format(new Date(jobRequest.data.to_date), "PPP") : "N/A"}</p>
             </div>
 
             <div className="space-y-2">
@@ -103,7 +103,7 @@ export default function JobRequestDetails() {
                 <Calendar className="h-4 w-4" />
                 <span className="font-medium">Created On</span>
               </div>
-              <p className="text-lg">{format(jobRequest?.data.createdAt, "PPP")}</p>
+              <p className="text-lg">{jobRequest?.data.created_at ? format(new Date(jobRequest.data.created_at), "PPP") : "N/A"}</p>
             </div>
           </div>
 
@@ -122,7 +122,7 @@ export default function JobRequestDetails() {
               <FileText className="h-4 w-4" />
               <span className="font-medium">Details Provided</span>
             </div>
-            <p className="text-base leading-relaxed">{jobRequest?.data.detailsProvided}</p>
+            <p className="text-base leading-relaxed">{jobRequest?.data.details_provided || "No details provided"}</p>
           </div>
 
           {jobRequest?.data.comment && (
@@ -136,14 +136,6 @@ export default function JobRequestDetails() {
               </div>
             </div>
           )}
-
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <FileText className="h-4 w-4" />
-              <span className="font-medium">Division Rules</span>
-            </div>
-            <p className="text-base leading-relaxed">{jobRequest?.data.divisionRules}</p>
-          </div>
         </CardContent>
       </Card>
 
@@ -152,7 +144,7 @@ export default function JobRequestDetails() {
         <CardHeader>
           <CardTitle className="text-primary">Test Methods</CardTitle>
           <CardDescription>
-            {jobRequest?.data.testRows.length} test method{jobRequest?.data.testRows.length !== 1 ? 's' : ''} configured for this job request
+            {jobRequest?.data.test_methods?.length || 0} test method{jobRequest?.data.test_methods?.length !== 1 ? 's' : ''} configured for this job request
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -169,16 +161,15 @@ export default function JobRequestDetails() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {jobRequest?.data.testRows.map((test, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="font-medium">{test.testMethod}</TableCell>
-                    <TableCell>{test.testSpec}</TableCell>
-                    <TableCell>{test.acceptanceSpec}</TableCell>
-                    <TableCell>{test.toTable}</TableCell>
-                    <TableCell>{test.testProcedure}</TableCell>
+                {jobRequest?.data.test_methods?.map((test: any) => (
+                  <TableRow key={test.id}>
+                    <TableCell className="font-medium">{test.worksheetForm?.name || "N/A"}</TableCell>
+                    <TableCell>{test.spec || "N/A"}</TableCell>
+                    <TableCell>{test.acceptance || "N/A"}</TableCell>
+                    <TableCell>{test.to_table || "N/A"}</TableCell>
+                    <TableCell>{test.procedure || "N/A"}</TableCell>
                     <TableCell>
-                      {/* <Badge variant="outline">{test.tech}</Badge> */}
-                      {test.tech}
+                      {test.assignedUser ? `${test.assignedUser.first_name} ${test.assignedUser.last_name}` : "Unassigned"}
                     </TableCell>
                   </TableRow>
                 ))}

@@ -65,16 +65,18 @@ export default function JobRequestPage() {
       if (result.success) {
         toast({
           title: "Deleted successfully",
-          description: `Job request "${result.data.jobId}" deleted successfully`,
+          description: `Job request "${result.data?.id?.substring(0, 8)}" deleted successfully`,
           className: "bg-green-500 text-white",
         });
         jobRequestRefetch();
-      } else {
-        toast({
-          title: "Deleted successfully",
-          description: `Job request "${result.data.jobId}" deleted successfully`,
-        });
       }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete job request",
+        className: "bg-red-500 text-white",
+      });
     },
   });
 
@@ -112,7 +114,9 @@ export default function JobRequestPage() {
   };
 
   const handleDelete = (jobRequest: JobRequest) => {
-    deleteJob(jobRequest._id);
+    if (jobRequest.id) {
+      deleteJob(jobRequest.id);
+    }
   };
 
   const backToClientSelection = () => {
@@ -267,7 +271,7 @@ export default function JobRequestPage() {
             <div className="bg-yellow-500/10 rounded-lg p-4">
               <div className="text-2xl font-bold text-yellow-600">
                 {
-                  jobRequests?.data?.filter((j) => j.status === "Pending")
+                  jobRequests?.data?.filter((j) => j.status?.toLowerCase() === "pending")
                     .length
                 }
               </div>
@@ -276,7 +280,7 @@ export default function JobRequestPage() {
             <div className="bg-green-500/10 rounded-lg p-4">
               <div className="text-2xl font-bold text-green-600">
                 {
-                  jobRequests?.data?.filter((j) => j.status === "Completed")
+                  jobRequests?.data?.filter((j) => j.status?.toLowerCase() === "completed")
                     .length
                 }
               </div>

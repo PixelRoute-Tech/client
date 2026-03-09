@@ -41,31 +41,30 @@ export type JobRequestFileList = {
 };
 // 5. The Main Job Request Interface
 export interface JobRequest {
-  _id?: string;
-  jobId?: string;
-  createdBy: string;
-  createdAt?: Date;
-  startDate: Date | string;
-  lastDate: Date | string;
-  clientId?: string;
-  clientName?: string;
-  clientAddress?: string;
-  clientEmail?: string;
-  purchaseOrder?: string;
-  summary: string;
-  detailsProvided: string;
-  comment?: string;
-  timeRequired: string;
+  id: string;
+  client_id: number;
+  client?: any;
+  created_by: number;
+  creator?: any;
+  from_date: string;
+  to_date: string;
+  time_required?: string;
   status: string;
-  ohsRequirements: OHSRequirements;
-  ppeRequired: PPERequired;
-  safetyReference?: string;
-  equipmentList: DynamicSafetyItem[];
-  siteInduction?: string;
-  hseProcedures: DynamicSafetyItem[];
-  // requiredDocument: string;
-  testRows: TechRow[];
-  files?: JobRequestFileList[];
+  purchase_order?: string;
+  summary: string;
+  details_provided?: string;
+  comment?: string;
+  safety_reference?: string;
+  induction_details?: string;
+  is_deleted: boolean;
+  created_at: string;
+  updated_at: string;
+  ohs_requirements?: any[];
+  ppe_requirements?: any[];
+  test_methods?: any[];
+  equipment?: any[];
+  hse_procedures?: any[];
+  uploaded_files?: string[];
 }
 
 export interface Job {

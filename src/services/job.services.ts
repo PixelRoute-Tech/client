@@ -4,19 +4,21 @@ import { ApiResponseType } from "@/types/network.type";
 import apis from "./apis";
 
 export const saveJobRequest = async (
-  payload: FormData
+  payload: any
 ): ApiResponseType<JobRequest> => {
   try {
-    return (await network.post(`${apis.jobRequest}/${payload.get("clientId")}`, payload)).data;
+    return (await network.post(`${apis.jobRequest}`, payload)).data;
   } catch (error) {
     throw new Error(error.response.data.message);
   }
 };
+
 export const updateJobRequest = async (
-  payload: FormData
+  payload: any
 ): ApiResponseType<JobRequest> => {
   try {
-    return (await network.put(`${apis.jobRequest}/${payload.get("clientId")}`, payload)).data;
+    const id = payload instanceof FormData ? payload.get("id") : payload.id;
+    return (await network.patch(`${apis.jobRequest}/${id}`, payload)).data;
   } catch (error) {
     throw new Error(error.response.data.message);
   }
@@ -34,7 +36,7 @@ export const deleteJobRequest = async (
 
 export const getJobRequests = async (id: string): ApiResponseType<JobRequest[]> => {
   try {
-    return (await network.get(`${apis.jobRequest}/${id}`)).data;
+    return (await network.get(`${apis.jobRequest}/client/${id}`)).data;
   } catch (error) {
     throw new Error(error.response.data.message);
   }
