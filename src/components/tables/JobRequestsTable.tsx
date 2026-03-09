@@ -22,13 +22,6 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete,deleteLoading }
   const [searchTerm, setSearchTerm] = useState("");
   // const { toast } = useToast();
 
-  const filteredJobRequests = jobRequests.filter(
-    (job) =>
-      job?.client?.business_name?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
-      job?.summary?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
-      job?.status?.toLowerCase()?.includes(searchTerm?.toLowerCase())
-  );
-
   const handleDelete = (jobRequest:JobRequest) => {
     onDelete(jobRequest);
     // toast({
@@ -89,14 +82,14 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete,deleteLoading }
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredJobRequests.length === 0 ? (
+              {jobRequests?.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                     {searchTerm ? "No job requests found matching your search." : "No job requests available."}
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredJobRequests.map((job) => (
+                jobRequests?.map((job) => (
                   <TableRow key={job.id}>
                     <TableCell className="font-mono text-xs">#{job.id.substring(0, 8)}</TableCell>
                     <TableCell className="font-medium">{job.client?.business_name}</TableCell>
@@ -181,10 +174,10 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete,deleteLoading }
           </Table>
         </div>
         
-        {filteredJobRequests.length > 0 && (
+        {jobRequests?.length > 0 && (
           <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
             <p>
-              Showing {filteredJobRequests.length} of {jobRequests.length} job requests
+              Showing {jobRequests?.length} of {jobRequests.length} job requests
             </p>
           </div>
         )}

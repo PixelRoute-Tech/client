@@ -22,7 +22,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { getClients } from "@/services/client.services";
 import moment from "moment";
 import { JobRequest } from "@/types/job.type";
-import { getJobRequests, deleteJobRequest } from "@/services/job.services";
+import { getJobRequests, deleteJobRequest, getJobDetails } from "@/services/job.services";
 import { getWorkSheetslList } from "@/services/worksheet.services";
 import { useToast } from "@/hooks/use-toast";
 
@@ -56,6 +56,13 @@ export default function JobRequestPage() {
     queryKey: ["jobrequestlist", selectedClient],
     queryFn: async () => await getJobRequests(selectedClient?.id.toString()),
     enabled: Boolean(selectedClient?.id),
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: jobDetails, isFetching: isJobDetailsLoading } = useQuery({
+    queryKey: ["jobrequestdetails", editingJobRequest?.id],
+    queryFn: async () => await getJobDetails(editingJobRequest?.id?.toString() || ""),
+    enabled: Boolean(editingJobRequest?.id && currentView === "edit"),
     refetchOnWindowFocus: false,
   });
 
@@ -202,7 +209,7 @@ export default function JobRequestPage() {
           <Button
             variant={currentView === "list" ? "default" : "outline"}
             onClick={() => {
-              setCurrentView("list"), jobRequestRefetch();
+              setCurrentView("list"); jobRequestRefetch();
             }}
             className="flex items-center gap-2"
           >
@@ -212,57 +219,32 @@ export default function JobRequestPage() {
         </div>
       </div>
 
-      {currentView === "form" && (
-        <div className="space-y-8">
-          <JobRequestForm
-            onSubmit={handleJobRequestSubmit}
-            selectedClient={selectedClient ? { ...selectedClient } : undefined}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-primary/10 rounded-lg p-4">
-              <div className="text-2xl font-bold text-primary">
-                {jobRequests?.data?.length}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Total Job Requests
-              </div>
-            </div>
-            <div className="bg-yellow-500/10 rounded-lg p-4">
-              <div className="text-2xl font-bold text-yellow-600">
-                {
-                  jobRequests?.data?.filter((j) => j.status === "Pending")
-                    .length
-                }
-              </div>
-              <div className="text-sm text-muted-foreground">Pending</div>
-            </div>
-            <div className="bg-green-500/10 rounded-lg p-4">
-              <div className="text-2xl font-bold text-green-600">
-                {
-                  jobRequests?.data?.filter((j) => j.status === "Completed")
-                    .length
-                }
-              </div>
-              <div className="text-sm text-muted-foreground">Completed</div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {(currentView === "form" || currentView === "edit") && (
         <div className="space-y-8">
-          {isEditDialogOpen && <JobRequestForm
-            onSubmit={handleEditSubmit}
-            selectedClient={selectedClient}
-            initialData={editingJobRequest}
-            isEditing={true}
-          />}
+          {currentView === "form" ? (
+            <JobRequestForm
+              onSubmit={handleJobRequestSubmit}
+              selectedClient={selectedClient ? { ...selectedClient } : undefined}
+            />
+          ) : currentView === "edit" ? (
+            isJobDetailsLoading ? (
+               <div className="flex justify-center p-8">Loading job details...</div>
+            ) : jobDetails?.data ? (
+              <JobRequestForm
+                onSubmit={handleEditSubmit}
+                selectedClient={selectedClient ? { ...selectedClient } : undefined}
+                initialData={{ ...jobDetails.data }}
+                isEditing={true}
+              />
+            ) : (
+               <div className="flex justify-center p-8 text-red-500">Failed to load job details.</div>
+            )
+          ) : null}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-primary/10 rounded-lg p-4">
               <div className="text-2xl font-bold text-primary">
-                {jobRequests?.data?.length}
+                {jobRequests?.data?.length || 0}
               </div>
               <div className="text-sm text-muted-foreground">
                 Total Job Requests
@@ -272,7 +254,7 @@ export default function JobRequestPage() {
               <div className="text-2xl font-bold text-yellow-600">
                 {
                   jobRequests?.data?.filter((j) => j.status?.toLowerCase() === "pending")
-                    .length
+                    .length || 0
                 }
               </div>
               <div className="text-sm text-muted-foreground">Pending</div>
@@ -281,7 +263,7 @@ export default function JobRequestPage() {
               <div className="text-2xl font-bold text-green-600">
                 {
                   jobRequests?.data?.filter((j) => j.status?.toLowerCase() === "completed")
-                    .length
+                    .length || 0
                 }
               </div>
               <div className="text-sm text-muted-foreground">Completed</div>
