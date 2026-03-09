@@ -35,12 +35,12 @@ import {
   Clipboard,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { worksheetDataStorage } from "@/utils/worksheetDataStorage";
 import { useMutation } from "@tanstack/react-query";
 import { saveRecord, updateRecord } from "@/services/worksheet.services";
 import { useNavigate } from "react-router-dom";
 import { getItem, setItem, storageKeys } from "@/utils/storage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+
 export type WorksheetData = {
   [fieldId: string]: any;
 };
@@ -70,14 +70,6 @@ export function WorksheetRenderer({
   const [openModal, setOpenModal] = useState<boolean>();
   const { toast } = useToast();
   const navigate = useNavigate();
-  // useEffect(() => {
-  //   if (recordId) {
-  //     const record = worksheetDataStorage.getById(recordId);
-  //     if (record) {
-  //       setFormData(record.data);
-  //     }
-  //   }
-  // }, [recordId]);
 
   const { mutate: save, isLoading: saveLoading } = useMutation({
     mutationFn: saveRecord,
@@ -96,6 +88,7 @@ export function WorksheetRenderer({
       });
     },
   });
+
   const { mutate: update, isLoading: updateLoading } = useMutation({
     mutationFn: updateRecord,
     onSuccess: (result) => {
@@ -114,23 +107,23 @@ export function WorksheetRenderer({
     },
   });
 
-  const handleFieldChange = (fieldId: string, value: any) => {
-    const newData = { ...formData, [fieldId]: value };
+  const handleFieldChange = (field_id: string, value: any) => {
+    const newData = { ...formData, [field_id]: value };
     setFormData(newData);
     onChange?.(newData);
   };
 
   const handleSave = () => {
-    const jobId = recordId.split("_")[1];
-    const record = {
-      jobId,
-      recordId,
-      clientId,
-      worksheetId: worksheet.workSheetId,
+    const jobId = recordId?.split("_")[1] || "";
+    const record: any = {
+      job_id: jobId,
+      record_id: recordId,
+      client_id: clientId,
+      worksheet_id: worksheet.worksheet_id,
       data: formData,
     };
     onSubmit && onSubmit(record);
-    setCurrentRecordId(recordId);
+    setCurrentRecordId(recordId || "");
     if (Object.entries(data).length > 0) {
       update(record);
     } else {
@@ -140,7 +133,6 @@ export function WorksheetRenderer({
 
   const handleReset = () => {
     setFormData({});
-    // setCurrentRecordId("");
     onChange?.({});
     toast({
       title: "Reset Complete",
@@ -150,21 +142,25 @@ export function WorksheetRenderer({
 
   const handlePaste = () => {
     const copiedData = getItem(storageKeys.copied);
-    setFormData(copiedData[worksheet?.workSheetId].data);
-    delete copiedData[worksheet?.workSheetId];
-    setItem(storageKeys.copied, copiedData);
-    setShowPasteBtn(false);
+    if (worksheet?.worksheet_id && copiedData[worksheet.worksheet_id]) {
+        setFormData(copiedData[worksheet.worksheet_id].data);
+        delete copiedData[worksheet.worksheet_id];
+        setItem(storageKeys.copied, copiedData);
+        setShowPasteBtn(false);
+    }
   };
 
   const handleOpenModal = () => {
     setOpenModal(true);
   };
 
-    const handleCancel = (status: boolean | any) => {
+  const handleCancel = (status: boolean | any) => {
     const copiedData = getItem(storageKeys.copied);
-    delete copiedData[worksheet.workSheetId];
-    setItem(storageKeys.copied, copiedData);
-    setShowPasteBtn(false)
+    if (worksheet?.worksheet_id) {
+        delete copiedData[worksheet.worksheet_id];
+        setItem(storageKeys.copied, copiedData);
+    }
+    setShowPasteBtn(false);
     if (typeof status == "boolean") {
       setOpenModal(status);
     } else {
@@ -173,24 +169,24 @@ export function WorksheetRenderer({
   };
 
   useEffect(() => {
-   try {
-     const sheetData = getItem(storageKeys.copied);
-    if (worksheet?.workSheetId && sheetData[worksheet?.workSheetId]) {
-      setShowPasteBtn(true);
+    try {
+      const sheetData = getItem(storageKeys.copied);
+      if (worksheet?.worksheet_id && sheetData[worksheet.worksheet_id]) {
+        setShowPasteBtn(true);
+      }
+    } catch (error) {
+      console.log(error);
     }
-   } catch (error) {
-     console.log(error)
-   }
-  }, []);
+  }, [worksheet?.worksheet_id]);
 
   const renderField = (field: WorksheetField) => {
-    const value = formData[field.fieldId];
+    const value = formData[field.field_id];
     switch (field.type) {
       case "textfield":
         return (
           <Input
             value={value || ""}
-            onChange={(e) => handleFieldChange(field.fieldId, e.target.value)}
+            onChange={(e) => handleFieldChange(field.field_id, e.target.value)}
             placeholder={`Enter ${field.name}`}
             required={field.required}
           />
@@ -200,7 +196,7 @@ export function WorksheetRenderer({
         return (
           <Textarea
             value={value || ""}
-            onChange={(e) => handleFieldChange(field.fieldId, e.target.value)}
+            onChange={(e) => handleFieldChange(field.field_id, e.target.value)}
             placeholder={`Enter ${field.name}`}
             required={field.required}
           />
@@ -212,7 +208,7 @@ export function WorksheetRenderer({
             <Checkbox
               checked={value || false}
               onCheckedChange={(checked) =>
-                handleFieldChange(field.fieldId, checked)
+                handleFieldChange(field.field_id, checked)
               }
               required={field.required}
             />
@@ -224,16 +220,16 @@ export function WorksheetRenderer({
         return (
           <RadioGroup
             value={value || ""}
-            onValueChange={(val) => handleFieldChange(field.fieldId, val)}
+            onValueChange={(val) => handleFieldChange(field.field_id, val)}
             required={field.required}
           >
             {field.options?.map((option) => (
-              <div key={option.optionId} className="flex items-center gap-2">
+              <div key={option.option_id} className="flex items-center gap-2">
                 <RadioGroupItem
                   value={option.value}
-                  id={`${field.fieldId}-${option.optionId}`}
+                  id={`${field.field_id}-${option.option_id}`}
                 />
-                <Label htmlFor={`${field.fieldId}-${option.optionId}`}>
+                <Label htmlFor={`${field.field_id}-${option.option_id}`}>
                   {option.value}
                 </Label>
               </div>
@@ -245,17 +241,17 @@ export function WorksheetRenderer({
         return (
           <Select
             value={value || ""}
-            onValueChange={(val) => handleFieldChange(field.fieldId, val)}
+            onValueChange={(val) => handleFieldChange(field.field_id, val)}
             required={field.required}
           >
             <SelectTrigger>
               <SelectValue placeholder={`Select ${field.name}`} />
             </SelectTrigger>
             <SelectContent>
-              {field.options.length ? (
-                field.options?.map((option) => (
+              {field.options?.length ? (
+                field.options.map((option) => (
                   <SelectItem
-                    key={option?.optionId}
+                    key={option?.option_id}
                     value={option?.value || " "}
                   >
                     {option.value}
@@ -272,17 +268,17 @@ export function WorksheetRenderer({
         return (
           <Select
             value={value || ""}
-            onValueChange={(val) => handleFieldChange(field.fieldId, val)}
+            onValueChange={(val) => handleFieldChange(field.field_id, val)}
             required={field.required}
           >
             <SelectTrigger>
               <SelectValue placeholder={`Select ${field.name}`} />
             </SelectTrigger>
             <SelectContent>
-              {field.options.length ? (
-                field.options?.map((option) => (
+              {field.options?.length ? (
+                field.options.map((option) => (
                   <SelectItem
-                    key={option?.optionId}
+                    key={option?.option_id}
                     value={option?.value || " "}
                   >
                     {option.value || " "}
@@ -296,13 +292,13 @@ export function WorksheetRenderer({
         );
 
       case "autocomplete-chips":
-        const chipValues = value ? [value] : [];
+        const chipValues = Array.isArray(value) ? value : [];
         return (
           <div className="space-y-2">
             <Select
               onValueChange={(val) => {
-                if (!chipValues?.includes(val)) {
-                  handleFieldChange(field.fieldId, [...chipValues, val]);
+                if (!chipValues.includes(val)) {
+                  handleFieldChange(field.field_id, [...chipValues, val]);
                 }
               }}
             >
@@ -310,10 +306,10 @@ export function WorksheetRenderer({
                 <SelectValue placeholder={`Select ${field.name}`} />
               </SelectTrigger>
               <SelectContent>
-                {field.options.length ? (
-                  field.options?.map((option) => (
+                {field.options?.length ? (
+                  field.options.map((option) => (
                     <SelectItem
-                      key={option?.optionId}
+                      key={option?.option_id}
                       value={option?.value || " "}
                     >
                       {option.value || " "}
@@ -324,19 +320,17 @@ export function WorksheetRenderer({
                 )}
               </SelectContent>
             </Select>
-            {chipValues?.length > 0 && (
+            {chipValues.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {chipValues?.map((chip: string, idx: number) => (
+                {chipValues.map((chip: string, idx: number) => (
                   <Badge key={idx} variant="secondary" className="gap-1">
                     {chip}
                     <X
                       className="h-3 w-3 cursor-pointer"
                       onClick={() =>
                         handleFieldChange(
-                          field.fieldId,
-                          chipValues?.filter(
-                            (_: string, i: number) => i !== idx
-                          )
+                          field.field_id,
+                          chipValues.filter((_, i) => i !== idx)
                         )
                       }
                     />
@@ -355,7 +349,7 @@ export function WorksheetRenderer({
               const target = e.target as HTMLInputElement;
               const file = target.files?.[0];
               if (file) {
-                handleFieldChange(field.fieldId, file.name);
+                handleFieldChange(field.field_id, file.name);
               }
             }}
             required={field.required}
@@ -373,19 +367,19 @@ export function WorksheetRenderer({
   const renderTableCell = (
     column: TableColumn,
     rowIndex: number,
-    fieldId: string,
-    columnId: string
+    field_id: string,
+    column_id: string
   ) => {
-    const tableData = formData[fieldId] || [];
-    const cellValue = tableData[rowIndex]?.[columnId];
+    const tableData = formData[field_id] || [];
+    const cellValue = tableData[rowIndex]?.[column_id];
 
     const handleCellChange = (value: any) => {
       const newTableData = [...tableData];
       if (!newTableData[rowIndex]) {
         newTableData[rowIndex] = {};
       }
-      newTableData[rowIndex][columnId] = value;
-      handleFieldChange(fieldId, newTableData);
+      newTableData[rowIndex][column_id] = value;
+      handleFieldChange(field_id, newTableData);
     };
 
     switch (column.type) {
@@ -414,9 +408,9 @@ export function WorksheetRenderer({
             </SelectTrigger>
             <SelectContent>
               {column?.options ? (
-                column.options?.map((option) => (
+                column.options.map((option) => (
                   <SelectItem
-                    key={option?.optionId}
+                    key={option?.option_id}
                     value={option?.value || " "}
                   >
                     {option.value || " "}
@@ -443,9 +437,9 @@ export function WorksheetRenderer({
   };
 
   const renderTable = (field: WorksheetField) => {
-    const tableData = (formData[field.fieldId] || []) as any[];
-    const columns = field.tableColumns || [];
-    const actions = field.tableActions || {
+    const tableData = (formData[field.field_id] || []) as any[];
+    const columns = field.table_columns || [];
+    const actions = field.table_actions || {
       edit: false,
       view: false,
       delete: false,
@@ -455,15 +449,14 @@ export function WorksheetRenderer({
     const addRow = () => {
       const newRow: any = {};
       columns.forEach((col) => {
-        newRow[col.columnId] = "";
+        newRow[col.column_id] = "";
       });
-      console.log(`field.id =`, field, `newRow = `, newRow);
-      handleFieldChange(field.fieldId, [...tableData, newRow]);
+      handleFieldChange(field.field_id, [...tableData, newRow]);
     };
 
     const deleteRow = (rowIndex: number) => {
       const newTableData = tableData.filter((_, idx) => idx !== rowIndex);
-      handleFieldChange(field.fieldId, newTableData);
+      handleFieldChange(field.field_id, newTableData);
     };
 
     return (
@@ -473,7 +466,7 @@ export function WorksheetRenderer({
             <TableHeader>
               <TableRow>
                 {columns.map((column) => (
-                  <TableHead key={column.columnId}>{column.name}</TableHead>
+                  <TableHead key={column.column_id}>{column.name}</TableHead>
                 ))}
                 {hasActions && (
                   <TableHead className="text-right">Actions</TableHead>
@@ -494,12 +487,12 @@ export function WorksheetRenderer({
                 tableData.map((_, rowIndex) => (
                   <TableRow key={rowIndex}>
                     {columns.map((column) => (
-                      <TableCell key={column.columnId}>
+                      <TableCell key={column.column_id}>
                         {renderTableCell(
                           column,
                           rowIndex,
-                          field.fieldId,
-                          column.columnId
+                          field.field_id,
+                          column.column_id
                         )}
                       </TableCell>
                     ))}
@@ -572,10 +565,9 @@ export function WorksheetRenderer({
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {worksheet.sections.map((section) => {
-            // Default to 1 column layout for backward compatibility
+          {worksheet.sections?.map((section) => {
             const layout = section.layout || 1;
-            const gridCols = {
+            const gridCols: Record<number, string> = {
               1: "grid-cols-1",
               2: "grid-cols-1 md:grid-cols-2",
               3: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
@@ -583,14 +575,14 @@ export function WorksheetRenderer({
             };
 
             return (
-              <div key={section.sectionId} className="space-y-4">
+              <div key={section.section_id} className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground border-b pb-2">
                   {section.name}
                 </h3>
-                <div className={`grid gap-4 ${gridCols[layout]}`}>
-                  {section.fields.map((field) => (
+                <div className={`grid gap-4 ${gridCols[layout] || gridCols[1]}`}>
+                  {section.fields?.map((field) => (
                     <div
-                      key={field.fieldId}
+                      key={field.field_id}
                       className={`space-y-2 ${
                         field.type === "table" ? "col-span-full" : ""
                       }`}
@@ -611,7 +603,7 @@ export function WorksheetRenderer({
 
           <div className="flex gap-4 pt-6 border-t">
             <Button
-              loading={saveLoading}
+              disabled={saveLoading || updateLoading}
               onClick={handleSave}
               className="flex-1"
             >
@@ -630,7 +622,7 @@ export function WorksheetRenderer({
           <DialogHeader className="p-3">
             <DialogTitle>Paste copied data</DialogTitle>
           </DialogHeader>
-          <div className="py-5 px-3">Do you want to past the copied data</div>
+          <div className="py-5 px-3">Do you want to paste the copied data?</div>
           <div className="flex justify-end items-center py-4 px-2 gap-3 border-t">
             <Button size="sm" onClick={handlePaste}>
               Paste <Clipboard />

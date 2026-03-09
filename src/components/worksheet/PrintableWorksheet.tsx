@@ -10,7 +10,7 @@ interface PrintableWorksheetProps {
 export const PrintableWorksheet = forwardRef<HTMLDivElement, PrintableWorksheetProps>(
   ({ worksheet, data }, ref) => {
     const renderFieldValue = (field: WorksheetField) => {
-      const value = data[field.fieldId];
+      const value = data[field.field_id];
 
       switch (field.type) {
         case 'checkbox':
@@ -30,8 +30,8 @@ export const PrintableWorksheet = forwardRef<HTMLDivElement, PrintableWorksheetP
             <table className="w-full border-collapse border border-gray-300 mt-2">
               <thead>
                 <tr className="bg-gray-100">
-                  {field.tableColumns?.map((col) => (
-                    <th key={col.columnId} className="border border-gray-300 px-4 py-2 text-left">
+                  {field.table_columns?.map((col) => (
+                    <th key={col.column_id} className="border border-gray-300 px-4 py-2 text-left">
                       {col.name}
                     </th>
                   ))}
@@ -40,11 +40,11 @@ export const PrintableWorksheet = forwardRef<HTMLDivElement, PrintableWorksheetP
               <tbody>
                 {tableData.map((row: any, idx: number) => (
                   <tr key={idx}>
-                    {field.tableColumns?.map((col) => (
-                      <td key={col.columnId} className="border border-gray-300 px-4 py-2">
+                    {field.table_columns?.map((col) => (
+                      <td key={col.column_id} className="border border-gray-300 px-4 py-2">
                         {col.type === 'checkbox' 
-                          ? (row[col.columnId] ? 'Yes' : 'No')
-                          : (row[col.columnId] || '-')}
+                          ? (row[col.column_id] ? 'Yes' : 'No')
+                          : (row[col.column_id] || '-')}
                       </td>
                     ))}
                   </tr>
@@ -76,15 +76,15 @@ export const PrintableWorksheet = forwardRef<HTMLDivElement, PrintableWorksheetP
         </style>
 
         <div className="mb-8 text-center border-b-2 border-gray-800 pb-4">
-          <h1 className="text-3xl font-bold text-gray-900">{worksheet.name}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{worksheet?.name}</h1>
           <p className="text-sm text-gray-600 mt-2">
             Generated on: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}
           </p>
         </div>
 
-        {worksheet.sections.map((section, sectionIndex) => (
+        {worksheet?.sections?.map((section, sectionIndex) => (
           <div
-            key={section.sectionId}
+            key={section.section_id}
             className="mb-8 break-inside-avoid"
             style={{ pageBreakInside: 'avoid' }}
           >
@@ -95,8 +95,8 @@ export const PrintableWorksheet = forwardRef<HTMLDivElement, PrintableWorksheetP
             </div>
 
             <div className="space-y-4 pl-4">
-              {section.fields.map((field) => (
-                <div key={field.fieldId} className="mb-4">
+              {section?.fields?.map((field) => (
+                <div key={field.field_id} className="mb-4">
                   <div className="flex items-start gap-2">
                     <span className="font-semibold text-gray-900 min-w-[200px]">
                       {field.name}:
@@ -105,7 +105,7 @@ export const PrintableWorksheet = forwardRef<HTMLDivElement, PrintableWorksheetP
                       {renderFieldValue(field)}
                     </div>
                   </div>
-                  {field.type === 'table' && data[field.fieldId] && (
+                  {field.type === 'table' && data[field.field_id] && (
                     <div className="mt-2">{/* Table is rendered inline above */}</div>
                   )}
                 </div>

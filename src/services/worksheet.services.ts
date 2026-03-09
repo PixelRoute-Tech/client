@@ -20,7 +20,7 @@ export const updateWorkSheet = async (
   payload: Worksheet
 ): ApiResponseType<Worksheet> => {
   try {
-    return (await network.put(apis.worksheet, payload)).data;
+    return (await network.patch(`${apis.worksheet}/${payload.worksheet_id}`, payload)).data;
   } catch (error) {
     throw new Error(error.response.data.message);
   }
@@ -91,23 +91,23 @@ export type TechRowTemp = ReplaceField<
 
 export type JobRequestTemp = ReplaceField<
   JobRequest,
-  "testRows",
+  "test_methods",
   Array<TechRowTemp>
 >;
 
 export const getRecordData = async (
   id: string
 ): ApiResponseType<
-  {
-    recordId: string;
-    record: WorksheetRecord;
-    client: ClientType;
-    worksheet: Worksheet;
-    job: JobRequestTemp;
-    jobrequest: JobRequest;
-    technician: UserType;
-    images:ImageRecord[]
-  }[]
+    {
+      record_id: string;
+      record: WorksheetRecord;
+      client: ClientType;
+      worksheet: Worksheet;
+      job: JobRequestTemp;
+      jobrequest: JobRequest;
+      technician: UserType;
+      images: ImageRecord[];
+    }[]
 > => {
   try {
     return (await network.get(`${apis.reportRecordData}/${id}`)).data;

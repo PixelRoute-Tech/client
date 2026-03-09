@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash2, Settings } from "lucide-react";
-import FormCheckbox from "../forms/fields/FormCheckbox";
 import { createRandomId } from "@/utils/cryptog";
 
 interface TableBuilderProps {
@@ -54,55 +53,55 @@ export function TableBuilder({
 
   const addColumn = () => {
     const newColumn: TableColumn = {
-      columnId: createRandomId("TABLECOL"),
+      column_id: createRandomId("TABLECOL"),
       name: "",
       type: "textfield",
     };
     setEditingColumns([...editingColumns, newColumn]);
   };
 
-  const updateColumn = (columnId: string, updates: Partial<TableColumn>) => {
+  const updateColumn = (column_id: string, updates: Partial<TableColumn>) => {
     setEditingColumns(
       editingColumns.map((col) =>
-        col.columnId === columnId ? { ...col, ...updates } : col
+        col.column_id === column_id ? { ...col, ...updates } : col
       )
     );
   };
 
-  const deleteColumn = (columnId: string) => {
-    setEditingColumns(editingColumns.filter((col) => col.columnId !== columnId));
+  const deleteColumn = (column_id: string) => {
+    setEditingColumns(editingColumns.filter((col) => col.column_id !== column_id));
   };
 
-  const addOption = (columnId: string) => {
-    const column = editingColumns.find((col) => col.columnId === columnId);
+  const addOption = (column_id: string) => {
+    const column = editingColumns.find((col) => col.column_id === column_id);
     if (!column) return;
 
     const newOption: FieldOption = {
-      optionId: createRandomId("TABLEOPT"),
+      option_id: createRandomId("TABLEOPT"),
       value: "",
     };
-    updateColumn(columnId, {
+    updateColumn(column_id, {
       options: [...(column.options || []), newOption],
     });
   };
 
-  const updateOption = (columnId: string, optionId: string, value: string) => {
-    const column = editingColumns.find((col) => col.columnId === columnId);
+  const updateOption = (column_id: string, option_id: string, value: string) => {
+    const column = editingColumns.find((col) => col.column_id === column_id);
     if (!column) return;
 
-    updateColumn(columnId, {
+    updateColumn(column_id, {
       options: column.options?.map((opt) =>
-        opt.optionId === optionId ? { ...opt, value } : opt
+        opt.option_id === option_id ? { ...opt, value } : opt
       ),
     });
   };
 
-  const deleteOption = (columnId: string, optionId: string) => {
-    const column = editingColumns.find((col) => col.columnId === columnId);
+  const deleteOption = (column_id: string, option_id: string) => {
+    const column = editingColumns.find((col) => col.column_id === column_id);
     if (!column) return;
 
-    updateColumn(columnId, {
-      options: column.options?.filter((opt) => opt.optionId !== optionId),
+    updateColumn(column_id, {
+      options: column.options?.filter((opt) => opt.option_id !== option_id),
     });
   };
 
@@ -137,7 +136,6 @@ export function TableBuilder({
           </DialogHeader>
 
           <div className="space-y-6">
-            {/* Row Actions Section */}
             <Card>
               <CardContent className="pt-6">
                 <Label className="text-base font-semibold mb-4 block">
@@ -188,7 +186,6 @@ export function TableBuilder({
               </CardContent>
             </Card>
 
-            {/* Columns Section */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-base font-semibold">Table Columns</Label>
@@ -224,7 +221,7 @@ export function TableBuilder({
                     );
 
                     return (
-                      <Card key={column.columnId}>
+                      <Card key={column.column_id}>
                         <CardContent className="pt-6 space-y-4">
                           <div className="flex gap-4 items-start">
                             <div className="flex-1 grid grid-cols-2 gap-4">
@@ -233,7 +230,7 @@ export function TableBuilder({
                                 <Input
                                   value={column.name}
                                   onChange={(e) =>
-                                    updateColumn(column.columnId, {
+                                    updateColumn(column.column_id, {
                                       name: e.target.value,
                                     })
                                   }
@@ -246,7 +243,7 @@ export function TableBuilder({
                                 <Select
                                   value={column.type}
                                   onValueChange={(value: FieldType) =>
-                                    updateColumn(column.columnId, { type: value })
+                                    updateColumn(column.column_id, { type: value })
                                   }
                                 >
                                   <SelectTrigger>
@@ -269,7 +266,7 @@ export function TableBuilder({
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => deleteColumn(column.columnId)}
+                              onClick={() => deleteColumn(column.column_id)}
                               className="text-destructive"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -284,7 +281,7 @@ export function TableBuilder({
                                   type="button"
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => addOption(column.columnId)}
+                                  onClick={() => addOption(column.column_id)}
                                 >
                                   <Plus className="h-3 w-3 mr-1" />
                                   Add Option
@@ -294,15 +291,15 @@ export function TableBuilder({
                               <div className="space-y-2">
                                 {column.options?.map((option, optIndex) => (
                                   <div
-                                    key={option.optionId}
+                                    key={option.option_id}
                                     className="flex items-center gap-2"
                                   >
                                     <Input
                                       value={option.value}
                                       onChange={(e) =>
                                         updateOption(
-                                          column.columnId,
-                                          option.optionId,
+                                          column.column_id,
+                                          option.option_id,
                                           e.target.value
                                         )
                                       }
@@ -313,7 +310,7 @@ export function TableBuilder({
                                       variant="ghost"
                                       size="icon"
                                       onClick={() =>
-                                        deleteOption(column.columnId, option.optionId)
+                                        deleteOption(column.column_id, option.option_id)
                                       }
                                       className="text-destructive"
                                     >

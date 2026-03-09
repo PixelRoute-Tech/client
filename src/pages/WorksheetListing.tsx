@@ -22,8 +22,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash2, Power, PowerOff } from "lucide-react";
-import { Worksheet } from "@/types/worksheet.type";
-import { worksheetStorage } from "@/utils/worksheetStorage";
 import { useToast } from "@/hooks/use-toast";
 import routes from "@/routes/routeList";
 import { useQuery } from "@tanstack/react-query";
@@ -36,28 +34,24 @@ export default function WorksheetListing() {
   const { data: worksheets, refetch } = useQuery({
     queryKey: ["worksheetlist"],
     queryFn: getWorkSheets,
-    refetchOnWindowFocus:true
+    refetchOnWindowFocus: true
   });
 
 
   const handleDelete = () => {
-    if (deleteId) {
-      worksheetStorage.delete(deleteId);
-      refetch();
-      toast({
-        title: "Worksheet deleted",
-        description: "The worksheet has been successfully deleted.",
-      });
-      setDeleteId(null);
-    }
+    // If we had a delete function in services, we would use it here.
+    // For now delete is local but would need an API call.
+    toast({
+      title: "Worksheet deletion",
+      description: "Deletion is not fully implemented in service yet.",
+    });
+    setDeleteId(null);
   };
 
   const handleToggleActive = (id: string) => {
-    worksheetStorage.toggleActive(id);
-    refetch();
     toast({
-      title: "Status updated",
-      description: "Worksheet status has been updated.",
+      title: "Status update",
+      description: "Toggling status is not fully implemented in service yet.",
     });
   };
 
@@ -104,20 +98,20 @@ export default function WorksheetListing() {
               </TableHeader>
               <TableBody>
                 {worksheets?.data?.map((worksheet) => (
-                  <TableRow key={worksheet.workSheetId}>
+                  <TableRow key={worksheet.worksheet_id}>
                     <TableCell className="font-medium">
                       {worksheet.name}
                     </TableCell>
-                    <TableCell>{worksheet.sections.length}</TableCell>
+                    <TableCell>{worksheet.sections?.length || 0}</TableCell>
                     <TableCell>
                       <Badge
-                        variant={worksheet.isActive ? "default" : "secondary"}
+                        variant={worksheet.is_active ? "default" : "secondary"}
                       >
-                        {worksheet.isActive ? "Active" : "Disabled"}
+                        {worksheet.is_active ? "Active" : "Disabled"}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {new Date(worksheet.createdAt).toLocaleDateString()}
+                      {worksheet.created_at ? new Date(worksheet.created_at).toLocaleDateString() : 'N/A'}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -134,10 +128,10 @@ export default function WorksheetListing() {
                           variant="ghost"
                           size="icon"
                           onClick={() =>
-                            handleToggleActive(worksheet.workSheetId)
+                            handleToggleActive(worksheet.worksheet_id)
                           }
                         >
-                          {worksheet.isActive ? (
+                          {worksheet.is_active ? (
                             <PowerOff className="h-4 w-4" />
                           ) : (
                             <Power className="h-4 w-4" />
@@ -146,7 +140,7 @@ export default function WorksheetListing() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setDeleteId(worksheet.workSheetId)}
+                          onClick={() => setDeleteId(worksheet.worksheet_id)}
                           className="text-destructive"
                         >
                           <Trash2 className="h-4 w-4" />
