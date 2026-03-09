@@ -27,11 +27,19 @@ import { getWorkSheetslList } from "@/services/worksheet.services";
 import { useToast } from "@/hooks/use-toast";
 
 export default function JobRequestPage() {
-  const { data: clients, refetch } = useQuery({
-    queryKey: ["fetchclientsinjobrequest"],
-    queryFn: getClients,
+  const [clientQueryParams, setClientQueryParams] = useState({
+    skip: 0,
+    take: 10,
+  });
+
+  const { data: clientsResponse, refetch, isFetching: isClientsLoading } = useQuery({
+    queryKey: ["fetchclientsinjobrequest", clientQueryParams],
+    queryFn: () => getClients(clientQueryParams.skip, clientQueryParams.take),
     refetchOnWindowFocus: false,
   });
+
+  const clients = clientsResponse?.data?.data || [];
+  const totalClientsCount = clientsResponse?.data?.count || 0;
   const { toast } = useToast();
   const navigate = useNavigate();
   const [selectedClient, setSelectedClient] = useState<ClientType | null>(null);
@@ -46,8 +54,8 @@ export default function JobRequestPage() {
 
   const { data: jobRequests, refetch: jobRequestRefetch } = useQuery({
     queryKey: ["jobrequestlist", selectedClient],
-    queryFn: async () => await getJobRequests(selectedClient?.clientId),
-    enabled: Boolean(selectedClient?.clientId),
+    queryFn: async () => await getJobRequests(selectedClient?.id.toString()),
+    enabled: Boolean(selectedClient?.id),
     refetchOnWindowFocus: false,
   });
 
@@ -148,10 +156,14 @@ export default function JobRequestPage() {
               Choose a client from the list below to create a new job request.
             </p>
             <ClientsTable
-              clients={clients?.data || []}
+              clients={clients}
+              totalCount={totalClientsCount}
+              loading={isClientsLoading}
               onEdit={handleClientEdit}
               onDelete={() => {}}
               onSelect={handleClientSelect}
+              queryParams={clientQueryParams}
+              setQueryParams={setClientQueryParams}
             />
           </CardContent>
         </Card>

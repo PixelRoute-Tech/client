@@ -218,7 +218,7 @@ export function JobRequestForm({
 
   const { data: usersList } = useQuery({
     queryKey: ["usersList"],
-    queryFn: getUsers,
+    queryFn: () => getUsers({ skip: 0, take: 100 }),
     refetchOnWindowFocus: false,
   });
 
@@ -288,7 +288,7 @@ export function JobRequestForm({
 
   const handleSubmit = (data: JobRequestFormData) => {
     const formData = new FormData();
-    formData.append("clientId", selectedClient.clientId);
+    formData.append("clientId", selectedClient.id.toString());
     if (uploadedFiles.length > 0) {
       uploadedFiles.forEach((f) => {
         formData.append("files", f);
@@ -308,9 +308,9 @@ export function JobRequestForm({
           createdBy: user?.id,
           testRows: data.testRows as TechRow[],
           comment: data.comment,
-          clientId: selectedClient.clientId,
-          clientName: selectedClient.businessName,
-          clientAddress: selectedClient.businessAddress,
+          clientId: selectedClient.id,
+          clientName: selectedClient.business_name,
+          clientAddress: selectedClient.business_address,
           clientEmail: selectedClient.email,
           startDate: moment(data.startDate).toDate(),
           lastDate: moment(data.lastDate).toDate(),
@@ -325,9 +325,9 @@ export function JobRequestForm({
           ...data,
           testRows: data.testRows as TechRow[],
           createdBy: user.id,
-          clientId: selectedClient.clientId,
-          clientAddress: selectedClient.businessAddress,
-          clientName: selectedClient.businessName,
+          clientId: selectedClient.id,
+          clientAddress: selectedClient.business_address,
+          clientName: selectedClient.business_name,
           clientEmail: selectedClient.email,
         })
       );
@@ -449,12 +449,12 @@ const handleViewFile = (file: File | JobRequestFileList) => {
   }, [oldFiles, uploadedFiles]);
 
   const technicianList = useMemo(() => {
-    return usersList?.data.filter(
+    return usersList?.data?.list?.filter(
       (u: any) =>
-        u.userRole.toLowerCase().includes("technician") ||
-        u.designation.toLowerCase().includes("technician")
-    );
-  }, [usersList?.data]);
+        u.user_role?.toLowerCase()?.includes("technician") ||
+        u.designation?.toLowerCase()?.includes("technician")
+    ) || [];
+  }, [usersList?.data?.list]);
 
   return (
     <div className="w-full max-w-6xl space-y-6">
@@ -472,7 +472,7 @@ const handleViewFile = (file: File | JobRequestFileList) => {
                 <span className="font-medium text-muted-foreground">
                   Business Name:
                 </span>
-                <p className="text-foreground">{selectedClient.businessName}</p>
+                <p className="text-foreground">{selectedClient.business_name}</p>
               </div>
               <div>
                 <span className="font-medium text-muted-foreground">
@@ -785,11 +785,11 @@ const handleViewFile = (file: File | JobRequestFileList) => {
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    {technicianList?.map((t) => (
-                                      <SelectItem key={t.id} value={t.id}>
-                                        {t.userName}
-                                      </SelectItem>
-                                    ))}
+                                      {technicianList?.map((t) => (
+                                        <SelectItem key={t.id} value={t.id.toString()}>
+                                          {t.first_name} {t.last_name}
+                                        </SelectItem>
+                                      ))}
                                   </SelectContent>
                                 </Select>
                               )}
@@ -805,7 +805,7 @@ const handleViewFile = (file: File | JobRequestFileList) => {
                                   onClick={() => {
                                     console.log(field);
                                     navigate(
-                                      `${routes.worksheetDetails}?sheetid=${field.testMethod}&jobid=${initialData?.jobId}&clientId=${selectedClient.clientId}`
+                                      `${routes.worksheetDetails}?sheetid=${field.testMethod}&jobid=${initialData?.jobId}&clientId=${selectedClient.id}`
                                     );
                                   }}
                                 >

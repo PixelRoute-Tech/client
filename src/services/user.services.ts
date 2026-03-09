@@ -36,9 +36,10 @@ export const userRegistration = async (
 
 export const userUpdation = async (
   payload: any
-): ApiResponseType<{user:UserType,company:Company}> => {
+): ApiResponseType<UserType> => {
   try {
-    return (await network.patch(`${apis.usersApi}/${payload.id}`, payload)).data;
+    const { id, ...data } = payload;
+    return (await network.patch(`${apis.usersApi}/${id}`, data)).data;
   } catch (error) {
     throw new Error(error.response.data.message);
   }

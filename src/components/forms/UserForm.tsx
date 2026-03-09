@@ -44,7 +44,6 @@ export function UserForm({ onSubmit }) {
   const userSchema = z.object({
     first_name: z.string().min(2, "First name must be at least 2 characters"),
     last_name: z.string().min(1, "Last name is required"),
-    short_name: z.string().min(1, "Short name is required"),
     email: z.string().email("Invalid email address"),
     phone: z.string().min(10, "Phone number must be at least 10 characters"),
     address: z.string().optional().nullable(),
@@ -67,7 +66,6 @@ export function UserForm({ onSubmit }) {
     defaultValues: {
           first_name: "",
           last_name: "",
-          short_name: "",
           email: "",
           phone: "",
           address: "",
@@ -103,7 +101,7 @@ export function UserForm({ onSubmit }) {
     queryKey: ["createuserformuserprofile"],
     queryFn: getUserProfile,
     refetchOnWindowFocus: false,
-    enabled: user?.id == currentUser.id,
+    enabled: user?.id == currentUser?.id,
   });
 
   // Effect to handle fetched profile data
@@ -157,12 +155,12 @@ export function UserForm({ onSubmit }) {
   const { mutate: updateUser, isLoading: updateLoading } = useMutation({
     mutationFn: userUpdation,
     onSuccess: (result) => {
-      if (currentUser.id === result.data.user.id) {
+      if (currentUser.id === result.data.id) {
         setItem(storageKeys.user, {
-          ...result.data.user,
+          ...result.data,
           company: result.data.company,
         });
-        setUser({ ...result.data.user });
+        setUser({ ...result.data });
       }
       onSubmit(result.data);
       toast({
@@ -181,18 +179,24 @@ export function UserForm({ onSubmit }) {
   });
 
   const handleSubmit = (data: UserFormData) => {
-    const payload = {
-      ...data,
+    const { password, ...rest } = data;
+    const payload: any = {
+      ...rest,
       designation_id: parseInt(data.designation_id),
       department_id: parseInt(data.department_id),
       user_role_id: parseInt(data.user_role_id),
       avatar_url: null, // As per request to avoid avatar_url in the form/object
       company_id: currentUser.company_id,
+      short_name: `${data.first_name.charAt(0)}${data.last_name.charAt(0)}`,
     };
 
     if (user?.id) {
+      if (password && password.trim() !== "") {
+        payload.password = password;
+      }
       updateUser({ ...payload, id: user.id });
     } else {
+      payload.password = password;
       createUser(payload);
     }
   };
@@ -254,19 +258,6 @@ export function UserForm({ onSubmit }) {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="short_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Short Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="JD" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
                 <FormField
                   control={form.control}
                   name="email"

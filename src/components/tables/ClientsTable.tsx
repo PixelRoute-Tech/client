@@ -11,24 +11,65 @@ import { ClientType } from "@/types/client.type";
 // import { getClients } from "@/services/client.services";
 
 interface ClientsTableProps {
-  clients:ClientType[]
+  clients: ClientType[];
+  totalCount?: number;
+  loading?: boolean;
   onEdit: (client: ClientType) => void;
-  onDelete: (clientId: string) => void;
+  onDelete: (clientId: number) => void;
   onSelect?: (client: ClientType) => void;
+  queryParams?: {
+    skip: number;
+    take: number;
+  };
+  setQueryParams?: React.Dispatch<
+    React.SetStateAction<{
+      skip: number;
+      take: number;
+    }>
+  >;
 }
 
-export function ClientsTable({clients, onEdit, onDelete, onSelect }: ClientsTableProps) {
+export function ClientsTable({
+  clients,
+  totalCount = 0,
+  loading,
+  onEdit,
+  onDelete,
+  onSelect,
+  queryParams,
+  setQueryParams,
+}: ClientsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  // const { toast } = useToast();
+
   const filteredClients = clients?.filter(
     (client) =>
-      client.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.abnAcn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.accountDeptContact.toLowerCase().includes(searchTerm.toLowerCase())
+      client.business_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.abn_acn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.account_dept_contact?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDelete = (clientId: string) => {
+  const handlePageChange = (direction: "next" | "prev") => {
+    if (!setQueryParams || !queryParams) return;
+    setQueryParams((prev) => ({
+      ...prev,
+      skip:
+        direction === "next"
+          ? prev.skip + prev.take
+          : Math.max(0, prev.skip - prev.take),
+    }));
+  };
+
+  const handleRowsPerPageChange = (value: string) => {
+    if (!setQueryParams) return;
+    setQueryParams((prev) => ({
+      ...prev,
+      take: parseInt(value),
+      skip: 0,
+    }));
+  };
+
+  const handleDelete = (clientId: number) => {
     onDelete(clientId);
   };
 
@@ -53,61 +94,75 @@ export function ClientsTable({clients, onEdit, onDelete, onSelect }: ClientsTabl
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>id</TableHead>
-                <TableHead>Business Name</TableHead>
-                <TableHead>ABN/ACN</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Account Contact</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className={Boolean(onSelect) ? "hidden" : "text-right" }>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredClients?.length === 0 || !Boolean(filteredClients?.length) ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                    {searchTerm ? "No clients found matching your search." : "No clients available."}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredClients?.map((client) => (
-                  <TableRow 
-                    key={client.clientId}
-                    className={onSelect ? "cursor-pointer hover:bg-muted/50" : ""}
-                    onClick={() => onSelect?.(client)}
-                  >
-                    <TableCell className="font-mono text-xs">#{client.clientId}</TableCell>
-                    <TableCell className="font-medium">{client.businessName}</TableCell>
-                    <TableCell>{client.abnAcn}</TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-sm">
-                          <Phone className="h-3 w-3" />
-                          {client.phone}
-                        </div>
-                        <div className="flex items-center gap-1 text-sm">
-                          <Mail className="h-3 w-3" />
-                          {client.email}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="text-sm font-medium">{client.accountDeptContact}</div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Phone className="h-3 w-3" />
-                          {client.accountPhone}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1 text-sm">
-                        <div>Account: {client.accountEmail}</div>
-                        <div>Invoice: {client.invoiceEmail}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{client.createdDate}</TableCell>
+                 <TableHead>id</TableHead>
+                 <TableHead>Code</TableHead>
+                 <TableHead>Business Name</TableHead>
+                 <TableHead>ABN/ACN</TableHead>
+                 <TableHead>Contact</TableHead>
+                 <TableHead>Account Contact</TableHead>
+                 <TableHead>Emails</TableHead>
+                 <TableHead>Created</TableHead>
+                 <TableHead className={Boolean(onSelect) ? "hidden" : "text-right" }>Actions</TableHead>
+               </TableRow>
+             </TableHeader>
+             <TableBody>
+               {loading ? (
+                 <TableRow>
+                   <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                     Loading clients...
+                   </TableCell>
+                 </TableRow>
+               ) : filteredClients?.length === 0 || !Boolean(filteredClients?.length) ? (
+                 <TableRow>
+                   <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                     {searchTerm ? "No clients found matching your search." : "No clients available."}
+                   </TableCell>
+                 </TableRow>
+               ) : (
+                 filteredClients?.map((client) => (
+                   <TableRow 
+                     key={client.id}
+                     className={onSelect ? "cursor-pointer hover:bg-muted/50" : ""}
+                     onClick={() => onSelect?.(client)}
+                   >
+                     <TableCell className="font-mono text-xs">#{client.id}</TableCell>
+                     <TableCell className="font-semibold">{client.client_code}</TableCell>
+                     <TableCell className="font-medium">{client.business_name}</TableCell>
+                     <TableCell>{client.abn_acn}</TableCell>
+                     <TableCell>
+                       <div className="space-y-1 text-sm">
+                         <div className="flex items-center gap-1">
+                           <Phone className="h-3 w-3 text-muted-foreground" />
+                           {client.phone}
+                         </div>
+                         <div className="flex items-center gap-1">
+                           <Mail className="h-3 w-3 text-muted-foreground" />
+                           {client.email}
+                         </div>
+                       </div>
+                     </TableCell>
+                     <TableCell>
+                       <div className="space-y-1 text-sm">
+                         <div className="font-medium">{client.account_dept_contact}</div>
+                         <div className="flex items-center gap-1 text-muted-foreground">
+                           <Phone className="h-3 w-3" />
+                           {client.account_phone}
+                         </div>
+                       </div>
+                     </TableCell>
+                     <TableCell>
+                       <div className="space-y-1 text-xs">
+                         <div className="flex flex-col">
+                           <span className="text-muted-foreground">Account:</span>
+                           <span>{client.account_email}</span>
+                         </div>
+                         <div className="flex flex-col">
+                           <span className="text-muted-foreground">Invoice:</span>
+                           <span>{client.invoice_email}</span>
+                         </div>
+                       </div>
+                     </TableCell>
+                     <TableCell>{client.created_at ? new Date(client.created_at).toLocaleDateString() : "N/A"}</TableCell>
                     <TableCell className={Boolean(onSelect) ? "hidden" : "text-right" }>
                       <div className="flex items-center justify-end gap-2">
                         <Button
@@ -137,18 +192,18 @@ export function ClientsTable({clients, onEdit, onDelete, onSelect }: ClientsTabl
                               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                               <AlertDialogDescription>
                                 This action cannot be undone. This will permanently delete the client
-                                "{client.businessName}" from the system.
+                                "{client.business_name}" from the system.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(client._id,)}
-                                className="bg-destructive text-destructive-foreground"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
+                               <AlertDialogCancel>Cancel</AlertDialogCancel>
+                               <AlertDialogAction
+                                 onClick={() => handleDelete(client.id)}
+                                 className="bg-destructive text-destructive-foreground"
+                               >
+                                 Delete
+                               </AlertDialogAction>
+                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
                       </div>
@@ -160,11 +215,59 @@ export function ClientsTable({clients, onEdit, onDelete, onSelect }: ClientsTabl
           </Table>
         </div>
         
-        {filteredClients?.length > 0 && (
-          <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
-            <p>
-              Showing {filteredClients.length} of {clients?.length} clients
-            </p>
+        {totalCount > 0 && queryParams && (
+          <div className="flex items-center justify-between mt-6 pt-6 border-t gap-4">
+            <div className="text-sm text-muted-foreground font-medium">
+              Showing <span className="text-foreground">{queryParams.skip + 1}</span> to{" "}
+              <span className="text-foreground">
+                {Math.min(queryParams.skip + queryParams.take, totalCount)}
+              </span>{" "}
+              of <span className="text-foreground">{totalCount}</span> clients
+            </div>
+
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                  Rows per page
+                </label>
+                <select
+                  value={queryParams.take}
+                  onChange={(e) => handleRowsPerPageChange(e.target.value)}
+                  className="h-9 w-[110px] rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value={10}>10 Rows</option>
+                  <option value={25}>25 Rows</option>
+                  <option value={50}>50 Rows</option>
+                  <option value={100}>100 Rows</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handlePageChange("prev")}
+                  disabled={queryParams.skip === 0 || loading}
+                  className="h-9 w-9"
+                >
+                  <Search className="h-4 w-4 rotate-180" />
+                </Button>
+
+                <div className="flex items-center justify-center border rounded-md h-9 px-4 bg-muted/20 text-sm font-semibold min-w-[100px]">
+                  Page {Math.floor(queryParams.skip / queryParams.take) + 1}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handlePageChange("next")}
+                  disabled={queryParams.skip + queryParams.take >= totalCount || loading}
+                  className="h-9 w-9"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>

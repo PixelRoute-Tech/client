@@ -50,18 +50,18 @@ export interface User {
 
 interface UsersTableProps {
   users: UserType[];
-  totalCount: number;
+  totalCount?: number;
   loading?: boolean;
   onEdit?: (user: UserType) => void;
   onDelete?: (userId: number) => void;
-  queryParams: {
+  queryParams?: {
     skip: number;
     take: number;
     role: string;
     department_id: string;
     is_active: string;
   };
-  setQueryParams: React.Dispatch<React.SetStateAction<{
+  setQueryParams?: React.Dispatch<React.SetStateAction<{
     skip: number;
     take: number;
     role: string;
@@ -72,7 +72,7 @@ interface UsersTableProps {
 
 export function UsersTable({
   users,
-  totalCount,
+  totalCount = 0,
   loading,
   onEdit,
   onDelete,
@@ -84,6 +84,8 @@ export function UsersTable({
   const [roles, setRoles] = useState<MasterResult[]>([]);
   const { toast } = useToast();
   const {user:currentUser} = useAuth()
+  
+  const showControls = Boolean(queryParams && setQueryParams);
 
   useEffect(() => {
     const fetchMasters = async () => {
@@ -98,15 +100,16 @@ export function UsersTable({
     fetchMasters();
   }, []);
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.department?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-      (user.user_role?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
-  );
+  // const filteredUsers = users.filter(
+  //   (user) =>
+  //     user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     (user.department?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+  //     (user.user_role?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+  // );
 
   const handlePageChange = (direction: "next" | "prev") => {
+    if (!setQueryParams || !queryParams) return;
     setQueryParams(prev => ({
       ...prev,
       skip: direction === "next" ? prev.skip + prev.take : Math.max(0, prev.skip - prev.take)
@@ -114,6 +117,7 @@ export function UsersTable({
   };
 
   const handleFilterChange = (key: string, value: string) => {
+    if (!setQueryParams) return;
     setQueryParams(prev => ({
       ...prev,
       [key]: value === "all" ? "" : (key === "take" ? parseInt(value) : value),
@@ -122,6 +126,7 @@ export function UsersTable({
   };
 
   const clearFilters = () => {
+    if (!setQueryParams) return;
     setQueryParams({
       skip: 0,
       take: 10,
@@ -133,10 +138,13 @@ export function UsersTable({
   };
 
   const handleDelete = (userId: number, userName: string) => {
-    onDelete(userId);
+    if (onDelete) {
+      onDelete(userId);
+    }
   };
 
   const getRoleBadgeVariant = (role: string) => {
+    console.log("role inside getRoleBadgeVariant",role);
     switch (role?.toLowerCase()) {
       case "admin":
         return "destructive";
@@ -156,15 +164,17 @@ export function UsersTable({
           <div className="flex items-center justify-between">
             <CardTitle className="text-primary text-2xl font-bold">Users List</CardTitle>
             <div className="flex items-center gap-2">
-               <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={clearFilters}
-                className="flex items-center gap-1 h-9"
-               >
-                 <FilterX className="h-4 w-4" />
-                 Clear
-               </Button>
+                {showControls && (
+                 <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={clearFilters}
+                  className="flex items-center gap-1 h-9"
+                 >
+                   <FilterX className="h-4 w-4" />
+                   Clear
+                 </Button>
+                )}
                <div className="relative w-64">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
@@ -176,61 +186,63 @@ export function UsersTable({
               </div>
             </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-muted/20 p-4 rounded-lg">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Role</label>
-              <Select 
-                value={queryParams.role || "all"} 
-                onValueChange={(val) => handleFilterChange("role", val)}
-              >
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="All Roles" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
-                  {roles.map(role => (
-                    <SelectItem key={role.id} value={role.name}>{role.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+           
+           {showControls && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-muted/20 p-4 rounded-lg">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Role</label>
+                <Select 
+                  value={queryParams?.role || "all"} 
+                  onValueChange={(val) => handleFilterChange("role", val)}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="All Roles" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Roles</SelectItem>
+                    {roles.map(role => (
+                      <SelectItem key={role.id} value={role.name}>{role.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Department</label>
-              <Select 
-                value={queryParams.department_id || "all"} 
-                onValueChange={(val) => handleFilterChange("department_id", val)}
-              >
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="All Departments" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  {departments.map(dept => (
-                    <SelectItem key={dept.id} value={dept.id.toString()}>{dept.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Department</label>
+                <Select 
+                  value={queryParams?.department_id || "all"} 
+                  onValueChange={(val) => handleFilterChange("department_id", val)}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="All Departments" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    {departments.map(dept => (
+                      <SelectItem key={dept.id} value={dept.id.toString()}>{dept.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</label>
-              <Select 
-                value={queryParams.is_active || "all"} 
-                onValueChange={(val) => handleFilterChange("is_active", val)}
-              >
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="true">Active</SelectItem>
-                  <SelectItem value="false">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</label>
+                <Select 
+                  value={queryParams?.is_active || "all"} 
+                  onValueChange={(val) => handleFilterChange("is_active", val)}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="true">Active</SelectItem>
+                    <SelectItem value="false">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
+           )}
         </div>
       </CardHeader>
       <CardContent>
@@ -264,7 +276,7 @@ export function UsersTable({
               </TableBody>
             ) : (
               <TableBody>
-                {filteredUsers.length === 0 ? (
+                {users.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={7}
@@ -276,7 +288,7 @@ export function UsersTable({
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredUsers.map((user) => (
+                  users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="text-xs text-foreground font-mono">
                         {user.id}
@@ -298,12 +310,12 @@ export function UsersTable({
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
-                        <Badge variant={getRoleBadgeVariant(user.user_role)}>
-                          {user.user_role}
+                        <Badge variant={getRoleBadgeVariant(typeof user.user_role.name)}>
+                          {user.user_role.name}
                         </Badge>
                       </TableCell>
-                      <TableCell>{user.designation}</TableCell>
-                      <TableCell>{user.department}</TableCell>
+                      <TableCell>{user.designation.name}</TableCell>
+                      <TableCell>{user.department.name}</TableCell>
                       <TableCell>
                         {moment(user.created_at).format("DD-MM-YYYY")}
                       </TableCell>
@@ -366,17 +378,17 @@ export function UsersTable({
           </Table>
         </div>
 
-        {totalCount > 0 && (
+        {showControls && totalCount > 0 && (
           <div className="flex flex-col md:flex-row items-center justify-between mt-6 pt-6 border-t gap-4">
             <div className="text-sm text-muted-foreground font-medium">
-              Showing <span className="text-foreground">{queryParams.skip + 1}</span> to <span className="text-foreground">{Math.min(queryParams.skip + queryParams.take, totalCount)}</span> of <span className="text-foreground">{totalCount}</span> users
+              Showing <span className="text-foreground">{(queryParams?.skip || 0) + 1}</span> to <span className="text-foreground">{Math.min((queryParams?.skip || 0) + (queryParams?.take || 10), totalCount)}</span> of <span className="text-foreground">{totalCount}</span> users
             </div>
             
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-3">
                 <label className="text-sm font-medium text-muted-foreground whitespace-nowrap">Rows per page</label>
                 <Select 
-                  value={queryParams.take.toString()} 
+                  value={queryParams?.take.toString() || "10"} 
                   onValueChange={(val) => handleFilterChange("take", val)}
                 >
                   <SelectTrigger className="h-9 w-[110px]">
@@ -396,21 +408,21 @@ export function UsersTable({
                   variant="outline"
                   size="icon"
                   onClick={() => handlePageChange("prev")}
-                  disabled={queryParams.skip === 0 || loading}
+                  disabled={(queryParams?.skip || 0) === 0 || loading}
                   className="h-9 w-9"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 
                 <div className="flex items-center justify-center border rounded-md h-9 px-4 bg-muted/20 text-sm font-semibold min-w-[100px]">
-                  Page {Math.floor(queryParams.skip / queryParams.take) + 1}
+                  Page {Math.floor((queryParams?.skip || 0) / (queryParams?.take || 10)) + 1}
                 </div>
                 
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={() => handlePageChange("next")}
-                  disabled={queryParams.skip + queryParams.take >= totalCount || loading}
+                  disabled={(queryParams?.skip || 0) + (queryParams?.take || 10) >= totalCount || loading}
                   className="h-9 w-9"
                 >
                   <ChevronRight className="h-4 w-4" />
