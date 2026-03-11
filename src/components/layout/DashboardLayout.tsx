@@ -137,17 +137,17 @@ updateUnReaded({id:user.id,isRead:true})
                     <Avatar className="h-8 w-8">
                       <AvatarImage
                         src={`${baseURL}${
-                          user?.imageUrl ?? ""
+                          user?.avatar_url ?? ""
                         }`}
                       />
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        {user.shortName}
+                        {user.short_name}
                       </AvatarFallback>
                     </Avatar>
                     <div className="hidden md:block text-left">
-                      <p className="text-sm font-medium">{user.userName}</p>
+                      <p className="text-sm font-medium">{`${user.first_name} ${user.last_name}`}</p>
                       <p className="text-xs text-muted-foreground">
-                        {user.userRole}
+                        {user.user_role}
                       </p>
                     </div>
                   </Button>

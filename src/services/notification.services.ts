@@ -2,7 +2,7 @@ import network from "@/config/network.config";
 import apis from "./apis";
 import { ApiResponseType } from "@/types/network.type";
 import { Notification } from "@/types/types";
-export const getNotification = async (id: string):ApiResponseType<Notification[]> => {
+export const getNotification = async (id: string | number):ApiResponseType<Notification[]> => {
   try {
     return (await network.get(`${apis.notification}/${id}`)).data;
   } catch (error) {
@@ -16,7 +16,7 @@ export const updateNotification = async ({
   id,
   isRead,
 }: {
-  id: string;
+  id: string | number;
   isRead: boolean;
 }):ApiResponseType<string> => {
   try {
