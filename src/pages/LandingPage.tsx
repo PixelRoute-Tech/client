@@ -12,7 +12,7 @@ import { FooterSection } from "@/components/landing/FooterSection";
 
 export default function LandingPage() {
   useEffect(() => {
-    document.title = "Mantis ERP - All-in-One Enterprise Resource Planning Solution";
+    document.title = "Vericore Inspections ERP - All-in-One Enterprise Resource Planning Solution";
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
       metaDescription.setAttribute("content", 
