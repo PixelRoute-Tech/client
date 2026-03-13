@@ -1,310 +1,176 @@
-import { Check, Sparkles } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
 const plans = [
   {
-    name: "Gold",
-    tagline: "Perfect for small teams",
-    price: "$49",
-    period: "/month",
+    name: "Growth",
+    description: "For scaling teams needing core automation",
+    monthlyPrice: "$49",
+    annualPrice: "$39",
     features: [
-      "Core ERP features",
-      "Up to 5 users",
-      "Standard support",
-      "5 GB storage",
-      "Email notifications",
-      "Basic reporting",
+      "Up to 10 active technicians",
+      "Full Job Request Lifecycle",
+      "Standard Report Templates",
+      "5GB Secure Document storage",
+      "Core API access",
+      "Email support",
     ],
     cta: "Start Free Trial",
-    popular: false,
-    glowColor: "rgba(234,179,8,0.25)",
-    accentColor: "#EAB308",
+    highlight: false,
   },
   {
-    name: "Diamond",
-    tagline: "Best for growing businesses",
-    price: "$99",
-    period: "/month",
+    name: "Pro",
+    description: "Advanced controls for established firms",
+    monthlyPrice: "$99",
+    annualPrice: "$79",
     features: [
-      "Advanced ERP features",
-      "Up to 25 users",
-      "Priority support",
-      "50 GB storage",
-      "Advanced analytics",
-      "Custom workflows",
-      "API access",
-      "Team collaboration",
+      "Up to 50 active technicians",
+      "Custom Workflow Builder",
+      "Advanced Analytics Engine",
+      "50GB Secure Document storage",
+      "Full API & Webhooks Access",
+      "Priority Support (4h SLA)",
+      "Employee Performance Tracking",
     ],
-    cta: "Subscribe Now",
-    popular: true,
-    glowColor: "rgba(107,33,255,0.35)",
-    accentColor: "#A855F7",
+    cta: "Get Started",
+    highlight: true,
   },
   {
-    name: "Platinum",
-    tagline: "For large enterprises",
-    price: "Custom",
-    period: "",
+    name: "Enterprise",
+    description: "Maximum control and custom delivery",
+    monthlyPrice: "Custom",
+    annualPrice: "Custom",
     features: [
-      "Full ERP features",
-      "Unlimited users",
-      "Dedicated support",
-      "Unlimited storage",
-      "Custom integrations",
-      "White-label option",
-      "SLA guarantee",
-      "On-premise deployment",
+      "Unlimited users & storage",
+      "On-premise deployment option",
+      "White-label capabilities",
+      "Custom integration dev",
+      "Dedicated Account Manager",
+      "99.99% Uptime SLA",
+      "SSO & Directory Sync",
     ],
     cta: "Contact Sales",
-    popular: false,
-    glowColor: "rgba(148,163,184,0.2)",
-    accentColor: "#94A3B8",
+    highlight: false,
   },
 ];
 
 export function PricingSection() {
   return (
-    <section id="pricing" style={{ position: "relative", background: "#0a0a12", padding: "120px 20px", overflow: "hidden" }}>
+    <section id="pricing" style={{ background: "#0f172a", padding: "120px 24px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
       <style>{`
-        .pricing-orb-1 {
-          position: absolute;
-          width: 600px; height: 600px;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(107,33,255,0.18) 0%, transparent 70%);
-          filter: blur(100px);
-          top: -100px; left: 50%;
-          transform: translateX(-50%);
-          pointer-events: none;
-          animation: orbDrift1 38s ease-in-out infinite alternate;
+        .pricing-container {
+          max-width: 1200px;
+          margin: 0 auto;
         }
         .pricing-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 24px;
-          max-width: 1060px;
-          margin: 64px auto 0;
-          align-items: center;
+          gap: 32px;
+          margin-top: 64px;
         }
-        @media (max-width: 1024px) { .pricing-grid { grid-template-columns: 1fr; max-width: 440px; } }
+        @media (max-width: 1024px) {
+          .pricing-grid { grid-template-columns: 1fr; max-width: 500px; margin-left: auto; margin-right: auto; }
+        }
 
-        .pricing-card {
-          position: relative;
-          padding: 36px 32px;
-          background: rgba(255,255,255,0.05);
-          backdrop-filter: blur(40px) saturate(180%);
-          -webkit-backdrop-filter: blur(40px) saturate(180%);
-          border: 1px solid rgba(255,255,255,0.1);
-          border-radius: 28px;
-          box-shadow: 0 16px 48px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1);
-          transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-          animation: fadeUpIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
-          overflow: hidden;
-        }
-        .pricing-card::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 10%; right: 10%;
-          height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        }
-        .pricing-card:hover {
-          transform: translateY(-6px);
-          border-color: rgba(255,255,255,0.18);
-          box-shadow: 0 32px 80px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.15);
-        }
-        .pricing-card.popular {
-          background: rgba(255,255,255,0.09);
-          border-color: rgba(168,85,247,0.35);
-          transform: scale(1.04);
-          box-shadow: 0 24px 80px rgba(107,33,255,0.3), inset 0 1px 0 rgba(255,255,255,0.14);
-        }
-        .pricing-card.popular:hover {
-          transform: scale(1.04) translateY(-6px);
-        }
-        .popular-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          padding: 4px 12px;
-          background: linear-gradient(135deg, rgba(107,33,255,0.5), rgba(168,85,247,0.5));
-          border: 1px solid rgba(168,85,247,0.4);
-          border-radius: 50px;
-          font-size: 11px;
-          font-weight: 600;
-          color: #e9d5ff;
-          letter-spacing: 0.05em;
-          text-transform: uppercase;
-          margin-bottom: 20px;
-        }
-        .plan-name {
-          font-size: 28px;
-          font-weight: 200;
-          color: rgba(255,255,255,0.92);
-          margin: 0 0 6px;
-          letter-spacing: -0.01em;
-        }
-        .plan-tagline {
-          font-size: 13px;
-          font-weight: 300;
-          color: rgba(255,255,255,0.45);
-          margin: 0 0 28px;
-        }
-        .plan-price-row {
-          display: flex;
-          align-items: baseline;
-          gap: 4px;
-          margin-bottom: 28px;
-          padding-bottom: 28px;
-          border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-        .plan-price {
-          font-size: clamp(36px, 5vw, 52px);
-          font-weight: 200;
-          color: rgba(255,255,255,0.95);
-          letter-spacing: -0.02em;
-          font-variant-numeric: tabular-nums;
-        }
-        .plan-period {
-          font-size: 14px;
-          font-weight: 300;
-          color: rgba(255,255,255,0.4);
-        }
-        .plan-features {
-          list-style: none;
-          padding: 0; margin: 0 0 32px;
+        .pricing-tier {
+          padding: 40px;
+          background: #1e293b;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 12px;
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          position: relative;
         }
-        .plan-feature {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          font-size: 14px;
-          font-weight: 300;
-          color: rgba(255,255,255,0.65);
+        .pricing-tier.highlight {
+          border-color: #38bdf8;
+          box-shadow: 0 20px 40px -20px rgba(56, 189, 248, 0.3);
+          background: #1e293b;
         }
-        .plan-feature-check {
-          width: 18px; height: 18px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
+        .highlight-tag {
+          position: absolute;
+          top: -12px; left: 50%;
+          transform: translateX(-50%);
+          background: #38bdf8;
+          color: #0f172a;
+          padding: 2px 12px;
+          border-radius: 4px;
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
         }
-        .plan-cta {
+
+        .plan-header h3 { font-size: 20px; font-weight: 700; color: #f8fafc; margin: 0 0 8px; }
+        .plan-header p { font-size: 14px; color: #94a3b8; margin: 0 0 24px; line-height: 1.4; }
+
+        .plan-price-wrap { display: flex; align-items: baseline; gap: 4px; margin-bottom: 32px; }
+        .price-val { font-size: 40px; font-weight: 800; color: #f8fafc; letter-spacing: -0.02em; }
+        .price-term { font-size: 14px; color: #64748b; font-weight: 500; }
+
+        .feature-list { list-style: none; padding: 0; margin: 0 0 40px; display: flex; flex-direction: column; gap: 14px; flex-grow: 1; }
+        .feature-item { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; color: #cbd5e1; }
+        .check-icon { color: #38bdf8; flex-shrink: 0; margin-top: 2px; }
+
+        .pricing-cta-btn {
           width: 100%;
-          padding: 13px 20px;
-          border-radius: 50px;
+          padding: 12px;
+          border-radius: 6px;
+          font-weight: 700;
           font-size: 14px;
-          font-weight: 500;
           cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-          letter-spacing: 0.01em;
+          transition: all 0.2s ease;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.05);
+          color: #f8fafc;
+        }
+        .pricing-cta-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
+        
+        .pricing-tier.highlight .pricing-cta-btn {
+          background: #38bdf8;
+          color: #0f172a;
           border: none;
         }
-        .plan-cta.solid {
-          background: rgba(255,255,255,0.88);
-          color: #0a0a12;
-          box-shadow: 0 0 30px rgba(255,255,255,0.1);
-        }
-        .plan-cta.solid:hover {
-          background: #fff;
-          transform: translateY(-2px);
-          box-shadow: 0 8px 30px rgba(255,255,255,0.2);
-        }
-        .plan-cta.ghost {
-          background: rgba(255,255,255,0.06);
-          color: rgba(255,255,255,0.8);
-          border: 1px solid rgba(255,255,255,0.15);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-        }
-        .plan-cta.ghost:hover {
-          background: rgba(255,255,255,0.1);
-          border-color: rgba(255,255,255,0.25);
-          transform: translateY(-2px);
-        }
-        .plan-cta:active { transform: scale(0.97) !important; }
-
-        .pricing-footer-strip {
-          max-width: 1060px;
-          margin: 48px auto 0;
-          text-align: center;
-          font-size: 13px;
-          font-weight: 300;
-          color: rgba(255,255,255,0.35);
-        }
+        .pricing-tier.highlight .pricing-cta-btn:hover { background: #7dd3fc; }
       `}</style>
 
-      <div className="pricing-orb-1" />
+      <div className="pricing-container">
+        <div style={{ textAlign: "center" }}>
+          <span className="section-label">Pricing Plans</span>
+          <h2 className="section-title">Transparent & Scalable</h2>
+          <p className="section-sub">
+            No hidden fees. Choose a plan that fits your current needs and scale when you're ready.
+          </p>
+        </div>
 
-      <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-        <span className="section-label">✦ Pricing</span>
-        <h2 className="section-title">Choose Your Plan</h2>
-        <p className="section-sub">
-          Flexible pricing designed to scale with your business needs.
-        </p>
-      </div>
-
-      <div className="pricing-grid" style={{ position: "relative", zIndex: 1 }}>
-        {plans.map((plan, index) => (
-          <div
-            key={index}
-            className={`pricing-card ${plan.popular ? "popular" : ""}`}
-            style={{ animationDelay: `${0.1 + index * 0.1}s` }}
-          >
-            {/* Popular badge */}
-            {plan.popular && (
-              <div className="popular-badge">
-                <Sparkles size={10} />
-                Most Popular
+        <div className="pricing-grid">
+          {plans.map((plan, i) => (
+            <div key={i} className={`pricing-tier ${plan.highlight ? "highlight" : ""}`}>
+              {plan.highlight && <div className="highlight-tag">Recommended</div>}
+              
+              <div className="plan-header">
+                <h3>{plan.name}</h3>
+                <p>{plan.description}</p>
               </div>
-            )}
 
-            <h3 className="plan-name">{plan.name}</h3>
-            <p className="plan-tagline">{plan.tagline}</p>
+              <div className="plan-price-wrap">
+                <span className="price-val">{plan.monthlyPrice}</span>
+                {plan.monthlyPrice !== "Custom" && <span className="price-term">/month/seat</span>}
+              </div>
 
-            <div className="plan-price-row">
-              <span className="plan-price">{plan.price}</span>
-              <span className="plan-period">{plan.period}</span>
+              <ul className="feature-list">
+                {plan.features.map((feat, fi) => (
+                  <li key={fi} className="feature-item">
+                    <CheckCircle2 size={16} className="check-icon" />
+                    <span>{feat}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <button className="pricing-cta-btn">
+                {plan.cta}
+              </button>
             </div>
-
-            <ul className="plan-features">
-              {plan.features.map((feature, fi) => (
-                <li key={fi} className="plan-feature">
-                  <span
-                    className="plan-feature-check"
-                    style={{ background: `${plan.accentColor}22`, boxShadow: `0 0 8px ${plan.glowColor}` }}
-                  >
-                    <Check size={11} color={plan.accentColor} strokeWidth={2.5} />
-                  </span>
-                  {feature}
-                </li>
-              ))}
-            </ul>
-
-            <button className={`plan-cta ${plan.popular ? "solid" : "ghost"}`}>
-              {plan.cta}
-            </button>
-
-            {/* Ambient glow */}
-            <div style={{
-              position: "absolute",
-              bottom: -40, left: "50%",
-              transform: "translateX(-50%)",
-              width: 200, height: 80,
-              borderRadius: "50%",
-              background: plan.glowColor,
-              filter: "blur(40px)",
-              pointerEvents: "none",
-            }} />
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-
-      <p className="pricing-footer-strip">
-        All plans include a 14-day free trial. No credit card required.
-      </p>
     </section>
   );
 }

@@ -1,187 +1,164 @@
-import { CheckCircle2, Shield, Zap, Globe } from "lucide-react";
+import { ShieldCheck, BarChart3, Workflow, Users2 } from "lucide-react";
 
-const highlights = [
+const valueProps = [
   {
-    icon: Zap,
-    title: "Lightning Fast",
-    description: "Optimized performance for seamless operations at any scale.",
-    grad: "linear-gradient(135deg, #EAB308, #FB923C)",
-    glow: "rgba(234,179,8,0.3)",
+    icon: Workflow,
+    title: "Integrated Workflows",
+    description: "End-to-end management of jobs, from initial request to final report generation.",
   },
   {
-    icon: Shield,
+    icon: BarChart3,
+    title: "Actionable Insights",
+    description: "Real-time dashboards that provide visibility into technician performance and job status.",
+  },
+  {
+    icon: Users2,
+    title: "Client Transparency",
+    description: "Dedicated client portals that build trust through real-time updates and documentation access.",
+  },
+  {
+    icon: ShieldCheck,
     title: "Enterprise Security",
-    description: "Bank-grade encryption (AES-256) and full compliance.",
-    grad: "linear-gradient(135deg, #0EA5E9, #6B21FF)",
-    glow: "rgba(14,165,233,0.3)",
+    description: "AES-256 encryption and role-based access control to keep your business data secure.",
   },
-  {
-    icon: Globe,
-    title: "Global Scale",
-    description: "Multi-region deployment with full localization support.",
-    grad: "linear-gradient(135deg, #2DD4BF, #0EA5E9)",
-    glow: "rgba(45,212,191,0.3)",
-  },
-];
-
-const checkItems = [
-  "Scalable infrastructure for any business size",
-  "Customizable workflows to match your needs",
-  "Real-time analytics and reporting",
-  "Secure data management with full compliance",
 ];
 
 export function AboutSection() {
   return (
-    <section id="about" style={{ position: "relative", background: "#0a0a12", padding: "120px 20px", overflow: "hidden" }}>
+    <section id="about" style={{ background: "#0f172a", padding: "120px 24px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
       <style>{`
-        .about-layout {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 60px;
-          align-items: center;
-          max-width: 1100px;
+        .about-container {
+          max-width: 1200px;
           margin: 0 auto;
         }
+        .about-header {
+          text-align: center;
+          margin-bottom: 80px;
+        }
+        .about-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 48px;
+        }
         @media (max-width: 900px) {
-          .about-layout { grid-template-columns: 1fr; gap: 40px; }
+          .about-grid { grid-template-columns: 1fr; }
         }
-        .about-content-side {}
-        .about-check-item {
+
+        .value-card {
           display: flex;
-          align-items: center;
-          gap: 12px;
-          font-size: 15px;
-          font-weight: 300;
-          color: rgba(255,255,255,0.7);
-          margin-bottom: 14px;
+          gap: 20px;
+          padding: 24px;
+          border-radius: 12px;
+          background: rgba(30, 41, 59, 0.4);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          transition: transform 0.2s ease, border-color 0.2s ease;
         }
-        .about-check-icon {
-          width: 20px; height: 20px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #A855F7, #6B21FF);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-          box-shadow: 0 0 12px rgba(107,33,255,0.4);
+        .value-card:hover {
+          transform: translateY(-4px);
+          border-color: rgba(56, 189, 248, 0.2);
         }
-        .about-glass-card {
-          position: relative;
-          padding: 36px;
-          background: rgba(255,255,255,0.06);
-          backdrop-filter: blur(40px) saturate(180%);
-          -webkit-backdrop-filter: blur(40px) saturate(180%);
-          border: 1px solid rgba(255,255,255,0.12);
-          border-radius: 28px;
-          box-shadow: 0 24px 64px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12);
-          overflow: hidden;
-          animation: fadeUpIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
-        }
-        .about-glass-card::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 10%; right: 10%;
-          height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        }
-        .highlight-row {
-          display: flex;
-          align-items: flex-start;
-          gap: 16px;
-          padding: 20px 0;
-          border-bottom: 1px solid rgba(255,255,255,0.07);
-          transition: all 0.25s ease;
-        }
-        .highlight-row:first-child { padding-top: 0; }
-        .highlight-row:last-child { border-bottom: none; padding-bottom: 0; }
-        .highlight-row:hover .highlight-icon { transform: scale(1.1); }
-        .highlight-icon {
+        .value-icon-wrap {
           width: 48px; height: 48px;
-          border-radius: 14px;
+          border-radius: 10px;
+          background: rgba(56, 189, 248, 0.1);
+          color: #38bdf8;
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
-          transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .highlight-title {
-          font-size: 16px;
-          font-weight: 500;
-          color: rgba(255,255,255,0.9);
-          margin: 0 0 4px;
+        .value-title {
+          font-size: 18px;
+          font-weight: 700;
+          color: #f8fafc;
+          margin: 0 0 8px;
         }
-        .highlight-desc {
-          font-size: 13px;
-          font-weight: 300;
-          color: rgba(255,255,255,0.5);
+        .value-desc {
+          font-size: 15px;
+          color: #94a3b8;
           margin: 0;
           line-height: 1.6;
         }
-        .about-orb {
-          position: absolute;
-          width: 400px; height: 400px;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(168,85,247,0.18) 0%, transparent 70%);
-          filter: blur(100px);
-          left: -100px; bottom: 0;
-          pointer-events: none;
-          animation: orbDrift1 38s ease-in-out infinite alternate;
+
+        .trust-banner {
+          margin-top: 100px;
+          padding: 48px;
+          background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8));
+          border-radius: 16px;
+          border: 1px solid rgba(255,255,255,0.05);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 32px;
+        }
+        @media (max-width: 900px) {
+          .trust-banner { flex-direction: column; text-align: center; }
+        }
+        .trust-content h3 {
+          font-size: 24px;
+          font-weight: 800;
+          margin: 0 0 12px;
+          color: #f8fafc;
+        }
+        .trust-stats {
+          display: flex;
+          gap: 40px;
+        }
+        .stat-item { text-align: center; }
+        .stat-value {
+          display: block;
+          font-size: 32px;
+          font-weight: 800;
+          color: #38bdf8;
+        }
+        .stat-label {
+          font-size: 12px;
+          font-weight: 600;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
         }
       `}</style>
 
-      <div className="about-orb" />
-
-      <div className="about-layout" style={{ position: "relative", zIndex: 1 }}>
-        {/* Content side */}
-        <div className="about-content-side" style={{ animation: "fadeUpIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both" }}>
-          <span className="section-label">✦ About Our Platform</span>
-          <h2 className="section-title" style={{ textAlign: "left", marginBottom: "20px" }}>
-            Simplify Your<br />Business Operations
-          </h2>
-          <p style={{ fontSize: "15px", fontWeight: 300, color: "rgba(255,255,255,0.55)", lineHeight: 1.8, marginBottom: "16px" }}>
-            Vericore ERP is designed to transform how enterprises manage their operations.
-            Our platform seamlessly integrates all aspects of your business — from client
-            management and job requests to workflow automation and comprehensive reporting.
+      <div className="about-container">
+        <div className="about-header">
+          <span className="section-label">Our Philosophy</span>
+          <h2 className="section-title">Built for Performance, Not Fluff</h2>
+          <p className="section-sub">
+            Vericore was founded on a simple principle: enterprise management should be 
+            efficient, transparent, and absolutely reliable.
           </p>
-          <p style={{ fontSize: "15px", fontWeight: 300, color: "rgba(255,255,255,0.55)", lineHeight: 1.8, marginBottom: "36px" }}>
-            Built for scalability, our solution adapts to businesses of all sizes. Whether
-            you're a growing startup or an established enterprise, Vericore provides the
-            flexibility and power you need to stay ahead.
-          </p>
-
-          <div>
-            {checkItems.map((item, i) => (
-              <div key={i} className="about-check-item">
-                <div className="about-check-icon">
-                  <CheckCircle2 size={12} color="white" strokeWidth={2.5} />
-                </div>
-                {item}
-              </div>
-            ))}
-          </div>
         </div>
 
-        {/* Glass card */}
-        <div className="about-glass-card">
-          {highlights.map((h, i) => (
-            <div key={i} className="highlight-row">
-              <div
-                className="highlight-icon"
-                style={{ background: h.grad, boxShadow: `0 8px 24px ${h.glow}` }}
-              >
-                <h.icon size={22} color="white" strokeWidth={1.5} />
+        <div className="about-grid">
+          {valueProps.map((prop, i) => (
+            <div key={i} className="value-card">
+              <div className="value-icon-wrap">
+                <prop.icon size={24} />
               </div>
               <div>
-                <p className="highlight-title">{h.title}</p>
-                <p className="highlight-desc">{h.description}</p>
+                <h3 className="value-title">{prop.title}</h3>
+                <p className="value-desc">{prop.description}</p>
               </div>
             </div>
           ))}
+        </div>
 
-          {/* Corner glow orbs */}
-          <div style={{ position: "absolute", width: 120, height: 120, borderRadius: "50%", background: "rgba(107,33,255,0.2)", filter: "blur(40px)", top: -20, right: -20 }} />
-          <div style={{ position: "absolute", width: 100, height: 100, borderRadius: "50%", background: "rgba(14,165,233,0.15)", filter: "blur(40px)", bottom: -20, left: -20 }} />
+        <div className="trust-banner">
+          <div className="trust-content">
+            <h3>Reliability You Can Count On</h3>
+            <p style={{ margin: 0 }}>We prioritize uptime and data integrity above all else.</p>
+          </div>
+          <div className="trust-stats">
+            <div className="stat-item">
+              <span className="stat-value">99.9%</span>
+              <span className="stat-label">Uptime</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-value">256-bit</span>
+              <span className="stat-label">Encryption</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>

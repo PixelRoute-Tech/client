@@ -16,7 +16,7 @@ export function LandingHeader() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 30);
+      setIsScrolled(window.scrollY > 10);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -33,278 +33,196 @@ export function LandingHeader() {
   return (
     <>
       <style>{`
-        .nav-pill {
+        .header-main {
           position: fixed;
-          top: 20px;
-          left: 50%;
-          transform: translateX(-50%) scale(0.96);
+          top: 0; left: 0; right: 0;
           z-index: 100;
-          animation: navPillIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s forwards;
-          opacity: 0;
-          width: calc(100% - 40px);
-          max-width: 900px;
+          transition: all 0.3s ease;
+          border-bottom: 1px solid transparent;
         }
-        @keyframes navPillIn {
-          to { opacity: 1; transform: translateX(-50%) scale(1); }
+        .header-main.scrolled {
+          background: rgba(15, 23, 42, 0.85);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          padding: 8px 0;
         }
-        .nav-inner {
-          background: rgba(10, 10, 18, 0.55);
-          backdrop-filter: blur(40px) saturate(180%);
-          -webkit-backdrop-filter: blur(40px) saturate(180%);
-          border: 1px solid rgba(255,255,255,0.14);
-          border-radius: 100px;
-          padding: 10px 20px;
+        .header-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 16px 24px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          transition: all 0.4s ease;
-          box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.14);
-          position: relative;
-          overflow: hidden;
         }
-        .nav-inner::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 0; right: 0;
-          height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        }
-        .nav-inner.scrolled {
-          background: rgba(10, 10, 18, 0.8);
-          border-color: rgba(255,255,255,0.18);
-          box-shadow: 0 16px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.18);
-        }
-        .nav-logo {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .nav-logo-icon {
-          width: 32px;
-          height: 32px;
-          border-radius: 10px;
-          background: linear-gradient(135deg, #6B21FF, #A855F7);
+        .v-logo-icon {
+          width: 36px; height: 36px;
+          border-radius: 8px;
+          background: #38bdf8;
           display: flex;
           align-items: center;
           justify-content: center;
+          color: #0f172a;
+          font-weight: 800;
+          font-size: 20px;
+          margin-right: 12px;
+        }
+        .v-logo-text {
+          font-size: 20px;
           font-weight: 700;
-          font-size: 16px;
-          color: white;
-          box-shadow: 0 0 20px rgba(107,33,255,0.5);
-          flex-shrink: 0;
+          color: #f8fafc;
+          letter-spacing: -0.02em;
         }
-        .nav-logo-text {
-          font-size: 15px;
-          font-weight: 600;
-          color: rgba(255,255,255,0.95);
-          letter-spacing: -0.01em;
-          white-space: nowrap;
-        }
-        .nav-links {
+        .nav-links-desktop {
           display: flex;
           align-items: center;
-          gap: 4px;
+          gap: 32px;
         }
-        .nav-link-btn {
+        .nav-link-item {
+          color: #94a3b8;
+          font-size: 14px;
+          font-weight: 500;
+          text-decoration: none;
+          transition: color 0.2s ease;
           background: none;
           border: none;
-          color: rgba(255,255,255,0.6);
-          font-size: 13.5px;
-          font-weight: 400;
-          padding: 6px 14px;
-          border-radius: 50px;
           cursor: pointer;
-          transition: all 0.2s ease;
-          letter-spacing: 0.01em;
         }
-        .nav-link-btn:hover {
-          color: rgba(255,255,255,0.95);
-          background: rgba(255,255,255,0.08);
+        .nav-link-item:hover {
+          color: #f8fafc;
         }
         .nav-actions {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 16px;
         }
-        .nav-login-btn {
-          background: none;
-          border: none;
-          color: rgba(255,255,255,0.6);
-          font-size: 13px;
-          font-weight: 400;
-          padding: 6px 12px;
-          border-radius: 50px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-        .nav-login-btn:hover {
-          color: rgba(255,255,255,0.95);
-        }
-        .nav-cta {
-          background: rgba(255,255,255,0.9);
-          color: #0a0a12;
-          border: none;
-          border-radius: 50px;
-          padding: 7px 18px;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-          box-shadow: 0 2px 12px rgba(255,255,255,0.2);
-          white-space: nowrap;
-        }
-        .nav-cta:hover {
-          background: #ffffff;
-          transform: scale(1.04);
-          box-shadow: 0 4px 20px rgba(255,255,255,0.3);
-        }
-        .nav-cta:active { transform: scale(0.97); }
-        .mobile-menu-btn {
-          background: rgba(255,255,255,0.08);
-          border: 1px solid rgba(255,255,255,0.12);
-          border-radius: 50%;
-          width: 36px;
-          height: 36px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          color: rgba(255,255,255,0.8);
-          transition: all 0.2s ease;
-        }
-        .mobile-menu-btn:hover {
-          background: rgba(255,255,255,0.14);
-        }
-        .mobile-menu {
-          position: fixed;
-          top: 80px;
-          left: 20px;
-          right: 20px;
-          z-index: 99;
-          background: rgba(10, 10, 18, 0.85);
-          backdrop-filter: blur(40px) saturate(180%);
-          -webkit-backdrop-filter: blur(40px) saturate(180%);
-          border: 1px solid rgba(255,255,255,0.14);
-          border-radius: 24px;
-          padding: 16px;
-          box-shadow: 0 24px 60px rgba(0,0,0,0.5);
-          animation: mobileMenuIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        @keyframes mobileMenuIn {
-          from { opacity: 0; transform: translateY(-10px) scale(0.97); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .mobile-nav-link {
-          display: block;
-          width: 100%;
-          background: none;
-          border: none;
-          color: rgba(255,255,255,0.7);
-          font-size: 15px;
-          padding: 12px 16px;
-          border-radius: 12px;
-          cursor: pointer;
-          text-align: left;
-          transition: all 0.2s ease;
-        }
-        .mobile-nav-link:hover {
-          color: #fff;
-          background: rgba(255,255,255,0.08);
-        }
-        .mobile-divider {
-          height: 1px;
-          background: rgba(255,255,255,0.1);
-          margin: 8px 0;
-        }
-        .mobile-cta {
-          width: 100%;
-          background: rgba(255,255,255,0.9);
-          color: #0a0a12;
-          border: none;
-          border-radius: 12px;
-          padding: 12px 18px;
+        .btn-secondary {
+          padding: 8px 16px;
           font-size: 14px;
           font-weight: 600;
+          color: #f8fafc;
+          background: transparent;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 6px;
           cursor: pointer;
-          transition: all 0.25s ease;
-          margin-top: 4px;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
-        .mobile-cta:hover { background: #fff; }
-        @media (min-width: 1024px) {
-          .mobile-menu-btn { display: none; }
-          .nav-links { display: flex; }
+        .btn-secondary:hover {
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(255, 255, 255, 0.2);
         }
-        @media (max-width: 1023px) {
-          .nav-links { display: none; }
-          .nav-actions { display: none; }
+        .btn-primary {
+          padding: 8px 20px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #0f172a;
+          background: #38bdf8;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease;
         }
-        @media (max-width: 640px) {
-          .nav-logo-text { display: none; }
+        .btn-primary:hover {
+          background: #7dd3fc;
+          transform: translateY(-1px);
+        }
+
+        .mobile-toggle {
+          display: none;
+          color: #94a3b8;
+          cursor: pointer;
+        }
+
+        @media (max-width: 1024px) {
+          .nav-links-desktop, .nav-actions { display: none; }
+          .mobile-toggle { display: block; }
+        }
+
+        .mobile-nav-panel {
+          position: fixed;
+          top: 0; left: 0; bottom: 0; right: 0;
+          background: #0f172a;
+          z-index: 200;
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+          animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+          from { transform: translateX(100%); }
+          to { transform: translateX(0); }
         }
       `}</style>
 
-      <nav className="nav-pill">
-        <div className={`nav-inner ${isScrolled ? "scrolled" : ""}`}>
-          <div className="nav-logo">
-            <div className="nav-logo-icon">V</div>
-            <span className="nav-logo-text">Vericore Inspections</span>
+      <header className={`header-main ${isScrolled ? "scrolled" : ""}`}>
+        <div className="header-container">
+          <div style={{ display: "flex", alignItems: "center" }} onClick={() => scrollToSection("#hero")}>
+            <div className="v-logo-icon">V</div>
+            <span className="v-logo-text">Vericore</span>
           </div>
 
-          <div className="nav-links">
+          <nav className="nav-links-desktop">
             {navItems.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => scrollToSection(item.href)}
-                className="nav-link-btn"
-              >
+              <button key={item.label} onClick={() => scrollToSection(item.href)} className="nav-link-item">
+                {item.label}
+              </button>
+            ))}
+          </nav>
+
+          <div className="nav-actions">
+            <Link to="/login" style={{ textDecoration: "none" }}>
+              <button className="btn-secondary">
+                <LogIn size={14} />
+                Sign In
+              </button>
+            </Link>
+            <button className="btn-primary" onClick={() => scrollToSection("#pricing")}>
+              Get Started
+            </button>
+          </div>
+
+          <div className="mobile-toggle" onClick={() => setIsMobileMenuOpen(true)}>
+            <Menu size={24} />
+          </div>
+        </div>
+      </header>
+
+      {isMobileMenuOpen && (
+        <div className="mobile-nav-panel">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <div className="v-logo-icon">V</div>
+              <span className="v-logo-text">Vericore</span>
+            </div>
+            <X size={24} color="#94a3b8" onClick={() => setIsMobileMenuOpen(false)} />
+          </div>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "32px" }}>
+            {navItems.map((item) => (
+              <button 
+                key={item.label} 
+                onClick={() => scrollToSection(item.href)} 
+                className="nav-link-item" 
+                style={{ fontSize: "18px", textAlign: "left", padding: "12px 0" }}>
                 {item.label}
               </button>
             ))}
           </div>
 
-          <div className="nav-actions">
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "auto" }}>
             <Link to="/login" style={{ textDecoration: "none" }}>
-              <button className="nav-login-btn">
-                <LogIn size={14} />
-                Login
+              <button className="btn-secondary" style={{ width: "100%", justifyContent: "center", padding: "14px" }}>
+                Sign In
               </button>
             </Link>
-            <button className="nav-cta" onClick={() => scrollToSection("#pricing")}>
+            <button className="btn-primary" style={{ width: "100%", padding: "14px" }} onClick={() => scrollToSection("#pricing")}>
               Get Started
             </button>
           </div>
-
-          <button
-            className="mobile-menu-btn"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {isMobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
-          </button>
-        </div>
-      </nav>
-
-      {isMobileMenuOpen && (
-        <div className="mobile-menu">
-          {navItems.map((item) => (
-            <button
-              key={item.label}
-              onClick={() => scrollToSection(item.href)}
-              className="mobile-nav-link"
-            >
-              {item.label}
-            </button>
-          ))}
-          <div className="mobile-divider" />
-          <Link to="/login" style={{ textDecoration: "none" }}>
-            <button className="mobile-nav-link">Login →</button>
-          </Link>
-          <button className="mobile-cta" onClick={() => { setIsMobileMenuOpen(false); scrollToSection("#pricing"); }}>
-            Get Started
-          </button>
         </div>
       )}
     </>

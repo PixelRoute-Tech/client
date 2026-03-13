@@ -1,34 +1,26 @@
 import { Link } from "react-router-dom";
-import { Linkedin, Twitter, Facebook, Youtube, Github } from "lucide-react";
+import { Linkedin, Twitter, Facebook, Github, Mail } from "lucide-react";
 
 const footerLinks = {
   product: [
-    { label: "About ERP", href: "#about" },
     { label: "Features", href: "#features" },
     { label: "Pricing", href: "#pricing" },
-    { label: "Book a Demo", href: "#contact" },
+    { label: "Case Studies", href: "#testimonials" },
+    { label: "Documentation", href: "#" },
   ],
-  documentation: [
-    { label: "User Guide", href: "#documentation" },
-    { label: "API Documentation", href: "#documentation" },
-    { label: "Setup & Installation", href: "#documentation" },
-    { label: "Release Notes", href: "#documentation" },
+  company: [
+    { label: "About Us", href: "#about" },
+    { label: "Security", href: "#support" },
+    { label: "Privacy Policy", href: "#" },
+    { label: "Terms of Service", href: "#" },
   ],
   support: [
-    { label: "Help Center", href: "#support" },
-    { label: "FAQs", href: "#support" },
-    { label: "Contact Support", href: "#contact" },
-    { label: "Raise a Ticket", href: "#contact" },
+    { label: "Help Center", href: "#" },
+    { label: "API Status", href: "#" },
+    { label: "System Uptime", href: "#" },
+    { label: "Contact Sales", href: "#contact" },
   ],
 };
-
-const socialLinks = [
-  { icon: Linkedin, href: "#", label: "LinkedIn" },
-  { icon: Twitter, href: "#", label: "Twitter" },
-  { icon: Facebook, href: "#", label: "Facebook" },
-  { icon: Youtube, href: "#", label: "YouTube" },
-  { icon: Github, href: "#", label: "GitHub" },
-];
 
 export function FooterSection() {
   const scrollToSection = (href: string) => {
@@ -39,270 +31,121 @@ export function FooterSection() {
   };
 
   return (
-    <footer id="documentation" style={{ position: "relative", background: "#0a0a12", borderTop: "1px solid rgba(255,255,255,0.07)", overflow: "hidden" }}>
+    <footer style={{ background: "#0f172a", borderTop: "1px solid rgba(255,255,255,0.05)", padding: "80px 24px 40px" }}>
       <style>{`
-        .footer-glass-inner {
-          position: relative;
-          background: rgba(255,255,255,0.03);
-          backdrop-filter: blur(40px);
-          -webkit-backdrop-filter: blur(40px);
-        }
-        .footer-orb {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(100px);
-          pointer-events: none;
-        }
-        .footer-orb-1 {
-          width: 400px; height: 300px;
-          background: radial-gradient(circle, rgba(107,33,255,0.12) 0%, transparent 70%);
-          top: -80px; right: 10%;
-        }
-        .footer-grid {
+        .footer-wrap { max-width: 1200px; margin: 0 auto; }
+        .footer-main-grid {
           display: grid;
           grid-template-columns: 2fr 1fr 1fr 1fr;
-          gap: 48px;
-          padding: 72px 40px 48px;
-          max-width: 1200px;
-          margin: 0 auto;
+          gap: 64px;
+          margin-bottom: 80px;
         }
         @media (max-width: 1024px) {
-          .footer-grid { grid-template-columns: 1fr 1fr; padding: 48px 24px 40px; gap: 32px; }
+          .footer-main-grid { grid-template-columns: 1fr 1fr; gap: 48px; }
         }
         @media (max-width: 640px) {
-          .footer-grid { grid-template-columns: 1fr; padding: 40px 20px 32px; }
+          .footer-main-grid { grid-template-columns: 1fr; }
         }
-        .footer-brand-logo {
+
+        .footer-brand { }
+        .footer-logo-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+        .f-logo-box {
+          width: 32px; height: 32px; border-radius: 6px; background: #38bdf8;
+          display: flex; align-items: center; justify-content: center;
+          color: #0f172a; font-weight: 800; font-size: 18px;
+        }
+        .f-logo-text { font-size: 20px; font-weight: 700; color: #f8fafc; letter-spacing: -0.02em; }
+        .footer-desc { font-size: 14px; color: #64748b; line-height: 1.6; max-width: 300px; margin-bottom: 24px; }
+
+        .footer-col-head {
+          font-size: 12px; font-weight: 700; color: #f8fafc; text-transform: uppercase;
+          letter-spacing: 0.1em; margin-bottom: 24px;
+        }
+        .footer-nav-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+        .footer-nav-link {
+          font-size: 14px; color: #64748b; text-decoration: none; transition: color 0.2s;
+          background: none; border: none; cursor: pointer; text-align: left; padding: 0;
+        }
+        .footer-nav-link:hover { color: #38bdf8; }
+
+        .footer-social-strip {
+          display: flex; gap: 12px;
+        }
+        .social-link-btn {
+          width: 36px; height: 36px; border-radius: 6px; background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.05); color: #64748b;
+          display: flex; align-items: center; justify-content: center;
+          transition: all 0.2s;
+        }
+        .social-link-btn:hover { background: #38bdf8; color: #0f172a; border-color: #38bdf8; }
+
+        .footer-bottom-strip {
+          border-top: 1px solid rgba(255,255,255,0.05);
+          padding-top: 40px;
           display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 20px;
-        }
-        .footer-brand-icon {
-          width: 36px; height: 36px;
-          border-radius: 10px;
-          background: linear-gradient(135deg, #6B21FF, #A855F7);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 700;
-          font-size: 18px;
-          color: white;
-          box-shadow: 0 0 20px rgba(107,33,255,0.4);
-          flex-shrink: 0;
-        }
-        .footer-brand-name {
-          font-size: 16px;
-          font-weight: 500;
-          color: rgba(255,255,255,0.9);
-          letter-spacing: -0.01em;
-        }
-        .footer-brand-sub {
-          font-size: 11px;
-          color: rgba(255,255,255,0.35);
-          letter-spacing: 0.04em;
-        }
-        .footer-brand-desc {
-          font-size: 13px;
-          font-weight: 300;
-          color: rgba(255,255,255,0.4);
-          line-height: 1.75;
-          margin: 0 0 20px;
-          max-width: 300px;
-        }
-        .footer-contact-line {
-          font-size: 12px;
-          font-weight: 300;
-          color: rgba(255,255,255,0.35);
-          line-height: 1.8;
-          margin: 0;
-        }
-        .footer-contact-line a {
-          color: #c084fc;
-          text-decoration: none;
-        }
-        .footer-col-title {
-          font-size: 12px;
-          font-weight: 500;
-          color: rgba(255,255,255,0.7);
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          margin: 0 0 20px;
-        }
-        .footer-link-list {
-          list-style: none;
-          padding: 0; margin: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-        .footer-link-btn {
-          background: none;
-          border: none;
-          font-size: 13px;
-          font-weight: 300;
-          color: rgba(255,255,255,0.4);
-          cursor: pointer;
-          padding: 0;
-          text-align: left;
-          transition: color 0.2s ease;
-          letter-spacing: 0.01em;
-        }
-        .footer-link-btn:hover { color: rgba(255,255,255,0.8); }
-        .footer-divider {
-          height: 1px;
-          background: rgba(255,255,255,0.07);
-          margin: 0 40px;
-          max-width: calc(1200px - 80px);
-          margin-left: auto;
-          margin-right: auto;
-        }
-        @media (max-width: 640px) {
-          .footer-divider { margin: 0 20px; }
-        }
-        .footer-bottom {
-          display: flex;
-          align-items: center;
           justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 16px;
-          padding: 24px 40px;
-          max-width: 1200px;
-          margin: 0 auto;
+          align-items: center;
+          color: #475569;
+          font-size: 13px;
         }
         @media (max-width: 640px) {
-          .footer-bottom { padding: 20px; flex-direction: column; align-items: flex-start; }
-        }
-        .footer-copyright {
-          font-size: 12px;
-          font-weight: 300;
-          color: rgba(255,255,255,0.3);
-        }
-        .footer-legal {
-          display: flex;
-          gap: 16px;
-        }
-        .footer-legal-btn {
-          background: none;
-          border: none;
-          font-size: 12px;
-          font-weight: 300;
-          color: rgba(255,255,255,0.3);
-          cursor: pointer;
-          transition: color 0.2s ease;
-        }
-        .footer-legal-btn:hover { color: rgba(255,255,255,0.7); }
-        .footer-socials {
-          display: flex;
-          gap: 8px;
-        }
-        .footer-social-icon {
-          width: 32px; height: 32px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.1);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: rgba(255,255,255,0.4);
-          text-decoration: none;
-          transition: all 0.25s ease;
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-        }
-        .footer-social-icon:hover {
-          background: rgba(107,33,255,0.3);
-          border-color: rgba(168,85,247,0.4);
-          color: rgba(255,255,255,0.9);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(107,33,255,0.3);
+          .footer-bottom-strip { flex-direction: column; gap: 16px; text-align: center; }
         }
       `}</style>
 
-      <div className="footer-glass-inner">
-        <div className="footer-orb footer-orb-1" />
-
-        <div className="footer-grid">
-          {/* Brand */}
-          <div>
-            <div className="footer-brand-logo">
-              <div className="footer-brand-icon">V</div>
-              <div>
-                <div className="footer-brand-name">Vericore Inspections</div>
-                <div className="footer-brand-sub">ERP Solution</div>
-              </div>
+      <div className="footer-wrap">
+        <div className="footer-main-grid">
+          <div className="footer-brand">
+            <div className="footer-logo-wrap">
+              <div className="f-logo-box">V</div>
+              <span className="f-logo-text">Vericore</span>
             </div>
-            <p className="footer-brand-desc">
-              Streamline your business operations with our comprehensive ERP platform.
-              From client management to advanced analytics — all in one place.
+            <p className="footer-desc">
+              The modern operating system for field-heavy enterprises. Engineered for 
+              reliability, transparency, and architectural excellence.
             </p>
-            <p className="footer-contact-line">
-              123 Business Avenue, Suite 500<br />
-              San Francisco, CA 94102<br />
-              <a href="mailto:sales@vericore-erp.com">sales@vericore-erp.com</a><br />
-              +1 (800) VERICOR-1
-            </p>
+            <div className="footer-social-strip">
+              <a href="#" className="social-link-btn"><Linkedin size={18} /></a>
+              <a href="#" className="social-link-btn"><Twitter size={18} /></a>
+              <a href="#" className="social-link-btn"><Github size={18} /></a>
+              <a href="#" className="social-link-btn"><Mail size={18} /></a>
+            </div>
           </div>
 
-          {/* Product */}
           <div>
-            <h4 className="footer-col-title">Product</h4>
-            <ul className="footer-link-list">
-              {footerLinks.product.map((link) => (
-                <li key={link.label}>
-                  <button onClick={() => scrollToSection(link.href)} className="footer-link-btn">
-                    {link.label}
-                  </button>
-                </li>
+            <h4 className="footer-col-head">Product</h4>
+            <ul className="footer-nav-list">
+              {footerLinks.product.map((l, i) => (
+                <li key={i}><button onClick={() => scrollToSection(l.href)} className="footer-nav-link">{l.label}</button></li>
               ))}
             </ul>
           </div>
 
-          {/* Documentation */}
           <div>
-            <h4 className="footer-col-title">Documentation</h4>
-            <ul className="footer-link-list">
-              {footerLinks.documentation.map((link) => (
-                <li key={link.label}>
-                  <button onClick={() => scrollToSection(link.href)} className="footer-link-btn">
-                    {link.label}
-                  </button>
-                </li>
+            <h4 className="footer-col-head">Company</h4>
+            <ul className="footer-nav-list">
+              {footerLinks.company.map((l, i) => (
+                <li key={i}><button onClick={() => scrollToSection(l.href)} className="footer-nav-link">{l.label}</button></li>
               ))}
             </ul>
           </div>
 
-          {/* Support */}
           <div>
-            <h4 className="footer-col-title">Support & Help</h4>
-            <ul className="footer-link-list">
-              {footerLinks.support.map((link) => (
-                <li key={link.label}>
-                  <button onClick={() => scrollToSection(link.href)} className="footer-link-btn">
-                    {link.label}
-                  </button>
-                </li>
+            <h4 className="footer-col-head">Support</h4>
+            <ul className="footer-nav-list">
+              {footerLinks.support.map((l, i) => (
+                <li key={i}><button onClick={() => scrollToSection(l.href)} className="footer-nav-link">{l.label}</button></li>
               ))}
             </ul>
           </div>
         </div>
 
-        <div className="footer-divider" />
-
-        <div className="footer-bottom">
-          <p className="footer-copyright">
-            © {new Date().getFullYear()} Vericore Inspections ERP. All rights reserved.
-          </p>
-          <div className="footer-legal">
-            <button className="footer-legal-btn">Terms & Conditions</button>
-            <button className="footer-legal-btn">Privacy Policy</button>
-          </div>
-          <div className="footer-socials">
-            {socialLinks.map((s) => (
-              <a key={s.label} href={s.href} className="footer-social-icon" aria-label={s.label}>
-                <s.icon size={14} />
-              </a>
-            ))}
+        <div className="footer-bottom-strip">
+          <span>© {new Date().getFullYear()} Vericore Operations Corp. All rights reserved.</span>
+          <div style={{ display: "flex", gap: "24px" }}>
+            <button className="footer-nav-link">Privacy</button>
+            <button className="footer-nav-link">Terms</button>
+            <button className="footer-nav-link">Security</button>
           </div>
         </div>
       </div>
