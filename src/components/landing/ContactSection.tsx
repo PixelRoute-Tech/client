@@ -14,201 +14,247 @@ export function ContactSection() {
   };
 
   return (
-    <section id="contact" style={{ background: "#0f172a", padding: "120px 24px" }}>
+    <section id="contact" style={{ position: "relative", background: "#0a0a12", padding: "120px 20px", overflow: "hidden" }}>
       <style>{`
-        .contact-container {
-          max-width: 1200px;
-          margin: 0 auto;
+        .contact-orb {
+          position: absolute;
+          width: 600px; height: 600px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%);
+          filter: blur(100px);
+          bottom: -100px; left: -100px;
+          pointer-events: none;
+          animation: orbDrift1 45s ease-in-out infinite alternate;
+        }
+        .contact-layout {
           display: grid;
           grid-template-columns: 1fr 1.2fr;
-          gap: 80px;
+          gap: 64px;
+          max-width: 1100px;
+          margin: 64px auto 0;
+          align-items: center;
         }
         @media (max-width: 900px) {
-          .contact-container { grid-template-columns: 1fr; gap: 48px; }
+          .contact-layout { grid-template-columns: 1fr; gap: 48px; }
         }
-
-        .contact-content h2 {
-          font-size: 36px;
-          font-weight: 800;
-          color: #f8fafc;
-          margin: 0 0 16px;
-        }
-        .contact-content p {
-          font-size: 18px;
-          color: #94a3b8;
-          margin: 0 0 48px;
-        }
-
-        .contact-method {
+        .contact-info-card {
           display: flex;
+          align-items: flex-start;
           gap: 16px;
-          margin-bottom: 32px;
+          padding: 24px;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 20px;
+          margin-bottom: 20px;
+          transition: all 0.3s ease;
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
         }
-        .method-icon {
-          width: 40px; height: 40px;
-          border-radius: 8px;
-          background: rgba(56, 189, 248, 0.1);
-          color: #38bdf8;
+        .contact-info-card:hover {
+          background: rgba(255,255,255,0.06);
+          border-color: rgba(255,255,255,0.15);
+          transform: translateY(-4px);
+        }
+        .contact-icon-wrap {
+          width: 44px; height: 44px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, rgba(107,33,255,0.2), rgba(168,85,247,0.2));
+          border: 1px solid rgba(168,85,247,0.3);
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          color: #c084fc;
         }
-        .method-label {
-          display: block;
-          font-size: 12px;
-          font-weight: 600;
-          color: #64748b;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: 2px;
+        .contact-info-title {
+          font-size: 14px;
+          font-weight: 500;
+          color: rgba(255,255,255,0.9);
+          margin: 0 0 4px;
         }
-        .method-value {
-          font-size: 16px;
-          color: #cbd5e1;
+        .contact-info-text {
+          font-size: 14px;
+          font-weight: 300;
+          color: rgba(255,255,255,0.5);
           text-decoration: none;
+          transition: color 0.2s;
         }
+        a.contact-info-text:hover { color: #c084fc; }
 
-        .contact-form-box {
-          background: #1e293b;
+        .contact-form-card {
+          position: relative;
           padding: 40px;
-          border-radius: 12px;
-          border: 1px solid rgba(255, 255, 255, 0.05);
+          background: rgba(255,255,255,0.06);
+          backdrop-filter: blur(40px) saturate(180%);
+          -webkit-backdrop-filter: blur(40px) saturate(180%);
+          border: 1px solid rgba(255,255,255,0.15);
+          border-radius: 32px;
+          box-shadow: 0 32px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12);
+          overflow: hidden;
         }
-        .form-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-          margin-bottom: 16px;
+        .contact-form-card::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 10%; right: 10%;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
         }
-        .input-group { margin-bottom: 16px; }
-        .input-label {
+        .contact-input-group { margin-bottom: 20px; }
+        .contact-label {
           display: block;
           font-size: 13px;
-          font-weight: 500;
-          color: #94a3b8;
-          margin-bottom: 6px;
+          font-weight: 400;
+          color: rgba(255,255,255,0.7);
+          margin-bottom: 8px;
+          padding-left: 4px;
         }
-        .form-input {
+        .contact-input, .contact-textarea {
           width: 100%;
-          padding: 12px 16px;
-          background: #0f172a;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 6px;
-          color: white;
+          background: rgba(0,0,0,0.2);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 12px;
+          padding: 14px 16px;
           font-size: 14px;
+          color: white;
+          transition: all 0.3s ease;
           outline: none;
-          transition: border-color 0.2s ease;
+          font-family: inherit;
         }
-        .form-input:focus { border-color: #38bdf8; }
-        .form-textarea { min-height: 120px; resize: vertical; }
-
-        .submit-btn {
+        .contact-input:focus, .contact-textarea:focus {
+          background: rgba(0,0,0,0.4);
+          border-color: rgba(168,85,247,0.5);
+          box-shadow: 0 0 0 4px rgba(168,85,247,0.1);
+        }
+        .contact-input::placeholder, .contact-textarea::placeholder {
+          color: rgba(255,255,255,0.3);
+        }
+        .contact-textarea { resize: vertical; min-height: 100px; }
+        .contact-submit-btn {
           width: 100%;
-          padding: 14px;
-          background: #38bdf8;
-          color: #0f172a;
+          padding: 16px;
+          background: rgba(255,255,255,0.9);
+          color: #0a0a12;
           border: none;
-          border-radius: 6px;
-          font-weight: 700;
-          font-size: 16px;
+          border-radius: 12px;
+          font-size: 15px;
+          font-weight: 600;
           cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
-          transition: all 0.2s ease;
+          margin-top: 12px;
         }
-        .submit-btn:hover { background: #7dd3fc; transform: translateY(-1px); }
-        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .success-wrapper {
+        .contact-submit-btn:hover {
+          background: #ffffff;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(255,255,255,0.2);
+        }
+        .contact-submit-btn:active { transform: scale(0.98); }
+        .contact-success-state {
           text-align: center;
-          padding: 24px 0;
+          padding: 40px 20px;
+          animation: fadeUpIn 0.5s ease both;
         }
-        .success-icon-bg {
-          width: 64px; height: 64px;
-          background: rgba(34, 197, 94, 0.1);
-          color: #22c55e;
+        .contact-success-icon {
+          width: 80px; height: 80px;
           border-radius: 50%;
+          background: rgba(45,212,191,0.15);
+          border: 1px solid rgba(45,212,191,0.3);
+          color: #2dd4bf;
           display: flex;
           align-items: center;
           justify-content: center;
           margin: 0 auto 24px;
+          box-shadow: 0 0 32px rgba(45,212,191,0.2);
         }
       `}</style>
 
-      <div className="contact-container">
-        <div className="contact-content">
-          <span className="section-label">Contact Us</span>
-          <h2>Schedule a Professional Demo</h2>
-          <p>
-            Learn how Vericore can be tailored to your specific operational scale. 
-            No marketing pressure—just solutions.
-          </p>
+      <div className="contact-orb" />
 
-          <div className="contact-method">
-            <div className="method-icon"><Mail size={20} /></div>
+      <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
+        <span className="section-label">✦ Get In Touch</span>
+        <h2 className="section-title">Book a Demo</h2>
+        <p className="section-sub">
+          Ready to transform your business operations? Schedule a personalized demo today.
+        </p>
+      </div>
+
+      <div className="contact-layout" style={{ position: "relative", zIndex: 1 }}>
+        <div>
+          <div className="contact-info-card">
+            <div className="contact-icon-wrap"><Mail size={20} /></div>
             <div>
-              <span className="method-label">Email</span>
-              <a href="mailto:solutions@vericore.com" className="method-value">solutions@vericore.com</a>
+              <p className="contact-info-title">Email Us</p>
+              <a href="mailto:sales@vericore-erp.com" className="contact-info-text">sales@vericore-erp.com</a>
+            </div>
+          </div>
+          
+          <div className="contact-info-card">
+            <div className="contact-icon-wrap"><Phone size={20} /></div>
+            <div>
+              <p className="contact-info-title">Call Us</p>
+              <a href="tel:+1-800-VERICOR" className="contact-info-text">+1 (800) VERICOR-1</a>
             </div>
           </div>
 
-          <div className="contact-method">
-            <div className="method-icon"><Phone size={20} /></div>
+          <div className="contact-info-card">
+            <div className="contact-icon-wrap"><MapPin size={20} /></div>
             <div>
-              <span className="method-label">Direct Line</span>
-              <span className="method-value">+1 (888) 555-0123</span>
-            </div>
-          </div>
-
-          <div className="contact-method">
-            <div className="method-icon"><MapPin size={20} /></div>
-            <div>
-              <span className="method-label">Headquarters</span>
-              <span className="method-value">Tech Center Plaza, San Francisco</span>
+              <p className="contact-info-title">Visit Us</p>
+              <p className="contact-info-text">123 Business Avenue, Suite 500<br/>San Francisco, CA 94102</p>
             </div>
           </div>
         </div>
 
-        <div className="contact-form-box">
+        <div className="contact-form-card">
           {isSubmitted ? (
-            <div className="success-wrapper">
-              <div className="success-icon-bg"><CheckCircle2 size={32} /></div>
-              <h3 style={{ fontSize: "24px", color: "white", marginBottom: "12px" }}>Request Received</h3>
-              <p style={{ color: "#94a3b8", marginBottom: "24px" }}>
-                A solutions engineer will reach out to you within one business day to schedule your demo.
+            <div className="contact-success-state">
+              <div className="contact-success-icon">
+                <CheckCircle2 size={40} />
+              </div>
+              <h3 style={{ fontSize: "28px", fontWeight: 200, color: "white", marginBottom: "16px" }}>Thank You!</h3>
+              <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.6)", marginBottom: "32px", lineHeight: 1.6 }}>
+                Your demo request has been submitted. Our team will reach out within 24 hours.
               </p>
-              <button className="submit-btn" style={{ background: "rgba(255,255,255,0.05)", color: "white", border: "1px solid rgba(255,255,255,0.1)" }} onClick={() => setIsSubmitted(false)}>
-                Submit New Request
+              <button 
+                className="contact-submit-btn" 
+                style={{ background: "rgba(255,255,255,0.1)", color: "white", border: "1px solid rgba(255,255,255,0.2)", boxShadow: "none" }}
+                onClick={() => setIsSubmitted(false)}>
+                Submit Another Request
               </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
-              <div className="form-row">
-                <div className="input-group">
-                  <label className="input-label">Full Name</label>
-                  <input type="text" className="form-input" placeholder="John Carter" required />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                <div className="contact-input-group">
+                  <label className="contact-label">First Name</label>
+                  <input type="text" className="contact-input" placeholder="John" required />
                 </div>
-                <div className="input-group">
-                  <label className="input-label">Work Email</label>
-                  <input type="email" className="form-input" placeholder="john@company.com" required />
+                <div className="contact-input-group">
+                  <label className="contact-label">Last Name</label>
+                  <input type="text" className="contact-input" placeholder="Doe" required />
                 </div>
+              </div>
+
+              <div className="contact-input-group">
+                <label className="contact-label">Work Email</label>
+                <input type="email" className="contact-input" placeholder="john@company.com" required />
               </div>
               
-              <div className="input-group">
-                <label className="input-label">Company Name</label>
-                <input type="text" className="form-input" placeholder="Enterprise Corp Ltd" required />
+              <div className="contact-input-group">
+                <label className="contact-label">Company Name</label>
+                <input type="text" className="contact-input" placeholder="Your Company" required />
               </div>
 
-              <div className="input-group">
-                <label className="input-label">Desired Outcome</label>
-                <textarea className="form-input form-textarea" placeholder="Tell us about your current operational challenges..."></textarea>
+              <div className="contact-input-group">
+                <label className="contact-label">Message (Optional)</label>
+                <textarea className="contact-textarea" placeholder="Tell us about your needs..." rows={4}></textarea>
               </div>
 
-              <button type="submit" className="submit-btn" disabled={isSubmitting}>
-                {isSubmitting ? "Processing..." : <><Send size={18} /> Schedule Technical Demo</>}
+              <button type="submit" className="contact-submit-btn" disabled={isSubmitting}>
+                {isSubmitting ? "Submitting..." : <><Send size={18} /> Request Demo</>}
               </button>
             </form>
           )}
