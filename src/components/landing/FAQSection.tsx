@@ -7,7 +7,7 @@ import {
 
 const faqs = [
   {
-    question: "How long does it take to set up Mantis ERP?",
+    question: "How long does it take to set up Vericore ERP?",
     answer: "Most businesses are up and running within 24-48 hours. Our onboarding team provides guided setup, data migration assistance, and training to ensure a smooth transition. For enterprise deployments with custom integrations, the timeline may vary based on requirements.",
   },
   {
@@ -15,7 +15,7 @@ const faqs = [
     answer: "Yes! We support data migration from most popular ERP systems, spreadsheets, and databases. Our migration tools and team will help you transfer your existing data seamlessly without any loss of information.",
   },
   {
-    question: "Is my data secure with Mantis ERP?",
+    question: "Is my data secure with Vericore ERP?",
     answer: "Absolutely. We use bank-grade encryption (AES-256) for data at rest and in transit. Our platform is SOC 2 Type II certified, GDPR compliant, and regularly audited by third-party security firms. We also offer on-premise deployment for organizations with specific compliance requirements.",
   },
   {
@@ -34,41 +34,74 @@ const faqs = [
 
 export function FAQSection() {
   return (
-    <section className="py-20 lg:py-32 bg-background" id="support">
-      <div className="container mx-auto px-4 lg:px-8">
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-primary font-semibold text-sm uppercase tracking-wider">
-            FAQ
-          </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mt-4 mb-6">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            Got questions? We've got answers. If you can't find what you're looking for, 
-            feel free to contact our support team.
-          </p>
-        </div>
+    <section id="support" style={{ position: "relative", background: "#0a0a12", padding: "120px 20px", overflow: "hidden" }}>
+      <style>{`
+        .faq-orb {
+          position: absolute;
+          width: 500px; height: 500px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(14,165,233,0.15) 0%, transparent 70%);
+          filter: blur(100px);
+          top: 20%; right: -150px;
+          pointer-events: none;
+          animation: orbDrift4 40s ease-in-out infinite alternate;
+        }
+        .faq-container {
+          max-width: 800px;
+          margin: 64px auto 0;
+          position: relative;
+          z-index: 1;
+        }
+        .faq-accordion-item {
+          background: rgba(255,255,255,0.03);
+          backdrop-filter: blur(20px) saturate(180%);
+          -webkit-backdrop-filter: blur(20px) saturate(180%);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 20px;
+          margin-bottom: 16px;
+          overflow: hidden;
+          transition: all 0.3s ease;
+        }
+        .faq-accordion-item:hover {
+          background: rgba(255,255,255,0.06);
+          border-color: rgba(255,255,255,0.15);
+          transform: translateY(-2px);
+          box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+        }
+        .faq-accordion-item[data-state="open"] {
+          background: rgba(255,255,255,0.08);
+          border-color: rgba(14,165,233,0.3);
+          box-shadow: 0 16px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+      `}</style>
+      
+      <div className="faq-orb" />
 
-        {/* FAQ Accordion */}
-        <div className="max-w-3xl mx-auto">
-          <Accordion type="single" collapsible className="space-y-4">
-            {faqs.map((faq, index) => (
-              <AccordionItem
-                key={index}
-                value={`item-${index}`}
-                className="border border-border rounded-xl px-6 bg-card"
-              >
-                <AccordionTrigger className="text-left font-semibold text-foreground hover:text-primary transition-colors py-6">
-                  {faq.question}
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground pb-6 leading-relaxed">
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
+      <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
+        <span className="section-label">✦ FAQ</span>
+        <h2 className="section-title">Frequently Asked Questions</h2>
+        <p className="section-sub">
+          Got questions? We've got answers. Take a look at our most common inquiries.
+        </p>
+      </div>
+
+      <div className="faq-container">
+        <Accordion type="single" collapsible className="space-y-4">
+          {faqs.map((faq, index) => (
+            <AccordionItem
+              key={index}
+              value={`item-${index}`}
+              className="faq-accordion-item"
+            >
+              <AccordionTrigger className="text-left font-medium text-[rgba(255,255,255,0.9)] hover:text-white transition-colors py-5 px-6" style={{ textDecoration: 'none' }}>
+                {faq.question}
+              </AccordionTrigger>
+              <AccordionContent className="text-[rgba(255,255,255,0.5)] font-light leading-relaxed px-6 pb-6 pt-0">
+                {faq.answer}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       </div>
     </section>
   );
