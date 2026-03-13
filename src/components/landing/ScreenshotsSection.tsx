@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { X, ChevronLeft, ChevronRight, Play } from "lucide-react";
 
 const screenshots = [
   {
@@ -33,8 +32,7 @@ const screenshots = [
   },
   {
     title: "Profile Overview",
-    description:
-      "Manage your personal details, preferences, and account settings",
+    description: "Manage your personal details, preferences, and account settings",
     category: "User",
     placeholder: "User information with editable profile sections",
     image: "/screenshots/profile.png",
@@ -56,156 +54,268 @@ export function ScreenshotsSection() {
     setCurrentIndex(index);
     setLightboxOpen(true);
   };
-
   const closeLightbox = () => setLightboxOpen(false);
-
-  const nextImage = () => {
+  const nextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setCurrentIndex((prev) => (prev + 1) % screenshots.length);
   };
-
-  const prevImage = () => {
-    setCurrentIndex(
-      (prev) => (prev - 1 + screenshots.length) % screenshots.length
-    );
+  const prevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev - 1 + screenshots.length) % screenshots.length);
   };
 
   return (
-    <section className="py-20 lg:py-32 bg-background" id="screenshots">
-      <div className="container mx-auto px-4 lg:px-8">
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-primary font-semibold text-sm uppercase tracking-wider">
-            Screenshots
-          </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mt-4 mb-6">
-            See It in Action
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            Explore our intuitive interface designed for maximum productivity.
-          </p>
-        </div>
+    <section id="screenshots" style={{ position: "relative", background: "#0a0a12", padding: "120px 20px", overflow: "hidden" }}>
+      <style>{`
+        .screen-orb {
+          position: absolute;
+          width: 500px; height: 500px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(14,165,233,0.15) 0%, transparent 70%);
+          filter: blur(100px);
+          top: 0; right: -100px;
+          pointer-events: none;
+          animation: orbDrift1 36s ease-in-out infinite alternate;
+        }
+        .screen-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 32px;
+          max-width: 1200px;
+          margin: 64px auto 0;
+        }
+        @media (max-width: 1024px) { .screen-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; } }
+        @media (max-width: 640px) { .screen-grid { grid-template-columns: 1fr; } }
+        
+        .screen-card {
+          cursor: pointer;
+          animation: fadeUpIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        .screen-img-wrap {
+          position: relative;
+          aspect-ratio: 16/9;
+          border-radius: 20px;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.1);
+          overflow: hidden;
+          transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+          box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+        }
+        .screen-card:hover .screen-img-wrap {
+          transform: translateY(-8px);
+          border-color: rgba(255,255,255,0.25);
+          box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset;
+        }
+        .screen-img {
+          width: 100%; height: 100%;
+          object-fit: cover;
+          opacity: 0.8;
+          transition: opacity 0.4s ease, transform 0.6s ease;
+        }
+        .screen-card:hover .screen-img {
+          opacity: 1;
+          transform: scale(1.05);
+        }
+        .screen-placeholder {
+          width: 100%; height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+          color: rgba(255,255,255,0.3);
+          font-size: 13px;
+          font-weight: 300;
+          text-align: center;
+          padding: 20px;
+        }
+        .screen-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(0,0,0,0.4);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+        .screen-card:hover .screen-overlay { opacity: 1; }
+        .screen-play-btn {
+          width: 56px; height: 56px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.15);
+          border: 1px solid rgba(255,255,255,0.3);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          backdrop-filter: blur(20px);
+          transform: scale(0.8);
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .screen-card:hover .screen-play-btn { transform: scale(1); }
+        .screen-category-badge {
+          position: absolute;
+          top: 16px; left: 16px;
+          padding: 4px 12px;
+          background: rgba(0,0,0,0.5);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255,255,255,0.15);
+          border-radius: 50px;
+          font-size: 11px;
+          font-weight: 500;
+          color: rgba(255,255,255,0.9);
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          z-index: 2;
+        }
+        .screen-info {
+          margin-top: 20px;
+          padding-left: 8px;
+        }
+        .screen-title {
+          font-size: 16px;
+          font-weight: 500;
+          color: rgba(255,255,255,0.9);
+          margin: 0 0 6px;
+          transition: color 0.3s ease;
+        }
+        .screen-card:hover .screen-title { color: #38bdf8; }
+        .screen-desc {
+          font-size: 13px;
+          font-weight: 300;
+          color: rgba(255,255,255,0.5);
+          margin: 0;
+        }
 
-        {/* Screenshots Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {screenshots.map((screenshot, index) => (
-            <div
-              key={index}
-              className="group cursor-pointer"
-              onClick={() => openLightbox(index)}
-            >
-              <div className="relative overflow-hidden rounded-xl border border-border bg-muted/50 aspect-video">
-                {/* Placeholder image */}
-                {screenshot.image ? (
-                  <img
-                    src={screenshot.image}
-                    alt={screenshot.placeholder}
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-900 p-4">
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-primary/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <div className="w-8 h-8 bg-primary/40 rounded-lg" />
-                      </div>
-                      <p className="text-slate-400 text-sm">
-                        {screenshot.placeholder}
-                      </p>
-                    </div>
-                  </div>
-                )}
+        .lightbox {
+          position: fixed;
+          inset: 0;
+          z-index: 999;
+          background: rgba(0,0,0,0.85);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          animation: fadeUpIn 0.3s ease both;
+        }
+        .lightbox-close {
+          position: absolute;
+          top: 32px; right: 32px;
+          width: 48px; height: 48px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.1);
+          border: 1px solid rgba(255,255,255,0.2);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          z-index: 10;
+        }
+        .lightbox-close:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
+        .lightbox-nav {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 56px; height: 56px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.1);
+          border: 1px solid rgba(255,255,255,0.2);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          z-index: 10;
+        }
+        .lightbox-nav.prev { left: 40px; }
+        .lightbox-nav.next { right: 40px; }
+        .lightbox-nav:hover { background: rgba(255,255,255,0.2); transform: translateY(-50%) scale(1.1); }
+        .lightbox-content {
+          max-width: 90vw;
+          max-height: 80vh;
+          position: relative;
+        }
+        .lightbox-img {
+          max-width: 100%;
+          max-height: 70vh;
+          border-radius: 16px;
+          box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+          border: 1px solid rgba(255,255,255,0.1);
+          object-fit: contain;
+        }
+        .lightbox-info {
+          text-align: center;
+          margin-top: 24px;
+        }
+        .lightbox-title { font-size: 20px; font-weight: 500; color: white; margin: 0 0 8px; }
+        .lightbox-desc { font-size: 14px; color: rgba(255,255,255,0.6); margin: 0; }
+        
+        @media (max-width: 768px) {
+          .lightbox-nav { display: none; }
+          .lightbox-close { top: 16px; right: 16px; width: 40px; height: 40px; }
+        }
+      `}</style>
 
-                {/* Overlay on hover */}
-                <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <div className="bg-white/90 dark:bg-black/90 rounded-full p-3">
-                    <svg
-                      className="w-6 h-6 text-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-                      />
-                    </svg>
-                  </div>
-                </div>
+      <div className="screen-orb" />
 
-                {/* Category badge */}
-                <div className="absolute top-3 left-3">
-                  <span className="px-2 py-1 bg-black/50 backdrop-blur-sm rounded-md text-xs text-white font-medium">
-                    {screenshot.category}
-                  </span>
-                </div>
-              </div>
-
-              {/* Caption */}
-              <div className="mt-4">
-                <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                  {screenshot.title}
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {screenshot.description}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
+        <span className="section-label">✦ Interface</span>
+        <h2 className="section-title">See It In Action</h2>
+        <p className="section-sub">
+          Explore our intuitive interface designed for maximum productivity and elegance.
+        </p>
       </div>
 
-      {/* Lightbox */}
-      {lightboxOpen && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4">
-          <button
-            onClick={closeLightbox}
-            className="absolute top-4 right-4 text-white hover:text-primary transition-colors"
-          >
-            <X className="h-8 w-8" />
-          </button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute left-4 text-white hover:bg-white/10"
-            onClick={prevImage}
-          >
-            <ChevronLeft className="h-8 w-8" />
-          </Button>
-
-          <div className="max-w-4xl w-full">
-           {Boolean(screenshots[currentIndex]?.image) ? <img className="max-w-4xl w-full" src={screenshots[currentIndex]?.image} /> : <div className="aspect-video bg-gradient-to-br from-slate-700 to-slate-900 rounded-xl flex items-center justify-center">
-              <div className="text-center p-8">
-                <div className="w-20 h-20 bg-primary/20 rounded-xl flex items-center justify-center mx-auto mb-6">
-                  <div className="w-10 h-10 bg-primary/40 rounded-lg" />
-                </div>
-                <p className="text-slate-400">
-                  {screenshots[currentIndex].placeholder}
-                </p>
+      <div className="screen-grid" style={{ position: "relative", zIndex: 1 }}>
+        {screenshots.map((s, index) => (
+          <div key={index} className="screen-card" style={{ animationDelay: `${0.1 + index * 0.1}s` }} onClick={() => openLightbox(index)}>
+            <div className="screen-img-wrap">
+              <span className="screen-category-badge">{s.category}</span>
+              {Boolean(s.image) ? (
+                <img src={s.image} alt={s.title} className="screen-img" />
+              ) : (
+                <div className="screen-placeholder">{s.placeholder}</div>
+              )}
+              <div className="screen-overlay">
+                <div className="screen-play-btn"><Play fill="white" size={20} /></div>
               </div>
-            </div>}
-            <div className="text-center mt-6">
-              <h3 className="text-xl font-semibold text-white">
-                {screenshots[currentIndex].title}
-              </h3>
-              <p className="text-slate-400 mt-2">
-                {screenshots[currentIndex].description}
-              </p>
-              <p className="text-slate-500 text-sm mt-4">
-                {currentIndex + 1} / {screenshots.length}
-              </p>
+            </div>
+            <div className="screen-info">
+              <h3 className="screen-title">{s.title}</h3>
+              <p className="screen-desc">{s.description}</p>
             </div>
           </div>
+        ))}
+      </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-4 text-white hover:bg-white/10"
-            onClick={nextImage}
-          >
-            <ChevronRight className="h-8 w-8" />
-          </Button>
+      {lightboxOpen && (
+        <div className="lightbox" onClick={closeLightbox}>
+          <button className="lightbox-close" onClick={closeLightbox}><X size={24} /></button>
+          
+          <button className="lightbox-nav prev" onClick={prevImage}><ChevronLeft size={28} /></button>
+          <button className="lightbox-nav next" onClick={nextImage}><ChevronRight size={28} /></button>
+          
+          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+            {Boolean(screenshots[currentIndex].image) ? (
+              <img src={screenshots[currentIndex].image} alt={screenshots[currentIndex].title} className="lightbox-img" />
+            ) : (
+              <div className="lightbox-img" style={{ width: '800px', height: '450px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)' }}>
+                {screenshots[currentIndex].placeholder}
+              </div>
+            )}
+            <div className="lightbox-info">
+              <h3 className="lightbox-title">{screenshots[currentIndex].title}</h3>
+              <p className="lightbox-desc">{screenshots[currentIndex].description}</p>
+              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', marginTop: '8px' }}>{currentIndex + 1} / {screenshots.length}</p>
+            </div>
+          </div>
         </div>
       )}
     </section>
