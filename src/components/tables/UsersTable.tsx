@@ -310,12 +310,12 @@ export function UsersTable({
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
-                        <Badge variant={getRoleBadgeVariant(typeof user.user_role.name)}>
-                          {user.user_role.name}
+                        <Badge variant={getRoleBadgeVariant(user.user_role?.name || "")}>
+                          {user.user_role?.name || "No Role"}
                         </Badge>
                       </TableCell>
-                      <TableCell>{user.designation.name}</TableCell>
-                      <TableCell>{user.department.name}</TableCell>
+                      <TableCell>{user.designation?.name || "N/A"}</TableCell>
+                      <TableCell>{user.department?.name || "N/A"}</TableCell>
                       <TableCell>
                         {moment(user.created_at).format("DD-MM-YYYY")}
                       </TableCell>

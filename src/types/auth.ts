@@ -11,11 +11,11 @@ export type UserType = {
   short_name: string;
   phone: string;
   avatar_url: string | null;
-  designation: string | null;
+  designation: MasterResult | null;
   designation_id: number | null;
-  department: string | null;
+  department: MasterResult | null;
   department_id: number | null;
-  user_role: string | null;
+  user_role: MasterResult | null;
   user_role_id: number | null;
   company: string | null;
   company_id: number | null;

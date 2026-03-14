@@ -8,8 +8,8 @@ export const saveJobRequest = async (
 ): ApiResponseType<JobRequest> => {
   try {
     return (await network.post(`${apis.jobRequest}`, payload)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 
@@ -26,8 +26,8 @@ export const updateJobRequest = async (
     }
     
     return (await network.patch(`${apis.jobRequest}/${id}`, dataToSend)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 
@@ -36,39 +36,39 @@ export const deleteJobRequest = async (
 ): ApiResponseType<JobRequest> => {
   try {
     return (await network.delete(`${apis.jobRequest}/${id}`)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 
 export const getJobRequests = async (id: string): ApiResponseType<JobRequest[]> => {
   try {
     return (await network.get(`${apis.jobRequest}/client/${id}`)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 
 export const getJobDetails = async (id:string):ApiResponseType<JobRequest> =>{
      try {
        return (await network.get(`${apis.jobRequestDetails}/${id}`)).data
-     } catch (error) {
-      throw new Error(error.response.data.message || "Oops! Something went wrong")
+     } catch (error: any) {
+      throw new Error(error.response?.data?.message || error.message || "Oops! Something went wrong")
      }
 }
 
 export const getJobByUser = async (id:string):ApiResponseType<{pending:Job[],inProgress:Job[],completed:Job[]}>=>{
      try {
        return (await network.get(`${apis.jobsByUserId}/${id}`)).data
-     } catch (error) {
-      throw new Error(error.response.data.message || "Oops! Something went wrong")
+     } catch (error: any) {
+      throw new Error(error.response?.data?.message || error.message || "Oops! Something went wrong")
      }
 }
 
 export const updateJobData = async (payload:Job):ApiResponseType<{pending:Job[],inProgress:Job[],completed:Job[]}>=>{
         try {
        return (await network.put(`${apis.jobsByUserId}/${payload._id}`,payload)).data
-     } catch (error) {
-      throw new Error(error.response.data.message || "Oops! Something went wrong")
+     } catch (error: any) {
+      throw new Error(error.response?.data?.message || error.message || "Oops! Something went wrong")
      }
 }

@@ -5,9 +5,9 @@ import { Notification } from "@/types/types";
 export const getNotification = async (id: string | number):ApiResponseType<Notification[]> => {
   try {
     return (await network.get(`${apis.notification}/${id}`)).data;
-  } catch (error) {
+  } catch (error: any) {
     throw new Error(
-      error.response.data.message || "Oops! Something went wrong"
+      error.response?.data?.message || error.message || "Oops! Something went wrong"
     );
   }
 };
@@ -21,9 +21,9 @@ export const updateNotification = async ({
 }):ApiResponseType<string> => {
   try {
     return (await network.put(`${apis.notification}/${id}`, { isRead })).data;
-  } catch (error) {
+  } catch (error: any) {
     throw new Error(
-      error.response.data.message || "Oops! Something went wrong"
+      error.response?.data?.message || error.message || "Oops! Something went wrong"
     );
   }
 };

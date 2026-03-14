@@ -40,7 +40,11 @@ export default function CreateUser() {
     }),
     refetchOnWindowFocus: false,
     onSuccess: (result) => {
-      setUsers(result.data);
+      console.log("users",result)
+      setUsers({
+        list: result.data,
+        count: result.data.length
+      });
     },
   });
 

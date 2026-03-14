@@ -8,8 +8,8 @@ export const saveClient = async (payload: any):ApiResponseType<ClientType> => {
     return (
       await network.post(apis.clientApi, payload)
     ).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 
@@ -19,8 +19,8 @@ export const updateClient = async (payload: any):ApiResponseType<ClientType> => 
     return (
       await network.patch(`${apis.clientApi}/${clientId}`, rest)
     ).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 
@@ -30,8 +30,8 @@ export const getClients = async (
 ): ApiResponseType<{ data: ClientType[]; count: number }> => {
   try {
     return (await network.get(apis.clientApi, { params: { skip, take } })).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 
@@ -40,7 +40,7 @@ export const deleteClients = async (id:string):ApiResponseType<ClientType>=>{
     return (
       await network.delete(`${apis.clientApi}/${id}`)
     ).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 }

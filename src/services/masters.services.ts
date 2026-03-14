@@ -10,24 +10,24 @@ export type MasterResult = {
 export const getDesignation = async (): ApiResponseType<MasterResult[]> => {
   try {
     return (await network.get(apis.designationMaster)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message || "Oop! something went wrong");
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "Oop! something went wrong");
   }
 };
 
 export const getDepartment = async (): ApiResponseType<MasterResult[]> => {
   try {
     return (await network.get(apis.departmentMaster)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message || "Oop! something went wrong");
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "Oop! something went wrong");
   }
 };
 
 export const getUserRole = async (): ApiResponseType<MasterResult[]> => {
   try {
     return (await network.get(apis.userRoles)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message || "Oop! something went wrong");
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "Oop! something went wrong");
   }
 };
 
@@ -36,8 +36,8 @@ export const deleteDesignation = async (
 ): ApiResponseType<MasterResult[]> => {
   try {
     return (await network.delete(`${apis.designationMaster}/${id}`)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message || "Oop! something went wrong");
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "Oop! something went wrong");
   }
 };
 
@@ -46,8 +46,8 @@ export const deleteDepartment = async (
 ): ApiResponseType<MasterResult[]> => {
   try {
     return (await network.delete(`${apis.departmentMaster}/${id}`)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message || "Oop! something went wrong");
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "Oop! something went wrong");
   }
 };
 
@@ -56,8 +56,8 @@ export const deleteUserRole = async (
 ): ApiResponseType<MasterResult[]> => {
   try {
     return (await network.delete(`${apis.userRoles}/${id}`)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message || "Oop! something went wrong");
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "Oop! something went wrong");
   }
 };
 
@@ -66,8 +66,8 @@ export const saveDesignation = async (payload: {
 }): ApiResponseType<MasterResult> => {
   try {
     return (await network.post(apis.designationMaster, payload)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message || "Oop! something went wrong");
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "Oop! something went wrong");
   }
 };
 
@@ -76,8 +76,8 @@ export const saveDepartment = async (payload: {
 }): ApiResponseType<MasterResult> => {
   try {
     return (await network.post(apis.departmentMaster, payload)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message || "Oop! something went wrong");
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "Oop! something went wrong");
   }
 };
 
@@ -86,7 +86,7 @@ export const saveUserRole = async (payload: {
 }): ApiResponseType<MasterResult> => {
   try {
     return (await network.post(apis.userRoles, payload)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message || "Oop! something went wrong");
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "Oop! something went wrong");
   }
 };
