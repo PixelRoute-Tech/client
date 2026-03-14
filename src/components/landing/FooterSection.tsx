@@ -34,122 +34,273 @@ export function FooterSection() {
   const scrollToSection = (href: string) => {
     if (href.startsWith("#")) {
       const element = document.querySelector(href);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-      }
+      if (element) element.scrollIntoView({ behavior: "smooth" });
     }
   };
 
   return (
-    <footer className="bg-slate-900 text-slate-300" id="documentation">
-      <div className="container mx-auto px-4 lg:px-8">
-        {/* Main Footer Content */}
-        <div className="py-16 lg:py-20">
-          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-12">
-            {/* Brand Column */}
-            <div className="lg:col-span-2">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center font-bold text-xl text-primary-foreground">
-                  M
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">Mantis</h3>
-                  <p className="text-xs text-slate-400">ERP Solution</p>
-                </div>
+    <footer id="documentation" style={{ position: "relative", background: "#0a0a12", borderTop: "1px solid rgba(255,255,255,0.07)", overflow: "hidden" }}>
+      <style>{`
+        .footer-glass-inner {
+          position: relative;
+          background: rgba(255,255,255,0.03);
+          backdrop-filter: blur(40px);
+          -webkit-backdrop-filter: blur(40px);
+        }
+        .footer-orb {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(100px);
+          pointer-events: none;
+        }
+        .footer-orb-1 {
+          width: 400px; height: 300px;
+          background: radial-gradient(circle, rgba(107,33,255,0.12) 0%, transparent 70%);
+          top: -80px; right: 10%;
+        }
+        .footer-grid {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr 1fr;
+          gap: 48px;
+          padding: 72px 40px 48px;
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+        @media (max-width: 1024px) {
+          .footer-grid { grid-template-columns: 1fr 1fr; padding: 48px 24px 40px; gap: 32px; }
+        }
+        @media (max-width: 640px) {
+          .footer-grid { grid-template-columns: 1fr; padding: 40px 20px 32px; }
+        }
+        .footer-brand-logo {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 20px;
+        }
+        .footer-brand-icon {
+          width: 36px; height: 36px;
+          border-radius: 10px;
+          background: linear-gradient(135deg, #6B21FF, #A855F7);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 18px;
+          color: white;
+          box-shadow: 0 0 20px rgba(107,33,255,0.4);
+          flex-shrink: 0;
+        }
+        .footer-brand-name {
+          font-size: 16px;
+          font-weight: 500;
+          color: rgba(255,255,255,0.9);
+          letter-spacing: -0.01em;
+        }
+        .footer-brand-sub {
+          font-size: 11px;
+          color: rgba(255,255,255,0.35);
+          letter-spacing: 0.04em;
+        }
+        .footer-brand-desc {
+          font-size: 13px;
+          font-weight: 300;
+          color: rgba(255,255,255,0.4);
+          line-height: 1.75;
+          margin: 0 0 20px;
+          max-width: 300px;
+        }
+        .footer-contact-line {
+          font-size: 12px;
+          font-weight: 300;
+          color: rgba(255,255,255,0.35);
+          line-height: 1.8;
+          margin: 0;
+        }
+        .footer-contact-line a {
+          color: #c084fc;
+          text-decoration: none;
+        }
+        .footer-col-title {
+          font-size: 12px;
+          font-weight: 500;
+          color: rgba(255,255,255,0.7);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          margin: 0 0 20px;
+        }
+        .footer-link-list {
+          list-style: none;
+          padding: 0; margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .footer-link-btn {
+          background: none;
+          border: none;
+          font-size: 13px;
+          font-weight: 300;
+          color: rgba(255,255,255,0.4);
+          cursor: pointer;
+          padding: 0;
+          text-align: left;
+          transition: color 0.2s ease;
+          letter-spacing: 0.01em;
+        }
+        .footer-link-btn:hover { color: rgba(255,255,255,0.8); }
+        .footer-divider {
+          height: 1px;
+          background: rgba(255,255,255,0.07);
+          margin: 0 40px;
+          max-width: calc(1200px - 80px);
+          margin-left: auto;
+          margin-right: auto;
+        }
+        @media (max-width: 640px) {
+          .footer-divider { margin: 0 20px; }
+        }
+        .footer-bottom {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 16px;
+          padding: 24px 40px;
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+        @media (max-width: 640px) {
+          .footer-bottom { padding: 20px; flex-direction: column; align-items: flex-start; }
+        }
+        .footer-copyright {
+          font-size: 12px;
+          font-weight: 300;
+          color: rgba(255,255,255,0.3);
+        }
+        .footer-legal {
+          display: flex;
+          gap: 16px;
+        }
+        .footer-legal-btn {
+          background: none;
+          border: none;
+          font-size: 12px;
+          font-weight: 300;
+          color: rgba(255,255,255,0.3);
+          cursor: pointer;
+          transition: color 0.2s ease;
+        }
+        .footer-legal-btn:hover { color: rgba(255,255,255,0.7); }
+        .footer-socials {
+          display: flex;
+          gap: 8px;
+        }
+        .footer-social-icon {
+          width: 32px; height: 32px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: rgba(255,255,255,0.4);
+          text-decoration: none;
+          transition: all 0.25s ease;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+        }
+        .footer-social-icon:hover {
+          background: rgba(107,33,255,0.3);
+          border-color: rgba(168,85,247,0.4);
+          color: rgba(255,255,255,0.9);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 16px rgba(107,33,255,0.3);
+        }
+      `}</style>
+
+      <div className="footer-glass-inner">
+        <div className="footer-orb footer-orb-1" />
+
+        <div className="footer-grid">
+          {/* Brand */}
+          <div>
+            <div className="footer-brand-logo">
+              <div className="footer-brand-icon">V</div>
+              <div>
+                <div className="footer-brand-name">Vericore Inspections</div>
+                <div className="footer-brand-sub">ERP Solution</div>
               </div>
-              <p className="text-slate-400 mb-6 max-w-sm leading-relaxed">
-                Streamline your business operations with our comprehensive ERP platform. 
-                From client management to advanced analytics—all in one place.
-              </p>
-
-              {/* Contact Info */}
-              <div className="space-y-2 text-sm">
-                <p>123 Business Avenue, Suite 500</p>
-                <p>San Francisco, CA 94102</p>
-                <p className="text-primary">sales@mantis-erp.com</p>
-                <p>+1 (800) MANTIS-1</p>
-              </div>
             </div>
+            <p className="footer-brand-desc">
+              Streamline your business operations with our comprehensive ERP platform.
+              From client management to advanced analytics — all in one place.
+            </p>
+            <p className="footer-contact-line">
+              123 Business Avenue, Suite 500<br />
+              San Francisco, CA 94102<br />
+              <a href="mailto:sales@vericore-erp.com">sales@vericore-erp.com</a><br />
+              +1 (800) VERICOR-1
+            </p>
+          </div>
 
-            {/* Product Links */}
-            <div>
-              <h4 className="text-white font-semibold mb-6">Product</h4>
-              <ul className="space-y-3">
-                {footerLinks.product.map((link) => (
-                  <li key={link.label}>
-                    <button
-                      onClick={() => scrollToSection(link.href)}
-                      className="text-slate-400 hover:text-white transition-colors text-sm"
-                    >
-                      {link.label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {/* Product */}
+          <div>
+            <h4 className="footer-col-title">Product</h4>
+            <ul className="footer-link-list">
+              {footerLinks.product.map((link) => (
+                <li key={link.label}>
+                  <button onClick={() => scrollToSection(link.href)} className="footer-link-btn">
+                    {link.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-            {/* Documentation Links */}
-            <div>
-              <h4 className="text-white font-semibold mb-6">Documentation</h4>
-              <ul className="space-y-3">
-                {footerLinks.documentation.map((link) => (
-                  <li key={link.label}>
-                    <button
-                      onClick={() => scrollToSection(link.href)}
-                      className="text-slate-400 hover:text-white transition-colors text-sm"
-                    >
-                      {link.label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {/* Documentation */}
+          <div>
+            <h4 className="footer-col-title">Documentation</h4>
+            <ul className="footer-link-list">
+              {footerLinks.documentation.map((link) => (
+                <li key={link.label}>
+                  <button onClick={() => scrollToSection(link.href)} className="footer-link-btn">
+                    {link.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-            {/* Support Links */}
-            <div>
-              <h4 className="text-white font-semibold mb-6">Support & Help</h4>
-              <ul className="space-y-3">
-                {footerLinks.support.map((link) => (
-                  <li key={link.label}>
-                    <button
-                      onClick={() => scrollToSection(link.href)}
-                      className="text-slate-400 hover:text-white transition-colors text-sm"
-                    >
-                      {link.label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {/* Support */}
+          <div>
+            <h4 className="footer-col-title">Support & Help</h4>
+            <ul className="footer-link-list">
+              {footerLinks.support.map((link) => (
+                <li key={link.label}>
+                  <button onClick={() => scrollToSection(link.href)} className="footer-link-btn">
+                    {link.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="py-6 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-6 text-sm">
-            <p>&copy; {new Date().getFullYear()} Mantis ERP. All rights reserved.</p>
-          </div>
+        <div className="footer-divider" />
 
-          <div className="flex items-center gap-4">
-            <button className="text-slate-400 hover:text-white transition-colors text-sm">
-              Terms & Conditions
-            </button>
-            <span className="text-slate-600">|</span>
-            <button className="text-slate-400 hover:text-white transition-colors text-sm">
-              Privacy Policy
-            </button>
+        <div className="footer-bottom">
+          <p className="footer-copyright">
+            © {new Date().getFullYear()} Vericore Inspections ERP. All rights reserved.
+          </p>
+          <div className="footer-legal">
+            <button className="footer-legal-btn">Terms & Conditions</button>
+            <button className="footer-legal-btn">Privacy Policy</button>
           </div>
-
-          {/* Social Links */}
-          <div className="flex items-center gap-4">
-            {socialLinks.map((social) => (
-              <a
-                key={social.label}
-                href={social.href}
-                className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all"
-                aria-label={social.label}
-              >
-                <social.icon className="h-4 w-4" />
+          <div className="footer-socials">
+            {socialLinks.map((s) => (
+              <a key={s.label} href={s.href} className="footer-social-icon" aria-label={s.label}>
+                <s.icon size={14} />
               </a>
             ))}
           </div>
