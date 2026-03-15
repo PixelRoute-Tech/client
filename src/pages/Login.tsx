@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
-import { Eye, EyeOff, Loader, LogIn } from "lucide-react";
+import { Eye, EyeOff, Loader, LogIn, Diamond } from "lucide-react";
 import { setItem, storageKeys } from "@/utils/storage";
 import { useAuth } from "@/hooks/useAuth";
 import FormInput from "@/components/forms/fields/FormInput";
@@ -74,8 +74,16 @@ const Login = () => {
       <Card className="w-full max-w-md mx-4 backdrop-blur-sm bg-card/80 border-border/50 shadow-2xl">
         <CardHeader className="text-center pb-8">
           {/* Logo */}
-          <div className="mx-auto w-16 h-16 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center mb-4">
-            <span className="text-2xl font-bold">M</span>
+          <div className="flex flex-col items-center justify-center mb-6">
+            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
+              <Diamond className="w-10 h-10 text-primary" />
+            </div>
+            <h1 className="text-3xl font-light text-[var(--text-primary)] tracking-wide">
+              VeriCore
+            </h1>
+            <p className="text-xs text-[var(--text-muted)] mt-1 uppercase tracking-[0.3em]">
+              Inspections
+            </p>
           </div>
           <CardTitle className="text-2xl font-bold">Login</CardTitle>
           <CardDescription>
