@@ -3,9 +3,7 @@ import router from "@/routes/routes";
 import { ApiResponseType } from "@/types/network.type";
 import { clearStorage, getItem, storageKeys } from "@/utils/storage";
 import axios from "axios";
-export const baseURL = `${location.protocol}//${location.hostname}:${
-  import.meta.env.VITE_PORT
-}`;
+export const baseURL = import.meta.env.VITE_API_URL || `${location.protocol}//${location.hostname}:${import.meta.env.VITE_PORT}`;
 
 const network = axios.create({
   baseURL,
