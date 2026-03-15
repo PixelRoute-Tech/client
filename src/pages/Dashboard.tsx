@@ -11,6 +11,7 @@ import {
   ArrowUpRight,
   MoreHorizontal
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
   const stats = [
@@ -62,6 +63,8 @@ const Dashboard = () => {
     { name: "Database Migration", progress: 95, status: "Review", priority: "High" },
   ];
 
+  const { user } = useAuth() || {};
+  
   return (
     <div className="p-6 space-y-6 page-transition">
       {/* Welcome Section */}
@@ -69,7 +72,7 @@ const Dashboard = () => {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
         <div className="flex items-center justify-between relative z-10">
           <div>
-            <h1 className="text-3xl font-light text-primary-white tracking-wide mb-2">Good morning, Aravind</h1>
+            <h1 className="text-3xl font-light text-primary-white tracking-wide mb-2">Good morning, {user?.first_name || "User"}</h1>
             <p className="text-body-white max-w-2xl mb-6">
               Welcome to VeriCore Inspections. Here's what's happening in your workspace today.
             </p>
