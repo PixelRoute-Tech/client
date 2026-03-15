@@ -46,7 +46,7 @@ const mainItems = [
 
 const settingsItems = [
   { title: "Theme Settings", url: "/theme-settings", icon: Palette, devOnly: true },
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Settings", url: "/settings", icon: Settings, devOnly: true },
   { title: "Login", url: "/login", icon: LogIn },
 ];
 

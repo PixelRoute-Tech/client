@@ -12,7 +12,7 @@ interface ThemeContextType {
 }
 
 const defaultTheme: SettingsType = {
-  primaryColor: "174 77% 56%",
+  primaryColor: "271 91% 65%",
   fontFamily: "Montserrat, system-ui, sans-serif",
   fontSize: "small",
   borderRadius: "small",
