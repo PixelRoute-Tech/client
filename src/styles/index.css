@@ -18,18 +18,18 @@
     /* Navigation & Sidebar */
     --sidebar-background: 240 39% 4.5%;
     --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary: 271 91% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 221 83% 53%;
+    --sidebar-accent: 271 91% 65%;
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 0 0% 12%;
-    --sidebar-ring: 221 83% 53%;
+    --sidebar-ring: 271 91% 65%;
 
     /* Primary Professional Theme */
-    --primary: 221 83% 53%; /* Blue 600 */
-    --primary-hover: 221 83% 43%;
+    --primary: 271 91% 65%; /* Purple */
+    --primary-hover: 271 91% 55%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 221 83% 73%;
+    --primary-light: 271 91% 75%;
 
     /* Secondary System */
     --secondary: 240 39% 10%;
