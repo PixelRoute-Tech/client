@@ -52,7 +52,7 @@ export default function JobListing() {
 
   const { data: userJobList,refetch,isLoading } = useQuery({
     queryKey: ["joblistbyuserid", user?.id],
-    queryFn: async () => getJobByUser(user?.id),
+    queryFn: async () => getJobByUser(user?.id?.toString() || ""),
   });
 
   const { mutate: statusChange } = useMutation({
@@ -162,15 +162,15 @@ export default function JobListing() {
   const columns: { id: Job["status"]; color: string }[] = [
     {
       id: "Pending",
-      color: "bg-secondary/10 border-secondary",
+      color: "glass-panel",
     },
     {
       id: "In progress",
-      color: "bg-primary/10 border-primary",
+      color: "glass-panel border-primary/30 shadow-[0_0_30px_hsl(var(--primary)_/_0.1)]",
     },
     {
       id: "Completed",
-      color: "bg-success/10 border-success",
+      color: "glass-panel",
     },
   ];
 

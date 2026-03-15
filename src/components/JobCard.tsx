@@ -60,7 +60,7 @@ export function JobCard({ job }: JobCardProps) {
     <Card
       ref={setNodeRef}
       style={style}
-      className="cursor-move hover:shadow-md transition-shadow"
+      className="cursor-move hover:-translate-y-1 hover:shadow-[0_0_20px_hsl(var(--primary)_/_0.2)] hover:border-primary/50 transition-all duration-300 glass-elevated text-[var(--text-primary)]"
       {...attributes}
       {...listeners}
     >

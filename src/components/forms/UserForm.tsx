@@ -210,8 +210,8 @@ export function UserForm({ onSubmit }) {
   };
 
   return (
-    <Card className="w-full max-w-2xl border-none shadow-none bg-transparent">
-      <CardHeader className="px-0">
+    <Card className="w-full max-w-2xl glass-panel p-6 md:p-8">
+      <CardHeader className="px-0 pt-0">
         <CardTitle className="text-2xl font-bold text-primary">
           {user?.id ? "Edit User Profile" : "User Information"}
         </CardTitle>
@@ -219,7 +219,7 @@ export function UserForm({ onSubmit }) {
           Please fill in the details below to {user?.id ? "update" : "create"} the user account.
         </p>
       </CardHeader>
-      <CardContent className="px-0">
+      <CardContent className="px-0 pb-0">
         <Form methods={form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
@@ -424,7 +424,7 @@ export function UserForm({ onSubmit }) {
                 control={form.control}
                 name="is_active"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
+                  <FormItem className="flex flex-row items-center justify-between rounded-[10px] border border-[var(--glass-border)] bg-[var(--glass-input-bg)] p-4">
                     <div className="space-y-0.5">
                       <FormLabel className="text-base">Active Account</FormLabel>
                       <p className="text-sm text-muted-foreground">
@@ -436,7 +436,7 @@ export function UserForm({ onSubmit }) {
                         type="checkbox"
                         checked={field.value}
                         onChange={field.onChange}
-                        className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                        className="h-5 w-5 rounded border-[var(--glass-input-border)] bg-[var(--glass-input-bg)] text-primary focus:ring-primary/50"
                       />
                     </FormControl>
                   </FormItem>

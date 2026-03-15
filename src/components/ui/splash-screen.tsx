@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { Diamond } from "lucide-react";
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -20,18 +21,40 @@ export function SplashScreen({ onComplete, duration = 2000 }: SplashScreenProps)
 
   return (
     <div className={cn(
-      "fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-primary/20 via-background to-accent/20 transition-opacity duration-300",
+      "fixed inset-0 z-50 flex items-center justify-center bg-[var(--body-bg)] transition-opacity duration-300",
       isVisible ? "opacity-100" : "opacity-0"
     )}>
-      <div className="text-center space-y-4">
-        <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-r from-primary to-accent animate-spin border-4 border-transparent border-t-primary"></div>
+      <div className="text-center space-y-8 flex flex-col items-center justify-center">
+        {/* Glow and Logo */}
+        <div className="relative flex items-center justify-center">
+          <div className="absolute w-32 h-32 bg-primary/30 rounded-full blur-[40px] animate-pulse"></div>
+          <Diamond className="w-16 h-16 text-primary relative z-10" />
+        </div>
+        
+        {/* Text */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            ERP System
+          <h1 className="text-3xl font-light text-[var(--text-primary)] tracking-wider">
+            VeriCore Inspections
           </h1>
-          <p className="text-muted-foreground">Loading your workspace...</p>
+        </div>
+
+        {/* Progress bar container */}
+        <div className="w-64 h-1 bg-[var(--glass-input-bg)] rounded-full overflow-hidden mt-6">
+          <div 
+            className="h-full rounded-full w-full"
+            style={{
+              background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.6), hsl(var(--info)))',
+              animation: 'loadProgress 2s ease-in-out forwards'
+            }}
+          ></div>
         </div>
       </div>
+      <style>{`
+        @keyframes loadProgress {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(0); }
+        }
+      `}</style>
     </div>
   );
 }
