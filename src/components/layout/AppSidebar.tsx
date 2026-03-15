@@ -115,31 +115,33 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mt-8">
-          <SidebarGroupLabel className={state === "collapsed" ? 'hidden' : 'section-label text-[var(--text-muted)] mb-2'}>
-            System
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {settingsItems.map((item) => {
-                if (item.devOnly && !import.meta.env.DEV) return null;
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      asChild 
-                      className={`w-full justify-start ${getNavCls(item.url)} transition-colors duration-200`}
-                    >
-                      <NavLink to={item.url}>
-                        <item.icon className={`h-5 w-5 ${state === "collapsed" ? 'mx-auto' : 'mr-3'}`} />
-                        {state !== "collapsed" && <span className="font-medium">{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {import.meta.env.DEV && (
+          <SidebarGroup className="mt-8">
+            <SidebarGroupLabel className={state === "collapsed" ? 'hidden' : 'section-label text-[var(--text-muted)] mb-2'}>
+              System
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {settingsItems.map((item) => {
+                  if (item.devOnly && !import.meta.env.DEV) return null;
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton 
+                        asChild 
+                        className={`w-full justify-start ${getNavCls(item.url)} transition-colors duration-200`}
+                      >
+                        <NavLink to={item.url}>
+                          <item.icon className={`h-5 w-5 ${state === "collapsed" ? 'mx-auto' : 'mr-3'}`} />
+                          {state !== "collapsed" && <span className="font-medium">{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   );
