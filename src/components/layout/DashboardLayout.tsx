@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
-import { Bell, Search, User } from "lucide-react";
+import { AnimatedBackground } from "./AnimatedBackground";
+import { Bell, Search, User, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,6 +25,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getNotification, updateNotification } from "@/services/notification.services";
 import { useToast } from "@/hooks/use-toast";
 import { baseURL } from "@/config/network.config";
+import { useTheme } from "@/contexts/ThemeContext";
+
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
@@ -35,6 +38,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [notifications, setNotifications] = useState<Notification[]>();
   const [notificationCount, setNotificationCount] = useState<number>(0);
   const queryClient = useQueryClient();
+  const { theme, updateTheme } = useTheme();
+
   const handleSignOut = () => {
     startLoading();
     signout(true);
@@ -54,6 +59,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         setNotifications(result?.data || []);
       }
     },
+    enabled:false,
     refetchOnWindowFocus: false,
   });
 
@@ -86,31 +92,46 @@ updateUnReaded({id:user.id,isRead:true})
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-transparent relative">
+        <AnimatedBackground />
         <AppSidebar />
 
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="h-16 border-b border-border bg-surface flex items-center justify-between px-6 sticky top-0 z-50">
+          <header className="h-16 border-b border-[var(--glass-border)] bg-[var(--body-bg)] backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-50">
             <div className="flex items-center gap-4">
-              <SidebarTrigger className="text-sidebar-foreground hover:bg-sidebar-accent" />
+              <SidebarTrigger className="text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-input-bg)] transition-colors" />
 
               {/* Search */}
               <div className="relative hidden md:block">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--text-muted)] h-4 w-4" />
                 <Input
                   placeholder="Search anything..."
-                  className="pl-10 w-80 bg-muted/50 border-muted"
+                  className="pl-10 w-80 shadow-none border-[var(--glass-border)]"
                 />
               </div>
             </div>
 
             <div className="flex items-center gap-4">
+              {/* Theme Toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => updateTheme({ themeMode: theme.themeMode === 'dark' ? 'light' : 'dark' })}
+                className="relative h-9 w-9 bg-[var(--glass-input-bg)] border border-[var(--glass-border)] rounded-full hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)]"
+              >
+                {theme.themeMode === 'dark' ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
+              </Button>
+
               {/* Notifications */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative">
-                    <Bell className="h-5 w-5" />
+                  <Button variant="ghost" size="icon" className="relative h-9 w-9 bg-[var(--glass-input-bg)] border border-[var(--glass-border)] rounded-full hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)]">
+                    <Bell className="h-4 w-4" />
                     {notificationCount > 0 && (
                       <Badge
                         variant="destructive"
@@ -131,22 +152,22 @@ updateUnReaded({id:user.id,isRead:true})
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="flex items-center gap-2 hover:bg-muted/50"
+                    className="flex items-center gap-2 hover:bg-[var(--glass-input-bg)] bg-transparent border-0"
                   >
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-9 w-9 border-2 border-primary/50">
                       <AvatarImage
                         src={`${baseURL}${
-                          user?.imageUrl ?? ""
+                          user?.avatar_url ?? ""
                         }`}
                       />
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {user.shortName}
+                      <AvatarFallback className="bg-primary/30 text-primary-white">
+                        {user.short_name}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="hidden md:block text-left">
-                      <p className="text-sm font-medium">{user.userName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {user.userRole}
+                    <div className="hidden md:flex flex-col text-left">
+                      <p className="text-sm font-medium text-[var(--text-primary)]">{`${user.first_name} ${user.last_name}`}</p>
+                      <p className="text-xs text-[var(--text-muted)]">
+                        {typeof user.user_role === 'string' ? user.user_role : (user.user_role as any)?.name || ''}
                       </p>
                     </div>
                   </Button>
@@ -174,7 +195,7 @@ updateUnReaded({id:user.id,isRead:true})
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 overflow-auto">{children}</main>
+          <main className="flex-1 overflow-auto p-4 md:p-6 page-transition">{children}</main>
         </div>
       </div>
     </SidebarProvider>

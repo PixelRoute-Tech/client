@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,25 +28,26 @@ export default function WorksheetBuilder() {
     onSuccess: (result) => {
       toast({
         title: "Success",
-        description: result.message,
+        description: result?.message || "Worksheet created successfully",
         className: "bg-green-500 text-white",
       });
       navigate(routes.worksheet);
     },
     onError: (error: any) => {
       toast({
-        title: "",
+        title: "Error",
         description: error?.message || "Opps! Something went wrong",
         className: "bg-red-500 text-white",
       });
     },
   });
+
   const workSheetUpdate = useMutation({
     mutationFn: updateWorkSheet,
     onSuccess: (result) => {
       toast({
         title: "Success",
-        description: result.message,
+        description: result?.message || "Worksheet updated successfully",
         className: "bg-green-500 text-white",
       });
       navigate(routes.worksheet);
@@ -61,30 +62,20 @@ export default function WorksheetBuilder() {
   });
 
   useEffect(() => {
-    if (isEditMode && worksheet?.workSheetId) {
-      if (worksheet) {
-        setWorksheetName(worksheet.name);
-        setDescription(worksheet.description || "")
-        // Add default layout for existing sections without layout field
-        const sectionsWithLayout = worksheet.sections.map((section) => ({
-          ...section,
-          layout: section?.layout || 1, // Default to 1 column if not set
-        }));
-        setSections(sectionsWithLayout);
-      } else {
-        toast({
-          title: "Worksheet not found",
-          description: "The worksheet you are trying to edit does not exist.",
-          variant: "destructive",
-        });
-        navigate("/worksheets");
-      }
+    if (isEditMode && worksheet?.worksheet_id) {
+      setWorksheetName(worksheet.name);
+      setDescription(worksheet.description || "");
+      const sectionsWithLayout = worksheet.sections.map((section) => ({
+        ...section,
+        layout: section?.layout || 1,
+      }));
+      setSections(sectionsWithLayout);
     }
-  }, [worksheet?.workSheetId, isEditMode, navigate, toast]);
+  }, [worksheet?.worksheet_id, isEditMode]);
 
   const addSection = () => {
     const newSection: WorksheetSection = {
-      sectionId: createRandomId("SECTION"),
+      section_id: createRandomId("SECTION"),
       name: "",
       layout: 1,
       fields: [],
@@ -93,14 +84,14 @@ export default function WorksheetBuilder() {
   };
 
   const updateSection = (
-    sectionId: string,
+    section_id: string,
     updatedSection: WorksheetSection
   ) => {
-    setSections(sections.map((s) => (s.sectionId === sectionId ? updatedSection : s)));
+    setSections(sections.map((s) => (s.section_id === section_id ? updatedSection : s)));
   };
 
-  const deleteSection = (sectionId: string) => {
-    setSections(sections.filter((s) => s.sectionId !== sectionId));
+  const deleteSection = (section_id: string) => {
+    setSections(sections.filter((s) => s.section_id !== section_id));
   };
 
   const handleSave = () => {
@@ -144,72 +135,34 @@ export default function WorksheetBuilder() {
       return;
     }
 
-    const workSheet: Worksheet = {
-      workSheetId: worksheet?.workSheetId || null,
+    // Prepare payload without createdAt/updatedAt to avoid NestJS validation errors
+    const workSheet: any = {
+      worksheet_id: worksheet?.worksheet_id || null,
       name: worksheetName,
       description,
       sections,
-      isActive: true,
-      createdAt: worksheet?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      is_active: true,
     };
 
     console.log("worksheet data=====> ", workSheet);
 
-    if (worksheet?.workSheetId) {
+    if (worksheet?.worksheet_id) {
       workSheetUpdate.mutate(workSheet);
     } else {
       workSheetSave.mutate(workSheet);
     }
-    toast({
-      title: "Success",
-      description: `Worksheet ${
-        isEditMode ? "updated" : "created"
-      } successfully.`,
-    });
-    navigate("/worksheets");
   };
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Components Panel */}
-      {/* <div className="w-64 border-r bg-card p-4 overflow-y-auto">
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Components</h2>
-          <div className="space-y-2">
-            <div className="text-sm text-muted-foreground mb-2">
-              Field Types
-            </div>
-            {[
-              { icon: "📝", label: "Text Input" },
-              { icon: "📄", label: "Text Area" },
-              { icon: "▼", label: "Dropdown" },
-              { icon: "📅", label: "Date Picker" },
-              { icon: "☑️", label: "Checkbox" },
-              { icon: "⊞", label: "Table" },
-            ].map((component, idx) => (
-              <div
-                key={idx}
-                className="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
-              >
-                <span className="text-xl">{component.icon}</span>
-                <span className="text-sm font-medium">{component.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div> */}
-
-      {/* Main Canvas */}
       <div className="flex-1 overflow-auto">
         <div className="container mx-auto p-6 space-y-6 max-w-5xl">
-          {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate("/worksheets")}
+                onClick={() => navigate(routes.worksheet)}
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
@@ -228,7 +181,6 @@ export default function WorksheetBuilder() {
             </Button>
           </div>
 
-          {/* Worksheet Name */}
           <Card>
             <CardHeader>
               <CardTitle>Worksheet Details</CardTitle>
@@ -247,13 +199,12 @@ export default function WorksheetBuilder() {
                   id="worksheet-description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter worksheet name"
+                  placeholder="Enter worksheet description"
                 />
               </div>
             </CardContent>
           </Card>
 
-          {/* Sections */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Sections</h2>
@@ -279,12 +230,12 @@ export default function WorksheetBuilder() {
             ) : (
               sections.map((section) => (
                 <SectionBuilder
-                  key={section.sectionId}
+                  key={section.section_id}
                   section={section}
                   onUpdate={(updatedSection) =>
-                    updateSection(section.sectionId, updatedSection)
+                    updateSection(section.section_id, updatedSection)
                   }
-                  onDelete={() => deleteSection(section.sectionId)}
+                  onDelete={() => deleteSection(section.section_id)}
                 />
               ))
             )}

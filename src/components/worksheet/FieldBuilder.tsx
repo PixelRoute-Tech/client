@@ -34,7 +34,7 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
 
   const addOption = () => {
     const newOption: FieldOption = {
-      optionId: createRandomId("OPTION"),
+      option_id: createRandomId("OPTION"),
       value: '',
     };
     onUpdate({
@@ -43,19 +43,19 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
     });
   };
 
-  const updateOption = (optionId: string, value: string) => {
+  const updateOption = (option_id: string, value: string) => {
     onUpdate({
       ...field,
       options: field.options?.map(opt => 
-        opt.optionId === optionId ? { ...opt, value } : opt
+        opt.option_id === option_id ? { ...opt, value } : opt
       ),
     });
   };
 
-  const deleteOption = (optionId: string) => {
+  const deleteOption = (option_id: string) => {
     onUpdate({
       ...field,
-      options: field.options?.filter(opt => opt.optionId !== optionId),
+      options: field.options?.filter(opt => opt.option_id !== option_id),
     });
   };
 
@@ -64,9 +64,9 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
       <div className="flex justify-between items-start gap-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
           <div className="space-y-2">
-            <Label htmlFor={`field-name-${field.fieldId}`}>Field Name</Label>
+            <Label htmlFor={`field-name-${field.field_id}`}>Field Name</Label>
             <Input
-              id={`field-name-${field.fieldId}`}
+              id={`field-name-${field.field_id}`}
               value={field.name}
               onChange={(e) => onUpdate({ ...field, name: e.target.value })}
               placeholder="Enter field name"
@@ -74,12 +74,12 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor={`field-type-${field.fieldId}`}>Field Type</Label>
+            <Label htmlFor={`field-type-${field.field_id}`}>Field Type</Label>
             <Select
               value={field.type}
               onValueChange={(value: FieldType) => onUpdate({ ...field, type: value })}
             >
-              <SelectTrigger id={`field-type-${field.fieldId}`}>
+              <SelectTrigger id={`field-type-${field.field_id}`}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -95,23 +95,23 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
           <div className="flex items-end space-x-3">
             <div className="flex items-center space-x-2">
               <Checkbox
-                id={`field-required-${field.fieldId}`}
+                id={`field-required-${field.field_id}`}
                 checked={field.required}
                 onCheckedChange={(checked) => 
                   onUpdate({ ...field, required: checked as boolean })
                 }
               />
-              <Label htmlFor={`field-required-${field.fieldId}`}>Is Required</Label>
+              <Label htmlFor={`field-required-${field.field_id}`}>Is Required</Label>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox
-                id={`field-inreport-${field.fieldId}`}
-                checked={field.inReport}
+                id={`field-inreport-${field.field_id}`}
+                checked={field.in_report}
                 onCheckedChange={(checked) => 
-                  onUpdate({ ...field, inReport: checked as boolean })
+                  onUpdate({ ...field, in_report: checked as boolean })
                 }
               />
-              <Label htmlFor={`field-inreport-${field.fieldId}`}>In Report</Label>
+              <Label htmlFor={`field-inreport-${field.field_id}`}>In Report</Label>
             </div>
           </div>
         </div>
@@ -143,17 +143,17 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
           
           <div className="space-y-2">
             {field.options?.map((option, index) => (
-              <div key={option.optionId} className="flex items-center gap-2">
+              <div key={option.option_id} className="flex items-center gap-2">
                 <Input
                   value={option.value}
-                  onChange={(e) => updateOption(option.optionId, e.target.value)}
+                  onChange={(e) => updateOption(option.option_id, e.target.value)}
                   placeholder={`Option ${index + 1}`}
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  onClick={() => deleteOption(option.optionId)}
+                  onClick={() => deleteOption(option.option_id)}
                   className="text-destructive"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -167,10 +167,10 @@ export function FieldBuilder({ field, onUpdate, onDelete }: FieldBuilderProps) {
       {isTable && (
         <div className="pl-4 border-l-2 border-muted">
           <TableBuilder
-            columns={field.tableColumns || []}
-            actions={field.tableActions || { edit: false, view: false, delete: false }}
+            columns={field.table_columns || []}
+            actions={field.table_actions || { edit: false, view: false, delete: false }}
             onUpdate={(columns, actions) => 
-              onUpdate({ ...field, tableColumns: columns, tableActions: actions })
+              onUpdate({ ...field, table_columns: columns, table_actions: actions })
             }
           />
         </div>

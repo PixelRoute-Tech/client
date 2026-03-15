@@ -12,19 +12,19 @@ import moment from "moment"
 import { useNavigate } from "react-router-dom";
 import routes from "@/routes/routeList";
 import { baseURL } from "@/config/network.config";
-interface UserProfile {
-
-}
-
 export default function UserProfile() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const {user} = useAuth()
-  const navigate = useNavigate()
-  const handleEditSubmit = (userData: Omit<UserProfile, "id" | "joinDate" | "avatarUrl">) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  if (!user) return null;
+
+  const handleEditSubmit = () => {
     setIsEditDialogOpen(false);
   };
 
-  const getRoleBadgeVariant = (role: string) => {
+  const getRoleBadgeVariant = (role: string | null) => {
+    if (!role) return "outline";
     switch (role.toLowerCase()) {
       case "admin":
         return "default";
@@ -35,10 +35,10 @@ export default function UserProfile() {
     }
   };
 
-  const handleEdit = ()=>{
-    setIsEditDialogOpen(true)
-    navigate(routes.userProfile,{state:user})
-  }
+  const handleEdit = () => {
+    setIsEditDialogOpen(true);
+    navigate(routes.userProfile, { state: user });
+  };
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-5xl">
@@ -50,9 +50,12 @@ export default function UserProfile() {
               {/* Avatar Section */}
               <div className="relative">
                 <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
-                  <AvatarImage src={`${baseURL}${user?.imageUrl ?? ""}`} alt={user.userName} />
+                  <AvatarImage
+                    src={`${baseURL}${user?.avatar_url ?? ""}`}
+                    alt={`${user?.first_name} ${user?.last_name}`}
+                  />
                   <AvatarFallback className="text-3xl font-bold bg-primary/10 text-primary">
-                    {user.shortName}
+                    {user?.short_name}
                   </AvatarFallback>
                 </Avatar>
               </div>
@@ -61,35 +64,34 @@ export default function UserProfile() {
               <div className="flex-1 text-center md:text-left space-y-3">
                 <div className="space-y-1">
                   <h1 className="text-4xl font-bold text-foreground">
-                    {user.userName}
+                    {user?.first_name} {user?.last_name}
                   </h1>
                   <p className="text-lg text-muted-foreground">
-                    {user.designation}
+                    {user?.designation}
                   </p>
                 </div>
-                
+
                 <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                  <Badge variant={getRoleBadgeVariant(user.userRole)} className="px-3 py-1">
-                    {user.userRole}
+                  <Badge
+                    variant={getRoleBadgeVariant(user?.user_role)}
+                    className="px-3 py-1"
+                  >
+                    {user?.user_role}
                   </Badge>
                   <Badge variant="outline" className="px-3 py-1">
-                    {user.department}
+                    {user?.department}
                   </Badge>
                 </div>
 
-                {user.joinDate && (
+                {user?.created_at && (
                   <p className="text-sm text-muted-foreground">
-                    Member since {moment(user.joinDate).format("DD-MM-YYYY")}
+                    Member since {moment(user.created_at).format("DD-MM-YYYY")}
                   </p>
                 )}
               </div>
 
               {/* Edit Button */}
-              <Button 
-                onClick={handleEdit}
-                size="lg"
-                className="gap-2 shadow-lg"
-              >
+              <Button onClick={handleEdit} size="lg" className="gap-2 shadow-lg">
                 <Edit2 className="h-4 w-4" />
                 Edit Profile
               </Button>
@@ -109,17 +111,21 @@ export default function UserProfile() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Email Address</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Email Address
+                </p>
                 <p className="text-base text-foreground flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  {user.email}
+                  {user?.email}
                 </p>
               </div>
               <Separator />
               <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">User ID</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  User ID
+                </p>
                 <p className="text-base text-foreground font-mono">
-                  #{user.id}
+                  #{user?.id}
                 </p>
               </div>
             </CardContent>
@@ -138,23 +144,27 @@ export default function UserProfile() {
                 <p className="text-sm font-medium text-muted-foreground">Role</p>
                 <p className="text-base text-foreground flex items-center gap-2">
                   <UserCircle className="h-4 w-4 text-muted-foreground" />
-                  {user.userRole}
+                  {user?.user_role}
                 </p>
               </div>
               <Separator />
               <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Department</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Department
+                </p>
                 <p className="text-base text-foreground flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-muted-foreground" />
-                  {user.department}
+                  {user?.department}
                 </p>
               </div>
               <Separator />
               <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Designation</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Designation
+                </p>
                 <p className="text-base text-foreground flex items-center gap-2">
                   <Briefcase className="h-4 w-4 text-muted-foreground" />
-                  {user.designation}
+                  {user?.designation}
                 </p>
               </div>
             </CardContent>
@@ -163,14 +173,15 @@ export default function UserProfile() {
       </div>
 
       {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen && Boolean(user)} onOpenChange={setIsEditDialogOpen}>
+      <Dialog
+        open={isEditDialogOpen && Boolean(user)}
+        onOpenChange={setIsEditDialogOpen}
+      >
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Profile</DialogTitle>
           </DialogHeader>
-          <UserForm 
-            onSubmit={handleEditSubmit}
-          />
+          <UserForm onSubmit={handleEditSubmit} />
         </DialogContent>
       </Dialog>
     </div>

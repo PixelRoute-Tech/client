@@ -22,9 +22,9 @@ export const tokenServices = async (token: string): ApiResponseType<string> => {
 
 network.interceptors.request.use(
   (config) => {
-    const token = getItem(storageKeys.token);
+    const token = getItem(storageKeys.accessToken);
     if (token) {
-      config.headers["x-auth-token"] = token;
+      config.headers["Authorization"] = `Bearer ${token}`;
     }
     return config;
   },
@@ -91,7 +91,8 @@ network.interceptors.response.use(
   (error) => {
     if (error.response) {
       const { status } = error.response;
-      if (status === 401 || status === 403) {
+      const data = getItem(storageKeys.user);
+      if (status === 401 && data) {
         clearStorage();
         router.navigate(routes.signout);
       }

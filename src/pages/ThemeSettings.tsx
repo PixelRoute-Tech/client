@@ -182,7 +182,7 @@ const ThemeSettings = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Border Radius */}
-            <div>
+            <div className="mb-6">
               <Label className="text-sm font-medium mb-3 block">Border Radius</Label>
               <RadioGroup
                 value={theme.borderRadius}
@@ -202,6 +202,24 @@ const ThemeSettings = () => {
                   <RadioGroupItem value="large" id="radius-large" />
                   <Label htmlFor="radius-large">Large (16px)</Label>
                   <div className="ml-auto w-8 h-8 bg-primary rounded-lg" />
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Theme Mode */}
+            <div className="pt-6 border-t">
+              <Label className="text-sm font-medium mb-3 block">Theme Mode</Label>
+              <RadioGroup
+                value={theme.themeMode || "dark"}
+                onValueChange={(value: 'light' | 'dark') => updateTheme({ themeMode: value })}
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="light" id="theme-light" />
+                  <Label htmlFor="theme-light">Light Mode</Label>
+                </div>
+                <div className="flex items-center space-x-2 mt-2">
+                  <RadioGroupItem value="dark" id="theme-dark" />
+                  <Label htmlFor="theme-dark">Dark Mode</Label>
                 </div>
               </RadioGroup>
             </div>

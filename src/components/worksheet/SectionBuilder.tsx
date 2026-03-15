@@ -1,4 +1,3 @@
-
 import { WorksheetSection, WorksheetField, SectionLayout } from '@/types/worksheet.type';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,11 +23,11 @@ const LAYOUT_OPTIONS: { value: SectionLayout; label: string; icon: any }[] = [
 export function SectionBuilder({ section, onUpdate, onDelete }: SectionBuilderProps) {
   const addField = () => {
     const newField: WorksheetField = {
-      fieldId: createRandomId("SECTION"),
+      field_id: createRandomId("SECTION"),
       name: '',
       type: 'textfield',
       required: false,
-      inReport:true
+      in_report: true
     };
     onUpdate({
       ...section,
@@ -36,17 +35,17 @@ export function SectionBuilder({ section, onUpdate, onDelete }: SectionBuilderPr
     });
   };
 
-  const updateField = (fieldId: string, updatedField: WorksheetField) => {
+  const updateField = (field_id: string, updatedField: WorksheetField) => {
     onUpdate({
       ...section,
-      fields: section.fields.map(f => f.fieldId === fieldId ? updatedField : f),
+      fields: section.fields.map(f => f.field_id === field_id ? updatedField : f),
     });
   };
 
-  const deleteField = (fieldId: string) => {
+  const deleteField = (field_id: string) => {
     onUpdate({
       ...section,
-      fields: section.fields.filter(f => f.fieldId !== fieldId),
+      fields: section.fields.filter(f => f.field_id !== field_id),
     });
   };
 
@@ -56,9 +55,9 @@ export function SectionBuilder({ section, onUpdate, onDelete }: SectionBuilderPr
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
-              <Label htmlFor={`section-name-${section.sectionId}`}>Section Name</Label>
+              <Label htmlFor={`section-name-${section.section_id}`}>Section Name</Label>
               <Input
-                id={`section-name-${section.sectionId}`}
+                id={`section-name-${section.section_id}`}
                 value={section.name}
                 onChange={(e) => onUpdate({ ...section, name: e.target.value })}
                 placeholder="Enter section name"
@@ -101,10 +100,10 @@ export function SectionBuilder({ section, onUpdate, onDelete }: SectionBuilderPr
       <CardContent className="space-y-4">
         {section.fields.map(field => (
           <FieldBuilder
-            key={field.fieldId}
+            key={field.field_id}
             field={field}
-            onUpdate={(updatedField) => updateField(field.fieldId, updatedField)}
-            onDelete={() => deleteField(field.fieldId)}
+            onUpdate={(updatedField) => updateField(field.field_id, updatedField)}
+            onDelete={() => deleteField(field.field_id)}
           />
         ))}
         

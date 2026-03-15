@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,10 +7,8 @@ import {
   CalendarIcon,
   Plus,
   Trash2,
-  ClipboardPenLine,
+  Eye,
   Upload,
-  ShieldCheck,
-  Eye
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -31,7 +29,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import {
   Table,
@@ -72,7 +69,6 @@ const initializationData = {
   detailsProvided: "",
   comment: "",
   timeRequired: "",
-  // requiredDocument: "",
   ohsRequirements: { swms: false, jsa: false, safetyBoots: false },
   ppeRequired: {
     hardhat: false,
@@ -100,7 +96,7 @@ const initializationData = {
     },
   ],
 };
-// Helper for dynamic string arrays
+
 const dynamicStringSchema = z.object({
   value: z.string().min(1, "Required"),
 });
@@ -120,7 +116,6 @@ const jobRequestSchema = z.object({
   purchaseOrder: z.string().optional(),
   summary: z.string().min(5, "Summary must be at least 5 characters"),
   detailsProvided: z.string().min(5, "Details provided required"),
-  // requiredDocument: z.string().min(5, "Required documents required"),
   comment: z.string().optional(),
   timeRequired: z.string().min(1, "Time required"),
   status: z.string().min(1, "Status required"),
@@ -146,7 +141,6 @@ const jobRequestSchema = z.object({
   equipmentList: z.array(dynamicStringSchema),
   siteInduction: z.string().optional(),
   hseProcedures: z.array(dynamicStringSchema),
-
   testRows: z.array(testRowSchema).min(1, "At least one test row is required"),
 });
 
@@ -173,22 +167,66 @@ export function JobRequestForm({
   const [openFileUpload, setOpenFileUpload] = useState<boolean>(false);
   const [uploadedFiles, setUploadedFiles] = useState<Array<File>>([]);
   const [oldFiles, setOldFiles] = useState<Array<JobRequestFileList>>(
-    Boolean(initialData?.files) ? initialData?.files : []
+    initialData && 'files' in initialData && Array.isArray(initialData.files) ? initialData.files : []
   );
   const [isDragging, setIsDragging] = useState(false);
   const [deletedFiles, setDeletedFiles] = useState<string[]>([]);
+  
   const form = useForm<JobRequestFormData>({
     resolver: zodResolver(jobRequestSchema),
     defaultValues: initialData
-      ? {
-          ...initialData,
-          startDate: moment(initialData.startDate).toDate(),
-          lastDate: moment(initialData.lastDate).toDate(),
+      ? (() => {
+        const initialOhs: Record<string, boolean> = { swms: false, jsa: false, safetyBoots: false };
+        if (Array.isArray((initialData as any).ohs_requirements)) {
+          (initialData as any).ohs_requirements.forEach((req: any) => {
+            const key = req.type.toLowerCase() === "swms" ? "swms" : req.type.toLowerCase() === "jsa" ? "jsa" : "safetyBoots";
+            initialOhs[key] = req.is_checked;
+          });
         }
+
+        const initialPpe: Record<string, boolean> = {
+          hardhat: false, bumpGap: false, highVis: false, longSleeve: false, safetyGlasses: false, safetyBoots: false,
+          faceShield: false, weldGlass: false, hearingProtection: false, electricalProtection: false, respiratoryProtection: false,
+        };
+        if (Array.isArray((initialData as any).ppe_requirements)) {
+          (initialData as any).ppe_requirements.forEach((req: any) => {
+             const keyMatches = Object.keys(initialPpe).find(k => k.toLowerCase() === (req.type || "").toLowerCase().replace(/ /g, ''));
+             if (keyMatches) initialPpe[keyMatches] = req.is_checked;
+             else initialPpe[req.type] = req.is_checked;
+          });
+        }
+
+        const initialTestRows = Array.isArray((initialData as any).test_methods) 
+          ? (initialData as any).test_methods.map((method: any) => ({
+              testMethod: method.worksheet_form_id || "",
+              testSpec: method.spec || "",
+              acceptanceSpec: method.acceptance || "",
+              toTable: method.to_table || "",
+              testProcedure: method.procedure || "",
+              tech: method.assigned_user_id ? method.assigned_user_id.toString() : "",
+            }))
+          : initializationData.testRows;
+          
+        return {
+          ...initialData,
+          startDate: moment((initialData as any).startDate || (initialData as any).from_date).toDate(),
+          lastDate: moment((initialData as any).lastDate || (initialData as any).to_date).toDate(),
+          timeRequired: (initialData as any).time_required || (initialData as any).timeRequired || "",
+          purchaseOrder: (initialData as any).purchase_order || (initialData as any).purchaseOrder || "",
+          detailsProvided: (initialData as any).details_provided || (initialData as any).detailsProvided || "",
+          safetyReference: (initialData as any).safety_reference || (initialData as any).safetyReference || "",
+          siteInduction: (initialData as any).induction_details || (initialData as any).siteInduction || "",
+          status: (initialData as any).status ? (initialData as any).status.charAt(0).toUpperCase() + (initialData as any).status.slice(1).toLowerCase() : "Pending",
+          ohsRequirements: initialOhs,
+          ppeRequired: initialPpe,
+          testRows: initialTestRows,
+          equipmentList: Array.isArray((initialData as any).equipment) ? (initialData as any).equipment.map((eq: any) => ({ value: eq.name })) : [],
+          hseProcedures: Array.isArray((initialData as any).hse_procedures) ? (initialData as any).hse_procedures.map((hse: any) => ({ value: hse.detail })) : [],
+        };
+      })()
       : initializationData,
   });
 
-  // Field Arrays for Dynamic Safety Inputs
   const {
     fields: equipmentFields,
     append: appendEquipment,
@@ -218,7 +256,7 @@ export function JobRequestForm({
 
   const { data: usersList } = useQuery({
     queryKey: ["usersList"],
-    queryFn: getUsers,
+    queryFn: () => getUsers({ skip: 0, take: 100, }),
     refetchOnWindowFocus: false,
   });
 
@@ -280,117 +318,60 @@ export function JobRequestForm({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       processFiles(Array.from(e.dataTransfer.files));
     }
   };
 
   const handleSubmit = (data: JobRequestFormData) => {
-    const formData = new FormData();
-    formData.append("clientId", selectedClient.clientId);
-    if (uploadedFiles.length > 0) {
-      uploadedFiles.forEach((f) => {
-        formData.append("files", f);
-      });
-    }
-    if (deletedFiles?.length) {
-      formData.append("deletedFiles", JSON.stringify(deletedFiles));
-    }
-    if (oldFiles?.length) {
-      formData.append("previousFiles", JSON.stringify(oldFiles));
-    }
-    if (!isEditing) {
-      formData.append(
-        "data",
-        JSON.stringify({
-          ...data,
-          createdBy: user?.id,
-          testRows: data.testRows as TechRow[],
-          comment: data.comment,
-          clientId: selectedClient.clientId,
-          clientName: selectedClient.businessName,
-          clientAddress: selectedClient.businessAddress,
-          clientEmail: selectedClient.email,
-          startDate: moment(data.startDate).toDate(),
-          lastDate: moment(data.lastDate).toDate(),
-        })
-      );
-      save(formData);
+    if (!selectedClient) return;
+    const requestData = {
+      client_id: selectedClient.id,
+      from_date: moment(data.startDate).format("YYYY-MM-DD"),
+      to_date: moment(data.lastDate).format("YYYY-MM-DD"),
+      time_required: data.timeRequired,
+      status: data.status.toLowerCase(),
+      purchase_order: data.purchaseOrder || "",
+      summary: data.summary,
+      details_provided: data.detailsProvided,
+      safety_reference: data.safetyReference || "",
+      induction_details: data.siteInduction || "",
+      ohs_requirements: Object.entries(data.ohsRequirements).map(([k, v]) => ({
+        type: k.toUpperCase(),
+        is_checked: Boolean(v)
+      })),
+      ppe_requirements: Object.entries(data.ppeRequired).map(([k, v]) => ({
+        type: k,
+        is_checked: Boolean(v)
+      })),
+      test_methods: data.testRows.map((row, index) => ({
+        worksheet_form_id: row.testMethod,
+        assigned_user_id: parseInt(row.tech) || 0,
+        spec: row.testSpec,
+        acceptance: row.acceptanceSpec,
+        to_table: row.toTable,
+        procedure: row.testProcedure,
+        order_index: index
+      })),
+      equipment: data.equipmentList?.map((eq, index) => ({
+        name: eq.value,
+        order_index: index
+      })) || [],
+      hse_procedures: data.hseProcedures?.map((hse, index) => ({
+        detail: hse.value,
+        order_index: index
+      })) || []
+    };
+      if (!isEditing) {
+      save(requestData);
     } else {
-      formData.append(
-        "data",
-        JSON.stringify({
-          ...initialData,
-          ...data,
-          testRows: data.testRows as TechRow[],
-          createdBy: user.id,
-          clientId: selectedClient.clientId,
-          clientAddress: selectedClient.businessAddress,
-          clientName: selectedClient.businessName,
-          clientEmail: selectedClient.email,
-        })
-      );
-      update(formData);
+      update({ ...requestData, id: (initialData as any).id });
     }
-  };
-
-  const handleError = (error) => {
-    console.log(error);
-  };
-
-  const handleOpenFileUpload = () => {
-    setOpenFileUpload(true);
-  };
-
-  const handleCloseFileUpload = () => {
-    setOpenFileUpload(false);
-  };
-
-  const formatFileSize = (bytes) => {
-    if (bytes < 1024 * 1024) {
-      return `${(bytes / 1024).toFixed(2)} KB`;
-    }
-    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    // File uploads are stripped temporarily until a separate endpoint is connected
+    // As the backend does not accept multipart/form-data for the nested job struct
   };
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-
-  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   if (!e.target.files) return;
-
-  //   const validFiles: File[] = [];
-  //   const rejectedFiles: string[] = [];
-
-  //   Array.from(e.target.files).forEach((file) => {
-  //     if (file.size <= MAX_FILE_SIZE) {
-  //       validFiles.push(file);
-  //     } else {
-  //       rejectedFiles.push(file.name);
-  //     }
-  //   });
-
-  //   if (rejectedFiles.length) {
-  //     toast({
-  //       title: "File size exceeded",
-  //       description: `These files exceed 5MB:\n${rejectedFiles.join(", ")}`,
-  //       variant: "destructive",
-  //     });
-  //   }
-
-  //   if (uploadedFiles.length < 50) {
-  //     setUploadedFiles((prev) => [...prev, ...validFiles]);
-  //   } else {
-  //     toast({
-  //       title: "Maximum File Limit Reached",
-  //       description: "You can upload a maximum of 50 files.",
-  //       variant: "destructive",
-  //     });
-  //   }
-
-  //   // Reset input so same file can be reselected
-  //   e.target.value = "";
-  // };
 
   const processFiles = (files: File[]) => {
     const validFiles: File[] = [];
@@ -435,30 +416,22 @@ export function JobRequestForm({
     setDeletedFiles((prev) => [...prev, path]);
   };
 
-const handleViewFile = (file: File | JobRequestFileList) => {
-  if ((file as JobRequestFileList)?.fileName) {
-    window.open(`${baseURL}${(file as JobRequestFileList)?.url}`, "_blank", "noopener,noreferrer");
-  } else {
-    const fileURL = URL.createObjectURL(file as File);
-    window.open(fileURL, "_blank");
-    setTimeout(() => URL.revokeObjectURL(fileURL), 1000);
-  }
-};
+  const handleViewFile = (file: File | JobRequestFileList) => {
+    if ((file as JobRequestFileList)?.fileName) {
+      window.open(`${baseURL}${(file as JobRequestFileList)?.url}`, "_blank", "noopener,noreferrer");
+    } else {
+      const fileURL = URL.createObjectURL(file as File);
+      window.open(fileURL, "_blank");
+      setTimeout(() => URL.revokeObjectURL(fileURL), 1000);
+    }
+  };
+
   const fileListData = useMemo(() => {
     return [...uploadedFiles, ...oldFiles];
   }, [oldFiles, uploadedFiles]);
 
-  const technicianList = useMemo(() => {
-    return usersList?.data.filter(
-      (u: any) =>
-        u.userRole.toLowerCase().includes("technician") ||
-        u.designation.toLowerCase().includes("technician")
-    );
-  }, [usersList?.data]);
-
   return (
     <div className="w-full max-w-6xl space-y-6">
-      {/* Client Details Section (Same as before) */}
       {selectedClient && (
         <Card>
           <CardHeader>
@@ -472,7 +445,7 @@ const handleViewFile = (file: File | JobRequestFileList) => {
                 <span className="font-medium text-muted-foreground">
                   Business Name:
                 </span>
-                <p className="text-foreground">{selectedClient.businessName}</p>
+                <p className="text-foreground">{selectedClient.business_name}</p>
               </div>
               <div>
                 <span className="font-medium text-muted-foreground">
@@ -497,7 +470,7 @@ const handleViewFile = (file: File | JobRequestFileList) => {
             <Button
               size="sm"
               className="relative"
-              onClick={handleOpenFileUpload}
+              onClick={() => setOpenFileUpload(true)}
             >
               Upload files
               {Boolean(fileListData?.length) && (
@@ -514,10 +487,9 @@ const handleViewFile = (file: File | JobRequestFileList) => {
         <CardContent>
           <Form methods={form}>
             <form
-              onSubmit={form.handleSubmit(handleSubmit, handleError)}
+              onSubmit={form.handleSubmit(handleSubmit)}
               className="space-y-8"
             >
-              {/* BASIC DETAILS GRID */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
@@ -636,7 +608,6 @@ const handleViewFile = (file: File | JobRequestFileList) => {
                 />
               </div>
 
-              {/* REMAINING TEXT AREAS */}
               <div className="space-y-4">
                 <FormField
                   control={form.control}
@@ -674,9 +645,133 @@ const handleViewFile = (file: File | JobRequestFileList) => {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="safetyReference"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Safety Reference</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="siteInduction"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Induction Details</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
               </div>
 
-              {/* TEST METHODS TABLE (Same as before) */}
+              <div className="space-y-4 pt-4 pb-2 border-y">
+                <h3 className="text-lg font-bold">Requirements & Equipment</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold mb-2">OHS Requirements</h4>
+                    <div className="flex flex-col gap-2">
+                      {['swms', 'jsa', 'safetyBoots'].map((key) => (
+                        <FormField
+                          key={key}
+                          control={form.control}
+                          name={`ohsRequirements.${key as keyof JobRequestFormData['ohsRequirements']}`}
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center gap-2 space-y-0">
+                              <FormControl>
+                                <Checkbox checked={field.value as boolean} onCheckedChange={field.onChange} />
+                              </FormControl>
+                              <FormLabel className="uppercase">{key}</FormLabel>
+                            </FormItem>
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2">PPE Required</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.keys(initializationData.ppeRequired).map((key) => (
+                        <FormField
+                          key={key}
+                          control={form.control}
+                          name={`ppeRequired.${key as keyof (typeof initializationData)['ppeRequired']}`}
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center gap-2 space-y-0">
+                              <FormControl>
+                                <Checkbox checked={field.value as boolean} onCheckedChange={field.onChange} />
+                              </FormControl>
+                              <FormLabel className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</FormLabel>
+                            </FormItem>
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">Equipment List</h4>
+                      <Button type="button" variant="outline" size="sm" onClick={() => appendEquipment({ value: "" })}>
+                        <Plus className="h-4 w-4" /> Add
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      {equipmentFields.map((field, index) => (
+                        <div key={field.id} className="flex gap-2">
+                          <FormField
+                            control={form.control}
+                            name={`equipmentList.${index}.value`}
+                            render={({ field }) => (
+                              <FormControl>
+                                <Input {...field} placeholder="Equipment name" />
+                              </FormControl>
+                            )}
+                          />
+                          <Button type="button" variant="ghost" size="sm" onClick={() => removeEquipment(index)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">HSE Procedures</h4>
+                      <Button type="button" variant="outline" size="sm" onClick={() => appendHse({ value: "" })}>
+                        <Plus className="h-4 w-4" /> Add
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      {hseFields.map((field, index) => (
+                        <div key={field.id} className="flex gap-2">
+                          <FormField
+                            control={form.control}
+                            name={`hseProcedures.${index}.value`}
+                            render={({ field }) => (
+                              <FormControl>
+                                <Input {...field} placeholder="Procedure detail" />
+                              </FormControl>
+                            )}
+                          />
+                          <Button type="button" variant="ghost" size="sm" onClick={() => removeHse(index)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-bold">Test Methods</h3>
@@ -731,8 +826,8 @@ const handleViewFile = (file: File | JobRequestFileList) => {
                                   <SelectContent>
                                     {activeWorksheets?.data?.map((ws) => (
                                       <SelectItem
-                                        key={ws.workSheetId}
-                                        value={ws.workSheetId}
+                                        key={ws.worksheet_id}
+                                        value={ws.worksheet_id}
                                       >
                                         {ws.name}
                                       </SelectItem>
@@ -785,11 +880,11 @@ const handleViewFile = (file: File | JobRequestFileList) => {
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    {technicianList?.map((t) => (
-                                      <SelectItem key={t.id} value={t.id}>
-                                        {t.userName}
-                                      </SelectItem>
-                                    ))}
+                                      {usersList?.data?.list?.map((t: any) => (
+                                        <SelectItem key={t.id} value={t.id.toString()}>
+                                          {t.first_name} {t.last_name}
+                                        </SelectItem>
+                                      ))}
                                   </SelectContent>
                                 </Select>
                               )}
@@ -797,33 +892,14 @@ const handleViewFile = (file: File | JobRequestFileList) => {
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-1">
-                              {Boolean(initialData) && (
-                                <Button
+                               <Button
                                   type="button"
-                                  variant="outline"
+                                  variant="ghost"
                                   size="sm"
-                                  onClick={() => {
-                                    console.log(field);
-                                    navigate(
-                                      `${routes.worksheetDetails}?sheetid=${field.testMethod}&jobid=${initialData?.jobId}&clientId=${selectedClient.clientId}`
-                                    );
-                                  }}
+                                  onClick={() => removeTestRow(index)}
                                 >
-                                  <ClipboardPenLine className="h-4 w-4" />
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
-                              )}
-                              {testRows.length > 1 && (
-                                <>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => removeTestRow(index)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </>
-                              )}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -832,350 +908,82 @@ const handleViewFile = (file: File | JobRequestFileList) => {
                   </Table>
                 </div>
               </div>
-
-              {/* SAFETY SECTION */}
-              <div className="space-y-6 border py-8 bg-slate-50/50 rounded px-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <ShieldCheck className="h-5 w-5 text-blue-600" />
-                  <h3 className="text-xl font-bold text-blue-900 uppercase tracking-tight">
-                    Safety & HSE Requirements
-                  </h3>
-                </div>
-
-                {/* 1. OHS Requirements */}
-                <div className="space-y-3">
-                  <FormLabel className="text-base font-semibold">
-                    1. OHS Requirements
-                  </FormLabel>
-                  <div className="flex flex-wrap gap-6">
-                    {["swms", "jsa", "safetyBoots"].map((item) => (
-                      <FormField
-                        key={item}
-                        control={form.control}
-                        name={`ohsRequirements.${item}` as any}
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <FormLabel className="font-normal uppercase">
-                              {item}
-                            </FormLabel>
-                          </FormItem>
-                        )}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* 2. Reference */}
-                <FormField
-                  control={form.control}
-                  name="safetyReference"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-semibold">
-                        2. Reference
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Enter safety references..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* 3. PPE Required */}
-                <div className="space-y-4">
-                  <FormLabel className="text-base font-semibold">
-                    3. PPE Required
-                  </FormLabel>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Object.keys(
-                      form.getValues()?.ppeRequired ||
-                        initializationData.ppeRequired
-                    ).map((key) => (
-                      <FormField
-                        key={key}
-                        control={form.control}
-                        name={`ppeRequired.${key}` as any}
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <FormLabel className="font-normal capitalize">
-                              {key.replace(/([A-Z])/g, " $1")}
-                            </FormLabel>
-                          </FormItem>
-                        )}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* 4. Equipment */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <FormLabel className="text-base font-semibold">
-                      4. Equipment
-                    </FormLabel>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => appendEquipment({ value: "" })}
-                    >
-                      <Plus className="h-3 w-3 mr-1" /> Add Equipment
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {equipmentFields.map((field, index) => (
-                      <div key={field.id} className="flex gap-2">
-                        <FormField
-                          control={form.control}
-                          name={`equipmentList.${index}.value`}
-                          render={({ field }) => (
-                            <FormControl>
-                              <Input placeholder="Equipment name" {...field} />
-                            </FormControl>
-                          )}
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeEquipment(index)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 5. Site Induction */}
-                <FormField
-                  control={form.control}
-                  name="siteInduction"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-semibold">
-                        5. Site/Remote Induction Required
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Details about induction..."
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                {/* 6. HSE Procedures */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <FormLabel className="text-base font-semibold">
-                      6. Specific Relevant HSE Procedures
-                    </FormLabel>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => appendHse({ value: "" })}
-                    >
-                      <Plus className="h-3 w-3 mr-1" /> Add Procedure
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {hseFields.map((field, index) => (
-                      <div key={field.id} className="flex gap-2">
-                        <FormField
-                          control={form.control}
-                          name={`hseProcedures.${index}.value`}
-                          render={({ field }) => (
-                            <FormControl>
-                              <Input
-                                placeholder="Procedure detail"
-                                {...field}
-                              />
-                            </FormControl>
-                          )}
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeHse(index)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-4 pt-4 border-t">
-                <Button
-                  loading={saveLoading || updateLoading}
-                  type="submit"
-                  className="flex-1"
-                >
-                  {isEditing ? "Update Job Request" : "Submit Request"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => form.reset()}
-                  className="flex-1"
-                >
-                  Reset
-                </Button>
+              
+              <div className="flex justify-end pt-4">
+                 <Button type="submit" loading={saveLoading || updateLoading}>
+                    {isEditing ? "Update Job" : "Create Job"}
+                 </Button>
               </div>
             </form>
           </Form>
         </CardContent>
       </Card>
-      <Dialog open={openFileUpload} onOpenChange={setOpenFileUpload}>
-        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Upload Images / Files</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6">
-            {/* Upload Input */}
-            <label
-              htmlFor="filesforjobrequest"
-              className="w-full max-w-xl mx-auto"
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <div
-                className={cn(
-                  "relative group cursor-pointer transition-colors",
-                  "flex flex-col items-center justify-center p-10",
-                  "border-2 border-dashed rounded-xl",
-                  // Visual feedback when dragging
-                  isDragging
-                    ? "border-primary bg-primary/10"
-                    : "border-muted-foreground/25 bg-muted/5 hover:bg-muted/10",
-                  "focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
-                )}
-              >
-                <Input
-                  id="filesforjobrequest"
-                  type="file"
-                  multiple
-                  onChange={(e) =>
-                    e.target.files && processFiles(Array.from(e.target.files))
-                  }
-                  className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                />
 
-                {/* Visual Content */}
-                <div className="flex flex-col items-center text-center gap-3 pointer-events-none">
-                  <Upload
-                    className={cn(
-                      "h-8 w-8 text-primary",
-                      isDragging && "animate-bounce"
-                    )}
-                  />
-                  <p className="text-base font-medium">
-                    {isDragging
-                      ? "Drop files now"
-                      : "Click to upload or drag and drop"}
-                  </p>
-                    <div>
-                    <p className="text-sm text-muted-foreground">
-                      (Max 5MB per file)
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </label>
-            {/* File List */}
-            {Boolean(fileListData?.length) ? (
-              <div className="border rounded-md max-h-[50dvh] overflow-y-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>File Name</TableHead>
-                      <TableHead>Size</TableHead>
-                      <TableHead className="w-[80px] text-center">
-                        Action
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {fileListData.map(
-                      (file: File | JobRequestFileList, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="truncate max-w-[400px]">
-                            {Boolean((file as File)?.name) && (
-                              <span className="bg-green-600 me-2 rounded-full px-2 py-1 text-white">
-                                New
-                              </span>
-                            )}
-                            {(file as File)?.name ||
-                              (file as JobRequestFileList)?.fileName}
-                          </TableCell>
-                          <TableCell>
-                            {Boolean(file?.size)
-                              ? formatFileSize(Number(file?.size))
-                              : "-"}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex gap-2">
-                              <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {handleViewFile(file)}}
-                            >
-                              <Eye className="h-4 w-4 text-destructive" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                (file as JobRequestFileList)?.fileName
-                                  ? removeFilePath(
-                                      (file as JobRequestFileList)?.url
-                                    )
-                                  : removeFile(index);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              <p className="text-sm text-center text-muted-foreground">
-                No files uploaded yet.
-              </p>
+      <Dialog open={openFileUpload} onOpenChange={setOpenFileUpload}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Job Upload Files</DialogTitle>
+          </DialogHeader>
+          <div
+            className={cn(
+              "border-2 border-dashed rounded-lg p-8 text-center",
+              isDragging ? "border-primary bg-primary/10" : "border-muted"
             )}
-            <div className="flex justify-end items-center pt-2">
-              <Button size="sm" onClick={handleCloseFileUpload}>
-                Done
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <div className="flex flex-col items-center gap-2">
+              <Upload className="h-8 w-8 text-muted-foreground" />
+              <p>Drag and drop files here, or click to browse</p>
+              <Input
+                type="file"
+                multiple
+                className="hidden"
+                id="file-upload"
+                onChange={(e) => e.target.files && processFiles(Array.from(e.target.files))}
+              />
+              <Button onClick={() => document.getElementById("file-upload")?.click()}>
+                Browse Files
               </Button>
             </div>
           </div>
+          {fileListData.length > 0 && (
+            <div className="space-y-4 max-h-[300px] overflow-y-auto mt-4 pr-2">
+              {fileListData.map((file, index) => (
+                <div key={index} className="flex items-center justify-between p-2 border rounded">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <span className="text-sm truncate font-medium">
+                      {(file as any).fileName || (file as File).name}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleViewFile(file)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        if ((file as any).url) {
+                          removeFilePath((file as any).url);
+                        } else {
+                          removeFile(index - oldFiles.length);
+                        }
+                      }}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -22,14 +22,6 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete,deleteLoading }
   const [searchTerm, setSearchTerm] = useState("");
   // const { toast } = useToast();
 
-  const filteredJobRequests = jobRequests.filter(
-    (job) =>
-      job?.clientName?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
-      job?.summary?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
-      job?.divisionRules?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
-      job?.status?.toLowerCase()?.includes(searchTerm?.toLowerCase())
-  );
-
   const handleDelete = (jobRequest:JobRequest) => {
     onDelete(jobRequest);
     // toast({
@@ -90,17 +82,17 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete,deleteLoading }
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredJobRequests.length === 0 ? (
+              {jobRequests?.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                     {searchTerm ? "No job requests found matching your search." : "No job requests available."}
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredJobRequests.map((job) => (
-                  <TableRow key={job.jobId}>
-                    <TableCell className="font-mono text-xs">#{job.jobId}</TableCell>
-                    <TableCell className="font-medium">{job.clientName}</TableCell>
+                jobRequests?.map((job) => (
+                  <TableRow key={job.id}>
+                    <TableCell className="font-mono text-xs">#{job.id.substring(0, 8)}</TableCell>
+                    <TableCell className="font-medium">{job.client?.business_name}</TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         <div className="font-medium">{truncateText(job.summary)}</div>
@@ -116,27 +108,27 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete,deleteLoading }
                       <div className="space-y-1">
                         <div className="flex items-center gap-1 text-sm">
                           <Calendar className="h-3 w-3" />
-                          {format(job.startDate, "PPP")}
+                          {job.from_date ? format(new Date(job.from_date), "PPP") : "N/A"}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          Due: {format(job.lastDate, "PPP")}
+                          Due: {job.to_date ? format(new Date(job.to_date), "PPP") : "N/A"}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant={getStatusBadgeVariant(job.status)}>
-                        {job.status.charAt(0).toUpperCase() + job.status.slice(1).replace('-', ' ')}
+                        {job.status.charAt(0).toUpperCase() + job.status.slice(1).replace('_', ' ')}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {job?.testRows?.length} method{job?.testRows?.length !== 1 ? 's' : ''}
+                        {job?.test_methods?.length || 0} method{job?.test_methods?.length !== 1 ? 's' : ''}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm">{truncateText(job.detailsProvided, 20)}</div>
+                      <div className="text-sm">{truncateText(job.details_provided || "", 20)}</div>
                     </TableCell>
-                    <TableCell>{moment(job.createdAt).format("MMMM Do, YYYY")}</TableCell>
+                    <TableCell>{moment(job.created_at).format("MMMM Do, YYYY")}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button
@@ -159,7 +151,7 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete,deleteLoading }
                               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                               <AlertDialogDescription>
                                 This action cannot be undone. This will permanently delete the job request
-                                "{truncateText(job.jobId, 30)}" from the system.
+                                "{truncateText(job.id, 8)}" from the system.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -182,10 +174,10 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete,deleteLoading }
           </Table>
         </div>
         
-        {filteredJobRequests.length > 0 && (
+        {jobRequests?.length > 0 && (
           <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
             <p>
-              Showing {filteredJobRequests.length} of {jobRequests.length} job requests
+              Showing {jobRequests?.length} of {jobRequests.length} job requests
             </p>
           </div>
         )}

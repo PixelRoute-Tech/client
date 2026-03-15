@@ -6,15 +6,15 @@ import { ApiResponseType } from "@/types/network.type";
 export const getSettings = async ({id}:{id:string}):ApiResponseType<SettingsType>=>{
      try {
         return (await network.get(`${apis.settings}/${id}`)).data
-     } catch (error) {
-        throw new Error(error.response.data.message);
+     } catch (error: any) {
+        throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
      }
 }
 
 export const updateSettings = async (payload:SettingsType & {userId:string}):ApiResponseType<SettingsType>=>{
      try {
         return (await network.put(`${apis.settings}`,payload)).data
-     } catch (error) {
-        throw new Error(error.response.data.message);
+     } catch (error: any) {
+        throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
      }
 }

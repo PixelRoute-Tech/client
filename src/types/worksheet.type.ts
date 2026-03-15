@@ -10,12 +10,12 @@ export type FieldType =
   | "table";
 
 export interface FieldOption {
-  optionId: string;
+  option_id: string;
   value: string;
 }
 
 export interface TableColumn {
-  columnId: string;
+  column_id: string;
   name: string;
   type: FieldType;
   options?: FieldOption[];
@@ -28,55 +28,55 @@ export interface TableActions {
 }
 
 export interface WorksheetField {
-  fieldId: string;
+  field_id: string;
   name: string;
   type: FieldType;
   required: boolean;
-  inReport:boolean,
+  in_report: boolean;
   options?: FieldOption[];
-  tableColumns?: TableColumn[];
-  tableActions?: TableActions;
+  table_columns?: TableColumn[];
+  table_actions?: TableActions;
 }
 
 export type SectionLayout = 1 | 2 | 3 | 4;
 
 export interface WorksheetSection {
-  sectionId: string;
+  section_id: string;
   name: string;
   layout: SectionLayout;
   fields: WorksheetField[];
 }
 
 export interface Worksheet {
-  workSheetId: string;
+  worksheet_id: string;
   description?: string;
   name: string;
   sections: WorksheetSection[];
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export type WorksheetRecord = {
-  recordId: string;
-  jobId?: string;
-  clientId?: string;
-  worksheetId: string;
+  record_id: string;
+  job_id?: string;
+  client_id?: string;
+  worksheet_id: string;
   data: any;
-  createdAt?: string;
-  updatedAt?: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export interface ImageRecord {
   _id?: string;
-  jobId: string;
-  recordId: string;
-  worksheetId: string;
+  job_id: string;
+  record_id: string;
+  worksheet_id: string;
   url: string; 
-  preview:string;
+  preview: string;
   type: "Drawing" | "Photo";
   description: string;
-  fileName: string;
-  createdAt?: string; 
-  updatedAt?: string;
+  file_name: string;
+  created_at?: string; 
+  updated_at?: string;
 }

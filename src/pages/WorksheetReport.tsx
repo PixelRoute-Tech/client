@@ -13,7 +13,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getRecordData,
   JobRequestTemp,
-  // TechRowTemp, // Not used
 } from "@/services/worksheet.services";
 import { useToast } from "@/hooks/use-toast";
 import SignaturePad from "react-signature-canvas";
@@ -21,11 +20,10 @@ import moment from "moment";
 import { useAuth } from "@/hooks/useAuth";
 import { ClientType } from "@/types/client.type";
 import { UserType } from "@/types/auth";
-import "../styles/print.css"; // Your print CSS is imported here
+import "../styles/print.css";
 import routes from "@/routes/routeList";
 import { baseURL } from "@/config/network.config";
 
-// Interface for collecting table data to render later
 interface TableRenderData {
   field: WorksheetField;
   data: any[];
@@ -37,10 +35,8 @@ export default function WorksheetReport() {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
-  // Using printRef to encapsulate the content for printing
   const printRef = useRef<HTMLDivElement>(null);
 
-  // State initialization
   const [worksheet, setWorkSheet] = useState<Worksheet>();
   const [images, setImages] = useState<ImageRecord[]>([]);
   const [technician, setTechnician] = useState<UserType>();
@@ -49,31 +45,24 @@ export default function WorksheetReport() {
   const [client, setClient] = useState<ClientType>();
   const [signature, setSignature] = useState<string | ArrayBuffer>("");
 
-  // Print handler using useReactToPrint
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: "NDTP-Inspection-Report",
-    onAfterPrint: () => {
-      console.log("After print completed or print dialog was closed");
-    },
   });
 
-  // Report Number Generator
   const createReportNo = () => {
-    if (client?.clientId && jobData?.jobId && jobData?.startDate) {
-      // Safely parse IDs and format date
-      const set1 = parseInt(client.clientId.replace(/\D/g, "") || "0", 10);
-      const set2 = parseInt(jobData.jobId.replace(/\D/g, "") || "0", 10);
-      const set3 = moment(jobData.startDate).format("DD_YY");
+    if (client?.id && jobData?.id && jobData?.from_date) {
+      const set1 = parseInt(client.id.replace(/\D/g, "") || "0", 10);
+      const set2 = parseInt(jobData.id.replace(/\D/g, "") || "0", 10);
+      const set3 = moment(jobData.from_date).format("DD_YY");
       return `${set3}/${set1}_${set2}`;
     }
     return "N/A";
   };
 
-  // Data fetching query
   const { isLoading: loadingData } = useQuery({
     queryKey: [`${id}forworksheetreport`, id],
-    queryFn: async () => getRecordData(id),
+    queryFn: async () => getRecordData(id!),
     onSuccess: (result) => {
       try {
         if (result?.data?.length > 0) {
@@ -97,7 +86,6 @@ export default function WorksheetReport() {
     },
   });
 
-  // Signature Pad Logic
   const sigRef = useRef<any>(null);
 
   const clear = () => {
@@ -143,18 +131,16 @@ export default function WorksheetReport() {
     );
   }
 
-  // Navigate to image management route
   const hnadleImageData = () => {
     navigate(
-      `${routes.reportImages}/${record.recordId}?worksheet=${worksheet.name}&jobid=${jobData.jobId}&worksheetid=${worksheet.workSheetId}&clientname=${client.businessName}`
+      `${routes.reportImages}/${record.record_id}?worksheet=${worksheet.name}&jobid=${jobData.id}&worksheetid=${worksheet.worksheet_id}&clientname=${client.business_name}`
     );
   };
 
   const data = record.data;
 
-  // Function to render field values
   const renderFieldValue = (field: WorksheetField) => {
-    const value = data[field.fieldId];
+    const value = data[field.field_id];
 
     switch (field.type) {
       case "checkbox":
@@ -164,13 +150,12 @@ export default function WorksheetReport() {
       case "file":
         return value || " ";
       case "table":
-        return null; // Tables are rendered separately later
+        return null;
       default:
         return value || " ";
     }
   };
 
-  // Helper to construct image URL
   const setUpUrl = (url: string) => {
     if (url.includes("http")) {
       return url;
@@ -179,13 +164,11 @@ export default function WorksheetReport() {
     }
   };
 
-  // 1. Array to collect table data during the map loop
   const tableSections: TableRenderData[] = [];
 
   return (
     <div className="min-h-screen bg-muted/30 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Action Bar (no-print) */}
         <div className="flex justify-between items-center mb-6 no-print">
           <Button
             variant="outline"
@@ -211,12 +194,8 @@ export default function WorksheetReport() {
           </div>
         </div>
 
-        {/* Printable Report Container */}
-        {/* Use a class to match the CSS reset rules */}
         <div ref={printRef} className="bg-white printable-report-container">
-          {/* --- Main Report Content Area --- */}
           <div className="p-4">
-            {/* Header */}
             <div className="border-b-2 border-gray-800 grid grid-cols-12 items-center mb-6 pb-2 avoid-break">
               <div className="flex items-center gap-4 col-span-3">
                 <div className="w-24 h-24 border-2 border-gray-300 flex items-center justify-center text-xs text-gray-500">
@@ -249,7 +228,6 @@ export default function WorksheetReport() {
               </div>
             </div>
 
-            {/* Report Details Grid */}
             <div className="space-y-2 grid grid-cols-2 mb-3 avoid-break">
               <div className="grid grid-cols-3 gap-4 text-sm avoid-break">
                 <div className="font-bold text-gray-900 break-words">
@@ -272,7 +250,7 @@ export default function WorksheetReport() {
                   Client
                 </div>
                 <div className="col-span-2 text-gray-700 break-words">
-                  : {client?.businessName}
+                  : {client?.business_name}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm avoid-break">
@@ -288,7 +266,7 @@ export default function WorksheetReport() {
                   Address
                 </div>
                 <div className="col-span-2 text-gray-700 break-words">
-                  : {client?.businessAddress}
+                  : {client?.business_address}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm avoid-break">
@@ -296,7 +274,7 @@ export default function WorksheetReport() {
                   Job no
                 </div>
                 <div className="col-span-2 text-gray-700 break-words">
-                  : {jobData?.jobId}
+                  : {jobData?.id}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm avoid-break">
@@ -304,7 +282,7 @@ export default function WorksheetReport() {
                   Job address
                 </div>
                 <div className="col-span-2 text-gray-700 break-words">
-                  : {client?.businessAddress}
+                  : {client?.business_address}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm avoid-break">
@@ -312,7 +290,7 @@ export default function WorksheetReport() {
                   P/O no
                 </div>
                 <div className="col-span-2 text-gray-700 break-words">
-                  : {client?.postalAddress}
+                  : {client?.postal_address}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm avoid-break">
@@ -320,7 +298,7 @@ export default function WorksheetReport() {
                   Client job no
                 </div>
                 <div className="col-span-2 text-gray-700 break-words">
-                  : {jobData?.jobId?.slice(3)}
+                  : {jobData?.id?.slice(3)}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm avoid-break">
@@ -355,28 +333,25 @@ export default function WorksheetReport() {
 
             <hr className="my-3 border-gray-300" />
 
-            {/* --- Dynamic Fields (Non-Table) Rendering --- */}
             {worksheet?.sections?.map((section, sectionIndex) => (
-              <div key={section.sectionId} className="mb-8 avoid-break">
-                {/* Section Fields */}
+              <div key={section.section_id} className="mb-8 avoid-break">
                 <div className="space-y-2 grid grid-cols-2">
                   {section?.fields?.map((field) => {
                     if (field.type === "table") {
-                      const tableData = data[field.fieldId] || [];
+                      const tableData = data[field.field_id] || [];
                       if (tableData.length > 0) {
-                        // 2. COLLECT TABLE DATA for rendering later
                         tableSections.push({
                           field,
                           data: tableData,
                           sectionName: section.name,
                         });
                       }
-                      return null; // DO NOT RENDER TABLE HERE
+                      return null;
                     }
 
                     return (
-                      field.inReport ? <div
-                        key={field.fieldId}
+                      field.in_report ? <div
+                        key={field.field_id}
                         className="grid grid-cols-3 gap-4 text-sm items-end justify-start avoid-break"
                       >
                         <div className="font-bold text-gray-900 break-words">
@@ -389,24 +364,18 @@ export default function WorksheetReport() {
                     );
                   })}
                 </div>
-
                 {sectionIndex < worksheet.sections.length - 1 && (
                   <hr className="mt-6 border-gray-300" />
                 )}
               </div>
             ))}
 
-            {/* --- Report Footer (Signature/NATA) --- */}
             <div className="mt-12 pt-10 border-t border-gray-300 text-sm leading-relaxed avoid-break">
               <div className="grid grid-cols-12 gap-8 items-start">
-                {/* LEFT SIDE: Signature Block */}
                 <div className="col-span-7 space-y-4">
                   <p className="font-semibold text-lg">Reported By:</p>
-
                   <div className="space-y-3">
                     <p className="font-semibold text-gray-700">Signature:</p>
-
-                    {/* DRAW/UPLOAD SIGNATURE */}
                     {(!signature || sigRef.current) && (
                       <div className="avoid-break">
                         <div
@@ -423,7 +392,6 @@ export default function WorksheetReport() {
                             }}
                           />
                         </div>
-
                         <div className="flex gap-3 mt-3 no-print">
                           <Button variant="outline" onClick={clear}>
                             Clear
@@ -431,7 +399,6 @@ export default function WorksheetReport() {
                         </div>
                       </div>
                     )}
-
                     {signature && !sigRef.current && (
                       <div className="space-y-2 avoid-break">
                         <img
@@ -448,8 +415,6 @@ export default function WorksheetReport() {
                         </Button>
                       </div>
                     )}
-
-                    {/* UPLOAD SIGNATURE */}
                     <div className="no-print">
                       <p className="text-xs text-gray-600 mb-1">
                         OR upload signature image
@@ -462,8 +427,6 @@ export default function WorksheetReport() {
                       />
                     </div>
                   </div>
-
-                  {/* NAME + QUALIFICATION */}
                   <div className="avoid-break">
                     <p className="font-semibold text-base leading-tight">
                       {user?.userName}
@@ -473,15 +436,12 @@ export default function WorksheetReport() {
                     </p>
                   </div>
                 </div>
-
-                {/* RIGHT SIDE — NATA */}
                 <div className="col-span-5 flex flex-col items-end text-right space-y-1 avoid-break">
                   <img
                     src="https://eaglelighting.com.au/assets/public-assets/Nata-Text-Media-Block.jpg"
                     alt="NATA Accreditation"
                     className="w-40 object-contain mb-2 max-w-full h-auto"
                   />
-
                   <p className="text-xs">
                     Accreditation No. <strong>20974</strong>
                   </p>
@@ -490,8 +450,6 @@ export default function WorksheetReport() {
                   <p className="text-xs">TESTING</p>
                 </div>
               </div>
-
-              {/* NOTES SECTION */}
               <div className="mt-10 text-xs italic text-gray-700 leading-5 avoid-break">
                 <p>
                   The results contained in this report are based on measurements
@@ -508,18 +466,14 @@ export default function WorksheetReport() {
               </div>
             </div>
 
-            {/* Page Footer */}
             <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-500 avoid-break">
               <p>
-                Generated on: {new Date(record.updatedAt).toLocaleDateString()}{" "}
-                {new Date(record.updatedAt).toLocaleTimeString()}
+                Generated on: {record.updated_at ? new Date(record.updated_at).toLocaleDateString() : 'N/A'}{" "}
+                {record.updated_at ? new Date(record.updated_at).toLocaleTimeString() : ''}
               </p>
             </div>
           </div>
 
-          {/* ---------------------------------------------------- */}
-          {/* --- SECTION 1: RENDER COLLECTED TABLES AFTER FOOTER --- */}
-          {/* ---------------------------------------------------- */}
           {tableSections.length > 0 && (
             <div className="p-6">
               <h3 className="underline text-center font-bold text-lg my-6 avoid-break">
@@ -527,20 +481,18 @@ export default function WorksheetReport() {
               </h3>
               {tableSections.map(({ field, data: tableData, sectionName }) => (
                 <div
-                  key={field.fieldId}
+                  key={field.field_id}
                   className="mt-6 col-span-full avoid-break"
                 >
                   <h4 className="font-bold text-sm text-gray-900 mb-2 avoid-break">
                     {sectionName} - {field.name}:
                   </h4>
-
-                  {/* Table Rendering */}
                   <table className="w-full border-collapse border border-gray-400 text-xs">
                     <thead>
                       <tr className="bg-gray-200">
-                        {field.tableColumns?.map((col) => (
+                        {field.table_columns?.map((col) => (
                           <th
-                            key={col.columnId}
+                            key={col.column_id}
                             className="border border-gray-400 px-3 py-2 text-left font-bold"
                           >
                             {col.name}
@@ -551,19 +503,19 @@ export default function WorksheetReport() {
                     <tbody>
                       {tableData?.map((row: any, idx: number) => (
                         <tr key={idx} className="even:bg-gray-50">
-                          {field.tableColumns?.map((col) => (
+                          {field.table_columns?.map((col) => (
                             <td
-                              key={col.columnId}
+                              key={col.column_id}
                               className="border border-gray-400 px-3 py-2"
                             >
                               {col.type === "checkbox" ? (
-                                row[col.columnId] ? (
+                                row[col.column_id] ? (
                                   <Check className="w-4 h-4 text-green-500" />
                                 ) : (
                                   <X className="w-4 h-4 text-red-500" />
                                 )
                               ) : (
-                                row[col.columnId] || " "
+                                row[col.column_id] || " "
                               )}
                             </td>
                           ))}
@@ -576,9 +528,6 @@ export default function WorksheetReport() {
             </div>
           )}
 
-          {/* ---------------------------------------------- */}
-          {/* --- SECTION 2: RENDER IMAGES AFTER TABLES --- */}
-          {/* ---------------------------------------------- */}
           {images?.length > 0 && (
             <div className="p-6 avoid-break">
               <h4 className="underline text-center font-bold my-6">

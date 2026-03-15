@@ -16,6 +16,7 @@ const defaultTheme: SettingsType = {
   fontFamily: "Montserrat, system-ui, sans-serif",
   fontSize: "small",
   borderRadius: "small",
+  themeMode: "dark",
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -82,6 +83,13 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       large: "1rem",
     };
     root.style.setProperty("--radius", radiusValues[SettingsType.borderRadius]);
+
+    // Apply dark mode class
+    if (SettingsType.themeMode === "dark") {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
   };
 
   useEffect(() => {

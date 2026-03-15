@@ -19,22 +19,17 @@ import { saveClient, updateClient } from "@/services/client.services";
 import { ClientType } from "@/types/client.type";
 
 const clientSchema = z.object({
-  businessName: z.string().min(2, "Business name is required"),
-  abnAcn: z.string().min(1, "ABN/ACN is required"),
-  businessAddress: z.string().min(5, "Business address is required"),
-  postalAddress: z.string().min(5, "Postal address is required"),
+  business_name: z.string().min(2, "Business name is required"),
+  abn_acn: z.string().min(1, "ABN/ACN is required"),
+  business_address: z.string().min(5, "Business address is required"),
+  postal_address: z.string().min(5, "Postal address is required"),
   phone: z.string().min(10, "Valid phone number is required"),
   email: z.string().email("Invalid email address"),
-  accountDeptContact: z.string().optional(),
-  accountPhone: z.string().optional(),
+  account_dept_contact: z.string().optional(),
+  account_phone: z.string().optional(),
   fax: z.string().optional(),
-  accountEmail: z.string().optional(),
-  invoiceEmail: z.string().optional(),
-  // accountDeptContact: z.string().min(2, "Account dept contact is required"),
-  // accountPhone: z.string().min(10, "Account phone is required"),
-  // fax: z.string().optional(),
-  // accountEmail: z.string().email("Invalid account email address"),
-  // invoiceEmail: z.string().email("Invalid invoice email address"),
+  account_email: z.string().optional(),
+  invoice_email: z.string().optional(),
 });
 
 type ClientFormData = z.infer<typeof clientSchema>;
@@ -54,17 +49,17 @@ export function ClientForm({
   const form = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
     defaultValues: initialData || {
-      businessName: "",
-      abnAcn: "",
-      businessAddress: "",
-      postalAddress: "",
+      business_name: "",
+      abn_acn: "",
+      business_address: "",
+      postal_address: "",
       phone: "",
       email: "",
-      accountDeptContact: "",
-      accountPhone: "",
+      account_dept_contact: "",
+      account_phone: "",
       fax: "",
-      accountEmail: "",
-      invoiceEmail: "",
+      account_email: "",
+      invoice_email: "",
     },
   });
 
@@ -75,7 +70,7 @@ export function ClientForm({
       onSubmit(result.data as ClientType);
       toast({
         title:"Client registered successfully",
-        description: `${result?.data?.businessName} has been ${
+        description: `${result?.data?.business_name} has been ${
           isEditing ? "updated" : "added"
         } to the system.`,
         className: "bg-green-500 text-white",
@@ -97,7 +92,7 @@ export function ClientForm({
       onSubmit(result.data as ClientType);
       toast({
         title:"Client updated successfully",
-        description: `${result?.data?.businessName} has been ${
+        description: `${result?.data?.business_name} has been ${
           isEditing ? "updated" : "added"
         } to the system.`,
         className: "bg-green-500 text-white",
@@ -112,19 +107,12 @@ export function ClientForm({
     },
   });
 
-  const handleSubmit = (data: ClientFormData & ClientType) => {
-    const formData = new FormData();
-    for (let key in data) {
-      formData.append(key, data[key]);
-    }
+  const handleSubmit = (data: ClientFormData) => {
     if (initialData) {
-      formData.append("clientId",initialData.clientId)
-      update(formData)
+      update({ ...data, clientId: initialData.id });
     } else {
-      save(formData);
+      save(data);
     }
-
-    
   };
 
   const handleReset = () => {
@@ -156,7 +144,7 @@ export function ClientForm({
 
               <FormField
                 control={form.control}
-                name="businessName"
+                name="business_name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Business Name</FormLabel>
@@ -171,7 +159,7 @@ export function ClientForm({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="abnAcn"
+                  name="abn_acn"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>ABN/ACN</FormLabel>
@@ -205,7 +193,7 @@ export function ClientForm({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="businessAddress"
+                  name="business_address"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Business Address</FormLabel>
@@ -222,7 +210,7 @@ export function ClientForm({
 
                 <FormField
                   control={form.control}
-                  name="postalAddress"
+                  name="postal_address"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Postal Address</FormLabel>
@@ -266,7 +254,7 @@ export function ClientForm({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="accountDeptContact"
+                  name="account_dept_contact"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Account Dept Contact</FormLabel>
@@ -280,7 +268,7 @@ export function ClientForm({
 
                 <FormField
                   control={form.control}
-                  name="accountPhone"
+                  name="account_phone"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Phone</FormLabel>
@@ -314,7 +302,7 @@ export function ClientForm({
 
                 <FormField
                   control={form.control}
-                  name="accountEmail"
+                  name="account_email"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Account Email</FormLabel>
@@ -333,7 +321,7 @@ export function ClientForm({
 
               <FormField
                 control={form.control}
-                name="invoiceEmail"
+                name="invoice_email"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email invoices to be issued to</FormLabel>

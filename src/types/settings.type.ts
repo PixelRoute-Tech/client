@@ -3,4 +3,5 @@ export type SettingsType = {
   fontFamily: string;
   fontSize: "small" | "large" | "medium";
   borderRadius: "small" | "large" | "medium";
+  themeMode?: "light" | "dark";
 };

@@ -12,39 +12,39 @@ export const saveWorkSheet = async (
 ): ApiResponseType<Worksheet> => {
   try {
     return (await network.post(apis.worksheet, payload)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 export const updateWorkSheet = async (
   payload: Worksheet
 ): ApiResponseType<Worksheet> => {
   try {
-    return (await network.put(apis.worksheet, payload)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+    return (await network.patch(`${apis.worksheet}/${payload.worksheet_id}`, payload)).data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 
 export const getWorkSheets = async (): ApiResponseType<Worksheet[]> => {
   try {
     return (await network.get(apis.worksheet)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 export const getWorkSheet = async (id: string): ApiResponseType<Worksheet> => {
   try {
     return (await network.get(`${apis.worksheet}/${id}`)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 export const getWorkSheetslList = async (): ApiResponseType<Worksheet[]> => {
   try {
     return (await network.get(`${apis.worksheet}/list`)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 
@@ -53,8 +53,8 @@ export const getRecord = async (
 ): ApiResponseType<WorksheetRecord> => {
   try {
     return (await network.get(`${apis.worksheetRecord}/${id}`)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 
@@ -63,8 +63,8 @@ export const saveRecord = async (
 ): ApiResponseType<WorksheetRecord> => {
   try {
     return (await network.post(`${apis.worksheetRecord}`, params)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 
@@ -73,8 +73,8 @@ export const updateRecord = async (
 ): ApiResponseType<WorksheetRecord> => {
   try {
     return (await network.put(`${apis.worksheetRecord}`, params)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 
@@ -91,28 +91,28 @@ export type TechRowTemp = ReplaceField<
 
 export type JobRequestTemp = ReplaceField<
   JobRequest,
-  "testRows",
+  "test_methods",
   Array<TechRowTemp>
 >;
 
 export const getRecordData = async (
   id: string
 ): ApiResponseType<
-  {
-    recordId: string;
-    record: WorksheetRecord;
-    client: ClientType;
-    worksheet: Worksheet;
-    job: JobRequestTemp;
-    jobrequest: JobRequest;
-    technician: UserType;
-    images:ImageRecord[]
-  }[]
+    {
+      record_id: string;
+      record: WorksheetRecord;
+      client: ClientType;
+      worksheet: Worksheet;
+      job: JobRequestTemp;
+      jobrequest: JobRequest;
+      technician: UserType;
+      images: ImageRecord[];
+    }[]
 > => {
   try {
     return (await network.get(`${apis.reportRecordData}/${id}`)).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 
@@ -127,8 +127,8 @@ export const uploadRecordImage = async (
         },
       })
     ).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 
@@ -143,8 +143,8 @@ export const updateRecordImage = async (
         },
       })
     ).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 
@@ -156,23 +156,23 @@ export const deleteRecordImage = async (
     return (
       await network.delete(`${apis.reportImages}/${payload.id}?previousfilepath=${payload.imageUrl}&previouspreviewpath=${payload.preview}`)
     ).data;
-  } catch (error) {
-    throw new Error(error.response.data.message);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 };
 
 export const getImageRecordImages = async (id:string):ApiResponseType<ImageRecord[]>=>{
   try {
     return (await network.get(`${apis.reportImages}/${id}`)).data
-  } catch (error) {
-     throw new Error(error.response.data.message);
+  } catch (error: any) {
+     throw new Error(error.response?.data?.message || error.message || "An unexpected error occurred");
   }
 }
 
 export const getPreviousData = async (id:string):ApiResponseType<{worksheet:Worksheet,records:WorksheetRecord[]}>=>{
   try {
     return (await network.get(`${apis.previousData}/${id}`)).data
-  } catch (error) {
-    throw new Error(error.response.data.message || "Opps! Something went wrong");
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "Opps! Something went wrong");
   }
 }

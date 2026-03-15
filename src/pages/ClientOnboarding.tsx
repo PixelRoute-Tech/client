@@ -16,22 +16,32 @@ import { ClientType } from "@/types/client.type";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ClientOnboarding() {
-  const { data: clients, refetch } = useQuery({
-    queryKey: ["fetchclientsinclientonboarding"],
-    queryFn: getClients,
+  const [queryParams, setQueryParams] = useState({
+    skip: 0,
+    take: 10,
+  });
+
+  const { data: clientsResponse, refetch, isFetching } = useQuery({
+    queryKey: ["fetchclientsinclientonboarding", queryParams],
+    queryFn: () => getClients(queryParams.skip, queryParams.take),
     refetchOnWindowFocus: false,
   });
+
+  const clients = clientsResponse?.data?.data || [];
+  const totalCount = clientsResponse?.data?.count || 0;
+
   const [editingClient, setEditingClient] = useState<ClientType | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentView, setCurrentView] = useState<"form" | "list">("form");
-  const {toast} = useToast()
-  const { mutate: removeClients, isPending: saveLoading } = useMutation({
+  const { toast } = useToast();
+  
+  const { mutate: removeClients } = useMutation({
     mutationFn: deleteClients,
     onSuccess: (result) => {
-      refetch()
+      refetch();
       toast({
-        title:"Client registered successfully",
-        description: `${result?.data?.businessName} deleted successfully`,
+        title: "Client deleted successfully",
+        description: "The client record has been removed.",
         className: "bg-green-500 text-white",
       });
     },
@@ -45,11 +55,11 @@ export default function ClientOnboarding() {
   });
 
   const handleSubmit = (clientData: ClientType) => {
-   refetch()
+    refetch();
+    setCurrentView("list");
   };
 
   const handleEdit = (client: ClientType) => {
-    refetch();
     setEditingClient(client);
     setIsEditDialogOpen(true);
   };
@@ -60,8 +70,8 @@ export default function ClientOnboarding() {
     setEditingClient(null);
   };
 
-  const handleDelete = (clientId: string) => {
-    removeClients(clientId)
+  const handleDelete = (clientId: number) => {
+    removeClients(clientId.toString());
   };
 
   return (
@@ -109,7 +119,7 @@ export default function ClientOnboarding() {
               <div className="grid grid-cols-1 gap-4">
                 <div className="bg-primary/10 rounded-lg p-4">
                   <div className="text-2xl font-bold text-primary">
-                    {clients?.data?.length}
+                    {totalCount}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     Total Clients
@@ -118,9 +128,10 @@ export default function ClientOnboarding() {
                 <div className="bg-accent/10 rounded-lg p-4">
                   <div className="text-2xl font-bold text-accent-foreground">
                     {
-                      clients?.data?.filter(
-                        (c) => c.createdDate == moment().format("")
-                      )?.length
+                      clients.filter(
+                        (c) => 
+                          moment(c.created_at).isSame(moment(), 'month')
+                      ).length
                     }
                   </div>
                   <div className="text-sm text-muted-foreground">
@@ -131,8 +142,8 @@ export default function ClientOnboarding() {
                   <div className="text-2xl font-bold text-secondary-foreground">
                     {
                       new Set(
-                        clients?.data?.map((c) =>
-                          c.businessAddress.split(",").pop()?.trim()
+                        clients.map((c) =>
+                          c.business_address?.split(",").pop()?.trim()
                         )
                       ).size
                     }
@@ -149,9 +160,13 @@ export default function ClientOnboarding() {
 
       {currentView === "list" && (
         <ClientsTable
-          clients={clients?.data || []}
+          clients={clients}
+          totalCount={totalCount}
+          loading={isFetching}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          queryParams={queryParams}
+          setQueryParams={setQueryParams}
         />
       )}
 
