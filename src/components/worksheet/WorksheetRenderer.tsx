@@ -35,11 +35,12 @@ import {
   Clipboard,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { saveRecord, updateRecord } from "@/services/worksheet.services";
 import { useNavigate } from "react-router-dom";
 import { getItem, setItem, storageKeys } from "@/utils/storage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import Autocomplete from "../ui/autocomplete";
 
 export type WorksheetData = {
   [fieldId: string]: any;
@@ -52,6 +53,7 @@ interface WorksheetRendererProps {
   onSubmit?: (data: WorksheetData) => void;
   recordId?: string;
   clientId?: string;
+  isEdit?: boolean;
 }
 
 export function WorksheetRenderer({
@@ -61,24 +63,27 @@ export function WorksheetRenderer({
   onSubmit,
   recordId,
   clientId = "",
+  isEdit = false,
 }: WorksheetRendererProps) {
   const [formData, setFormData] = useState<WorksheetData>(data);
   const [currentRecordId, setCurrentRecordId] = useState<string>(
-    recordId || ""
+    isEdit ? (recordId || "") : ""
   );
   const [showPasteBtn, setShowPasteBtn] = useState<boolean>(false);
   const [openModal, setOpenModal] = useState<boolean>();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { mutate: save, isLoading: saveLoading } = useMutation({
     mutationFn: saveRecord,
-    onSuccess: (result) => {
+    onSuccess: (result: any) => {
       toast({
         title: "Success",
-        description: result?.message,
+        description: "Record saved successfully",
         className: "bg-green-500 text-white",
       });
+      queryClient.invalidateQueries({ queryKey: [recordId, worksheet.worksheet_id] });
     },
     onError: (error: any) => {
       toast({
@@ -91,12 +96,13 @@ export function WorksheetRenderer({
 
   const { mutate: update, isLoading: updateLoading } = useMutation({
     mutationFn: updateRecord,
-    onSuccess: (result) => {
+    onSuccess: (result: any) => {
       toast({
         title: "Success",
-        description: result?.message,
+        description: "Record updated successfully",
         className: "bg-green-500 text-white",
       });
+      queryClient.invalidateQueries({ queryKey: [recordId, worksheet.worksheet_id] });
     },
     onError: (error: any) => {
       toast({
@@ -124,7 +130,7 @@ export function WorksheetRenderer({
     };
     onSubmit && onSubmit(record);
     setCurrentRecordId(recordId || "");
-    if (Object.entries(data).length > 0) {
+    if (isEdit) {
       update(record);
     } else {
       save(record);
@@ -167,6 +173,12 @@ export function WorksheetRenderer({
       setOpenModal(false);
     }
   };
+
+  useEffect(() => {
+    if (data && Object.keys(data).length > 0) {
+      setFormData(data);
+    }
+  }, [data]);
 
   useEffect(() => {
     try {
@@ -266,29 +278,12 @@ export function WorksheetRenderer({
 
       case "autocomplete":
         return (
-          <Select
+          <Autocomplete
+            options={field.options?.map(opt => ({ id: opt.option_id, label: opt.value })) || []}
+            onSelect={(opt) => handleFieldChange(field.field_id, opt.label)}
+            placeholder={`Search ${field.name}...`}
             value={value || ""}
-            onValueChange={(val) => handleFieldChange(field.field_id, val)}
-            required={field.required}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={`Select ${field.name}`} />
-            </SelectTrigger>
-            <SelectContent>
-              {field.options?.length ? (
-                field.options.map((option) => (
-                  <SelectItem
-                    key={option?.option_id}
-                    value={option?.value || " "}
-                  >
-                    {option.value || " "}
-                  </SelectItem>
-                ))
-              ) : (
-                <SelectItem value={"No values"}>No values </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
+          />
         );
 
       case "autocomplete-chips":
@@ -608,7 +603,7 @@ export function WorksheetRenderer({
               className="flex-1"
             >
               <Save className="h-4 w-4 mr-2" />
-              {currentRecordId ? "Update" : "Save"}
+              {isEdit ? "Update" : "Save"}
             </Button>
             <Button onClick={handleReset} variant="outline" className="flex-1">
               <RotateCcw className="h-4 w-4 mr-2" />
@@ -636,3 +631,5 @@ export function WorksheetRenderer({
     </>
   );
 }
+
+export default WorksheetRenderer;

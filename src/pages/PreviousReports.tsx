@@ -41,7 +41,7 @@ function PreviousReports() {
 
   const renderFieldValue = (field: WorksheetField, recordData: any) => {
     if (!field || !recordData) return "-";
-    const value = recordData[field.fieldId];
+    const value = recordData[field.field_id];
 
     if (value === undefined || value === null || value === "") return "-";
 
@@ -64,19 +64,19 @@ function PreviousReports() {
   const renderRecords = () => {
     return records.map((record) => (
       <div
-        key={record?.recordId ?? Math.random()}
+        key={record?.record_id ?? Math.random()}
         className="bg-white rounded-xl border border-slate-200 shadow-sm mb-8 overflow-hidden"
       >
         {/* Record Header */}
         <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center text-xs">
           <div className="flex items-center gap-2 font-semibold text-slate-700">
             <Calendar size={14} />
-            {record?.createdAt 
-              ? moment(record.createdAt).format("DD MMM YYYY | HH:mm A") 
+            {record?.created_at 
+              ? moment(record.created_at).format("DD MMM YYYY | HH:mm A") 
               : "Date Unknown"}
           </div>
           <span className="font-mono bg-white px-2 py-0.5 rounded border tracking-tighter">
-            REF: {record?.recordId ?? "N/A"}
+            REF: {record?.record_id ?? "N/A"}
           </span>
           <Button
             variant="ghost"
@@ -90,7 +90,7 @@ function PreviousReports() {
         <div className="p-5">
           {/* Ensure sections exist before mapping */}
           {(worksheet?.sections ?? []).map((section) => (
-            <div key={section?.sectionId ?? Math.random()} className="mb-6 last:mb-0">
+            <div key={section?.section_id ?? Math.random()} className="mb-6 last:mb-0">
               {/* Section Header */}
               <div className="flex items-center gap-2 mb-3">
                 <div className="h-4 w-1 bg-blue-500 rounded-full" />
@@ -108,11 +108,11 @@ function PreviousReports() {
 
                   if (field.type === "table") {
                     // Safe access to table data
-                    const tableRows = record?.data?.[field.fieldId] ?? [];
-                    const columns = field.tableColumns ?? [];
+                    const tableRows = record?.data?.[field.field_id] ?? [];
+                    const columns = field.table_columns ?? [];
 
                     return (
-                      <div key={field.fieldId} className="col-span-full mt-2">
+                      <div key={field.field_id} className="col-span-full mt-2">
                         <span className="text-[11px] font-bold text-slate-400 uppercase">
                           {field.name ?? "Table"}
                         </span>
@@ -122,7 +122,7 @@ function PreviousReports() {
                               <tr>
                                 {columns.map((col) => (
                                   <th
-                                    key={col?.columnId ?? Math.random()}
+                                    key={col?.column_id ?? Math.random()}
                                     className="p-2 text-left border-r last:border-0 font-bold text-slate-600 whitespace-nowrap"
                                   >
                                     {col?.name ?? "-"}
@@ -135,10 +135,10 @@ function PreviousReports() {
                                 tableRows.map((row: any, i: number) => (
                                   <tr key={i} className="border-b last:border-0 hover:bg-slate-50/50">
                                     {columns.map((col) => (
-                                      <td key={col?.columnId} className="p-2 border-r last:border-0">
+                                      <td key={col?.column_id} className="p-2 border-r last:border-0">
                                         {col?.type === "checkbox"
-                                          ? (row?.[col.columnId] ? "Yes" : "No")
-                                          : (row?.[col.columnId] ?? "-")}
+                                          ? (row?.[col.column_id] ? "Yes" : "No")
+                                          : (row?.[col.column_id] ?? "-")}
                                       </td>
                                     ))}
                                   </tr>
@@ -160,7 +160,7 @@ function PreviousReports() {
                   // Normal Fields
                   return (
                     <div
-                      key={field.fieldId}
+                      key={field.field_id}
                       className="flex flex-row py-1 border-b border-slate-50 gap-2 items-baseline"
                     >
                       <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-tight shrink-0">

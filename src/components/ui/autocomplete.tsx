@@ -10,15 +10,21 @@ type AutocompleteProps = {
   options: Option[];
   placeholder?: string;
   onSelect?: (option: Option) => void;
+  value?: string;
 };
 
 export default function Autocomplete({
   options,
   placeholder = "Search...",
   onSelect,
+  value = "",
 }: AutocompleteProps) {
   const [open, setOpen] = useState(false);
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState(value);
+
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
