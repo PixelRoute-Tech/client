@@ -119,7 +119,7 @@ export default function WorksheetListing() {
                           variant="ghost"
                           size="icon"
                           onClick={() =>
-                            navigate(routes.worksheetEdit, { state: worksheet })
+                            navigate(routes.worksheetEdit, { state: worksheet.worksheet_id })
                           }
                         >
                           <Edit className="h-4 w-4" />
