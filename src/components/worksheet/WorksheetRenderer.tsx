@@ -52,6 +52,7 @@ interface WorksheetRendererProps {
   onChange?: (data: WorksheetData) => void;
   onSubmit?: (data: WorksheetData) => void;
   recordId?: string;
+  jobId?: string;
   clientId?: string;
   isEdit?: boolean;
 }
@@ -62,6 +63,7 @@ export function WorksheetRenderer({
   onChange,
   onSubmit,
   recordId,
+  jobId = "",
   clientId = "",
   isEdit = false,
 }: WorksheetRendererProps) {
@@ -120,27 +122,28 @@ export function WorksheetRenderer({
   };
 
   const handleSave = () => {
-    const rawJobId = recordId?.split("_")[1] || "";
-    // Robust UUID check or null
+    // Robust UUID check or null for jobId
     const isUUID = (str: string) => /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(str);
-    const jobId = isUUID(rawJobId) ? rawJobId : null;
+    const sanitizedJobId = isUUID(jobId) ? jobId : null;
     
     // clientId can be any string, but sanitize "undefined" or empty to null
     const sanitizedClientId = (clientId === "undefined" || !clientId) ? null : clientId;
 
-    const record: any = {
-      job_id: jobId,
+    const recordPayload: any = {
+      job_id: sanitizedJobId,
       record_id: recordId,
       client_id: sanitizedClientId,
       worksheet_id: worksheet.worksheet_id,
       data: formData,
     };
-    onSubmit && onSubmit(record);
+
+    onSubmit && onSubmit(recordPayload);
     setCurrentRecordId(recordId || "");
+
     if (isEdit) {
-      update(record);
+      update(recordPayload);
     } else {
-      save(record);
+      save(recordPayload);
     }
   };
 
@@ -182,19 +185,20 @@ export function WorksheetRenderer({
   };
 
   useEffect(() => {
-    if (data && Object.keys(data).length > 0) {
+    if (data) {
+      console.log("[WorksheetRenderer] Prop data changed:", data);
       setFormData(data);
     }
   }, [data]);
 
   useEffect(() => {
     try {
-      const sheetData = getItem(storageKeys.copied);
-      if (worksheet?.worksheet_id && sheetData[worksheet.worksheet_id]) {
+      const copiedData = getItem(storageKeys.copied);
+      if (worksheet?.worksheet_id && copiedData?.[worksheet.worksheet_id]) {
         setShowPasteBtn(true);
       }
     } catch (error) {
-      console.log(error);
+      console.log("[WorksheetRenderer] Copy/Paste check error:", error);
     }
   }, [worksheet?.worksheet_id]);
 
