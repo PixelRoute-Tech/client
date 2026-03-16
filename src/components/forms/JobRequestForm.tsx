@@ -61,7 +61,7 @@ import { useNavigate } from "react-router-dom";
 import { Badge } from "../ui/badge";
 import { baseURL } from "@/config/network.config";
 
-export const jobStatus = ["Pending", "Approved", "Completed", "Rejected"];
+export const jobStatus = ["PENDING", "APPROVED", "REJECTED", "IN_PROGRESS", "COMPLETED", "CANCELLED"];
 const initializationData = {
   startDate: new Date(),
   lastDate: new Date(),
@@ -324,13 +324,14 @@ export function JobRequestForm({
   };
 
   const handleSubmit = (data: JobRequestFormData) => {
+    console.log(data)
     if (!selectedClient) return;
     const requestData = {
       client_id: selectedClient.id,
       from_date: moment(data.startDate).format("YYYY-MM-DD"),
       to_date: moment(data.lastDate).format("YYYY-MM-DD"),
       time_required: data.timeRequired,
-      status: data.status.toLowerCase(),
+      status: data.status,
       purchase_order: data.purchaseOrder || "",
       summary: data.summary,
       details_provided: data.detailsProvided,
