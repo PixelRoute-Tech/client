@@ -120,11 +120,18 @@ export function WorksheetRenderer({
   };
 
   const handleSave = () => {
-    const jobId = recordId?.split("_")[1] || "";
+    const rawJobId = recordId?.split("_")[1] || "";
+    // Robust UUID check or null
+    const isUUID = (str: string) => /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(str);
+    const jobId = isUUID(rawJobId) ? rawJobId : null;
+    
+    // clientId can be any string, but sanitize "undefined" or empty to null
+    const sanitizedClientId = (clientId === "undefined" || !clientId) ? null : clientId;
+
     const record: any = {
       job_id: jobId,
       record_id: recordId,
-      client_id: clientId,
+      client_id: sanitizedClientId,
       worksheet_id: worksheet.worksheet_id,
       data: formData,
     };

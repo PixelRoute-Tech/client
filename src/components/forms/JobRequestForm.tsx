@@ -1000,7 +1000,7 @@ export function JobRequestForm({
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-1">
-                              <Button type="button" onClick={()=>{navigate(`${routes.worksheetDetails}?jobid=${field.jobId}&sheetid=${field.testMethod}&clientId=${field.clientId}`)}}>Edit</Button>
+                              <Button type="button" onClick={()=>{navigate(`${routes.worksheetDetails}?jobid=${(initialData as any)?.id || ""}&sheetid=${field.testMethod}&clientId=${selectedClient?.id || ""}`)}}>Edit</Button>
                               <Button
                                 type="button"
                                 variant="ghost"

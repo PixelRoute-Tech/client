@@ -18,9 +18,13 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 function WorksheetDetails() {
   const [searchParams] = useSearchParams();
   const sheetid = searchParams.get("sheetid");
-  const jobid = searchParams.get("jobid");
-  const clientId = searchParams.get("clientId");
-  const recordId = `record_${jobid}_${sheetid}`;
+  const rawJobid = searchParams.get("jobid");
+  const rawClientId = searchParams.get("clientId");
+
+  const jobid = (rawJobid === "undefined" || !rawJobid) ? "" : rawJobid;
+  const clientId = (rawClientId === "undefined" || !rawClientId) ? "" : rawClientId;
+
+  const recordId = `record_${jobid || "temp"}_${sheetid}`;
   const { data: worksheet, isLoading: worksheetLoading } = useQuery({
     queryKey: ["worksheetdatafordetails", sheetid],
     queryFn: async () => getWorkSheet(sheetid),
