@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Worksheet, WorksheetField, TableColumn } from "@/types/worksheet.type";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -467,33 +466,40 @@ export function WorksheetRenderer({
 
     return (
       <div className="space-y-4">
-        <div className="border rounded-lg overflow-hidden">
+        <div className="glass-panel border-white/10 overflow-hidden shadow-lg">
           <Table>
-            <TableHeader>
-              <TableRow>
+            <TableHeader className="bg-white/5">
+              <TableRow className="border-white/10 hover:bg-transparent">
                 {columns.map((column) => (
-                  <TableHead key={column.column_id}>{column.name}</TableHead>
+                  <TableHead key={column.column_id} className="text-primary-white font-medium py-4">
+                    {column.name}
+                  </TableHead>
                 ))}
                 {hasActions && (
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right text-primary-white font-medium py-4">Actions</TableHead>
                 )}
               </TableRow>
             </TableHeader>
             <TableBody>
               {tableData.length === 0 ? (
-                <TableRow>
+                <TableRow className="border-white/5">
                   <TableCell
                     colSpan={columns.length + (hasActions ? 1 : 0)}
-                    className="text-center text-muted-foreground py-8"
+                    className="text-center text-muted-white py-12 bg-white/5"
                   >
-                    No rows added yet. Click "Add Row" to get started.
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="p-3 rounded-full bg-white/5">
+                        <Plus className="h-6 w-6 opacity-20" />
+                      </div>
+                      <p>No rows added yet. Click "Add Row" to get started.</p>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (
                 tableData.map((_, rowIndex) => (
-                  <TableRow key={rowIndex}>
+                  <TableRow key={rowIndex} className="border-white/5 hover:bg-white/5 transition-colors">
                     {columns.map((column) => (
-                      <TableCell key={column.column_id}>
+                      <TableCell key={column.column_id} className="py-3">
                         {renderTableCell(
                           column,
                           rowIndex,
@@ -503,24 +509,24 @@ export function WorksheetRenderer({
                       </TableCell>
                     ))}
                     {hasActions && (
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                      <TableCell className="text-right py-3">
+                        <div className="flex justify-end gap-1">
                           {actions.view && (
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 hover-lift btn-press hover:bg-primary/10 hover:text-primary">
                               <Eye className="h-4 w-4" />
                             </Button>
                           )}
                           {actions.edit && (
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 hover-lift btn-press hover:bg-primary/10 hover:text-primary">
                               <Edit className="h-4 w-4" />
                             </Button>
                           )}
                           {actions.delete && (
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="icon"
                               onClick={() => deleteRow(rowIndex)}
-                              className="text-destructive"
+                              className="h-8 w-8 hover-lift btn-press text-destructive hover:bg-destructive/10 hover:text-destructive"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -534,9 +540,15 @@ export function WorksheetRenderer({
             </TableBody>
           </Table>
         </div>
-        <Button type="button" variant="outline" size="sm" onClick={addRow}>
+        <Button 
+          type="button" 
+          variant="outline" 
+          size="sm" 
+          onClick={addRow}
+          className="hover-lift btn-press border-white/10 bg-white/5 hover:bg-white/10 text-primary-white"
+        >
           <Plus className="h-4 w-4 mr-2" />
-          Add Row
+          Add New Row
         </Button>
       </div>
     );
@@ -544,33 +556,38 @@ export function WorksheetRenderer({
 
   return (
     <>
-      <Card>
-        <CardHeader>
+      <div className="glass-panel border-white/5 shadow-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/10 bg-white/5 backdrop-blur-md">
           <div className="flex justify-between items-center">
-            <div className="flex justify-start items-center">
+            <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
-                size="sm"
-                onClick={() => {
-                  navigate(-1);
-                }}
+                size="icon"
+                onClick={() => navigate(-1)}
+                className="hover-lift btn-press rounded-full hover:bg-white/10"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="h-5 w-5" />
               </Button>
+              <h2 className="text-2xl font-light tracking-tight text-primary-white">
+                {worksheet.name}
+              </h2>
             </div>
-            <div className="col-span-5 text-center flex justify-between items-center">
-              <CardTitle className="text-primary">{worksheet.name}</CardTitle>
-            </div>
-            <div className="flex justify-end items-center">
+            <div className="flex items-center gap-2">
               {showPasteBtn && (
-                <Button variant="link" onClick={handleOpenModal}>
-                  Paste <Clipboard />
+                <Button 
+                  variant="ghost" 
+                  onClick={handleOpenModal}
+                  className="hover-lift btn-press text-primary hover:text-primary-hover hover:bg-primary/10"
+                >
+                  <Clipboard className="h-4 w-4 mr-2" />
+                  Paste
                 </Button>
               )}
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
+        </div>
+
+        <div className="p-6 space-y-10">
           {worksheet.sections?.map((section) => {
             const layout = section.layout || 1;
             const gridCols: Record<number, string> = {
@@ -581,25 +598,31 @@ export function WorksheetRenderer({
             };
 
             return (
-              <div key={section.section_id} className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground border-b pb-2">
-                  {section.name}
-                </h3>
-                <div className={`grid gap-4 ${gridCols[layout] || gridCols[1]}`}>
+              <div key={section.section_id} className="space-y-6">
+                <div className="flex items-baseline gap-4">
+                  <h3 className="text-lg font-medium text-primary-white whitespace-nowrap">
+                    {section.name}
+                  </h3>
+                  <div className="h-px w-full bg-gradient-to-r from-white/10 to-transparent" />
+                </div>
+                
+                <div className={`grid gap-6 ${gridCols[layout] || gridCols[1]}`}>
                   {section.fields?.map((field) => (
                     <div
                       key={field.field_id}
-                      className={`space-y-2 ${
-                        field.type === "table" ? "col-span-full" : ""
+                      className={`space-y-2.5 ${
+                        field.type === "table" ? "col-span-full mt-4" : ""
                       }`}
                     >
-                      <Label>
+                      <Label className="text-sm font-medium text-body-white ml-1">
                         {field.name}
                         {field.required && (
                           <span className="text-destructive ml-1">*</span>
                         )}
                       </Label>
-                      {renderField(field)}
+                      <div className="transition-all duration-200 focus-within:ring-2 focus-within:ring-primary/20 rounded-lg">
+                        {renderField(field)}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -607,34 +630,43 @@ export function WorksheetRenderer({
             );
           })}
 
-          <div className="flex gap-4 pt-6 border-t">
+          <div className="flex gap-4 pt-8 mt-4 border-t border-white/10">
             <Button
               disabled={saveLoading || updateLoading}
               onClick={handleSave}
-              className="flex-1"
+              className="flex-1 hover-lift btn-press bg-primary hover:bg-primary-hover text-white shadow-lg shadow-primary/20 h-11"
             >
               <Save className="h-4 w-4 mr-2" />
-              {isEdit ? "Update" : "Save"}
+              {isEdit ? "Update Changes" : "Save Record"}
             </Button>
-            <Button onClick={handleReset} variant="outline" className="flex-1">
+            <Button 
+              onClick={handleReset} 
+              variant="outline" 
+              className="flex-1 hover-lift btn-press border-white/10 bg-white/5 hover:bg-white/10 h-11 text-primary-white"
+            >
               <RotateCcw className="h-4 w-4 mr-2" />
-              Reset
+              Reset Form
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
       <Dialog open={openModal} onOpenChange={handleCancel}>
-        <DialogContent className="max-w-2xl overflow-y-auto p-0">
-          <DialogHeader className="p-3">
-            <DialogTitle>Paste copied data</DialogTitle>
+        <DialogContent className="max-w-md glass-panel border-white/10 p-0 overflow-hidden shadow-2xl">
+          <DialogHeader className="p-6 border-b border-white/5 bg-white/5">
+            <DialogTitle className="text-xl font-light text-primary-white">Paste Data</DialogTitle>
           </DialogHeader>
-          <div className="py-5 px-3">Do you want to paste the copied data?</div>
-          <div className="flex justify-end items-center py-4 px-2 gap-3 border-t">
-            <Button size="sm" onClick={handlePaste}>
-              Paste <Clipboard />
+          <div className="p-8 text-body-white text-center">
+            <Clipboard className="h-12 w-12 text-primary mx-auto mb-4 opacity-50" />
+            <p className="text-lg">Paste copied data into this worksheet?</p>
+            <p className="text-sm text-muted-white mt-2">This will overwrite current field values.</p>
+          </div>
+          <div className="flex justify-end items-center p-4 gap-3 bg-black/20 border-t border-white/5">
+            <Button variant="outline" size="sm" onClick={handleCancel} className="hover-lift btn-press border-white/10">
+              Cancel
             </Button>
-            <Button size="sm" variant="destructive" onClick={handleCancel}>
-              Cancel <X />
+            <Button size="sm" onClick={handlePaste} className="hover-lift btn-press bg-primary hover:bg-primary-hover text-white">
+              Confirm Paste <Clipboard className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </DialogContent>
