@@ -13,6 +13,7 @@ import { WorksheetRenderer } from "@/components/worksheet/WorksheetRenderer";
 import routes from "@/routes/routeList";
 import { getRecord, getWorkSheet } from "@/services/worksheet.services";
 import { useQuery } from "@tanstack/react-query";
+import { X } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -79,34 +80,41 @@ function WorksheetDetails() {
 
   if (!sheetid) {
     return (
-      <div className="container mx-auto py-10 text-center">
-        <h2 className="text-xl font-semibold text-red-600">No Worksheet ID provided</h2>
-        <Button onClick={() => navigate(-1)} className="mt-4">Go Back</Button>
+      <div className="container mx-auto py-10 text-center page-transition">
+        <div className="glass-panel p-10 max-w-md mx-auto border-red-500/20">
+          <h2 className="text-2xl font-light text-red-500 mb-4">No Worksheet ID provided</h2>
+          <Button onClick={() => navigate(-1)} variant="outline" className="btn-press">Go Back</Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+    <div className="container mx-auto py-8 space-y-8 page-transition">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 glass-panel p-6 shadow-xl border-white/10">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Worksheet Details</h1>
-          <p className="text-slate-500 text-sm">
-            Job: <span className="font-medium text-slate-700">{jobid || "N/A"}</span> • 
-            Record: <span className="font-medium text-slate-700 truncate inline-block max-w-[200px] align-bottom">{recordId}</span>
-          </p>
+          <h1 className="text-3xl font-light tracking-tight text-primary-white">Worksheet Details</h1>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
+            <p className="text-muted-white text-sm">
+              Job: <span className="font-medium text-primary-white">{jobid || "N/A"}</span>
+            </p>
+            <div className="w-1.5 h-1.5 rounded-full bg-border" />
+            <p className="text-muted-white text-sm">
+              Record ID: <span className="font-medium text-primary-white truncate inline-block max-w-[200px] align-bottom">{recordId}</span>
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => navigate(-1)} size="sm">
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={() => navigate(-1)} size="sm" className="hover-lift btn-press border-white/20 bg-white/5 backdrop-blur-sm">
             Back
           </Button>
-          <Button variant="secondary" onClick={handleCopy} size="sm">
+          <Button variant="secondary" onClick={handleCopy} size="sm" className="hover-lift btn-press bg-white/10 hover:bg-white/20 border-white/10 text-primary-white">
             Copy Previous
           </Button>
           <Button 
             onClick={handleShowReport} 
             size="sm" 
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="hover-lift btn-press bg-primary hover:bg-primary-hover text-white shadow-lg shadow-primary/20"
             disabled={!record?.data}
           >
             View Report
@@ -115,11 +123,11 @@ function WorksheetDetails() {
       </div>
 
       {worksheetLoading || recordLoading ? (
-        <div className="space-y-4">
+        <div className="glass-panel p-8">
           <SkeletonLoader config={skeletonConfigs.form} />
         </div>
       ) : worksheet?.data ? (
-        <div className="bg-slate-50 rounded-xl p-1">
+        <div className="glass-elevated rounded-2xl p-0.5 border border-white/5 overflow-hidden">
           <WorksheetRenderer
             data={record?.data?.data || {}}
             worksheet={worksheet?.data}
@@ -130,10 +138,13 @@ function WorksheetDetails() {
           />
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 bg-red-50 rounded-xl border border-red-200 text-red-600">
-          <h3 className="text-lg font-semibold mb-2">Error Loading Worksheet</h3>
-          <p className="text-sm opacity-80 mb-6">{worksheetError instanceof Error ? worksheetError.message : "We couldn't retrieve the worksheet configuration or record data."}</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>Try Again</Button>
+        <div className="flex flex-col items-center justify-center py-20 glass-panel border-red-500/20 text-center">
+          <div className="p-4 rounded-full bg-red-500/10 mb-4">
+            <X className="h-8 w-8 text-red-500" />
+          </div>
+          <h3 className="text-2xl font-light text-red-500 mb-2">Error Loading Worksheet</h3>
+          <p className="text-muted-white max-w-md mx-auto mb-8">{worksheetError instanceof Error ? worksheetError.message : "We couldn't retrieve the worksheet configuration or record data."}</p>
+          <Button variant="outline" onClick={() => window.location.reload()} className="hover-lift btn-press border-white/20">Try Again</Button>
         </div>
       )}
     </div>
