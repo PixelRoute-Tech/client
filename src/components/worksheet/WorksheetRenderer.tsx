@@ -35,11 +35,12 @@ import {
   Clipboard,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { saveRecord, updateRecord } from "@/services/worksheet.services";
 import { useNavigate } from "react-router-dom";
 import { getItem, setItem, storageKeys } from "@/utils/storage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import Autocomplete from "../ui/autocomplete";
 
 export type WorksheetData = {
   [fieldId: string]: any;
@@ -51,7 +52,9 @@ interface WorksheetRendererProps {
   onChange?: (data: WorksheetData) => void;
   onSubmit?: (data: WorksheetData) => void;
   recordId?: string;
+  jobId?: string;
   clientId?: string;
+  isEdit?: boolean;
 }
 
 export function WorksheetRenderer({
@@ -60,25 +63,29 @@ export function WorksheetRenderer({
   onChange,
   onSubmit,
   recordId,
+  jobId = "",
   clientId = "",
+  isEdit = false,
 }: WorksheetRendererProps) {
   const [formData, setFormData] = useState<WorksheetData>(data);
   const [currentRecordId, setCurrentRecordId] = useState<string>(
-    recordId || ""
+    isEdit ? (recordId || "") : ""
   );
   const [showPasteBtn, setShowPasteBtn] = useState<boolean>(false);
   const [openModal, setOpenModal] = useState<boolean>();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { mutate: save, isLoading: saveLoading } = useMutation({
     mutationFn: saveRecord,
-    onSuccess: (result) => {
+    onSuccess: (result: any) => {
       toast({
         title: "Success",
-        description: result?.message,
+        description: "Record saved successfully",
         className: "bg-green-500 text-white",
       });
+      queryClient.invalidateQueries({ queryKey: [recordId, worksheet.worksheet_id] });
     },
     onError: (error: any) => {
       toast({
@@ -91,12 +98,13 @@ export function WorksheetRenderer({
 
   const { mutate: update, isLoading: updateLoading } = useMutation({
     mutationFn: updateRecord,
-    onSuccess: (result) => {
+    onSuccess: (result: any) => {
       toast({
         title: "Success",
-        description: result?.message,
+        description: "Record updated successfully",
         className: "bg-green-500 text-white",
       });
+      queryClient.invalidateQueries({ queryKey: [recordId, worksheet.worksheet_id] });
     },
     onError: (error: any) => {
       toast({
@@ -114,20 +122,28 @@ export function WorksheetRenderer({
   };
 
   const handleSave = () => {
-    const jobId = recordId?.split("_")[1] || "";
-    const record: any = {
-      job_id: jobId,
+    // Robust UUID check or null for jobId
+    const isUUID = (str: string) => /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(str);
+    const sanitizedJobId = isUUID(jobId) ? jobId : null;
+    
+    // clientId can be any string, but sanitize "undefined" or empty to null
+    const sanitizedClientId = (clientId === "undefined" || !clientId) ? null : clientId;
+
+    const recordPayload: any = {
+      job_id: sanitizedJobId,
       record_id: recordId,
-      client_id: clientId,
+      client_id: sanitizedClientId,
       worksheet_id: worksheet.worksheet_id,
       data: formData,
     };
-    onSubmit && onSubmit(record);
+
+    onSubmit && onSubmit(recordPayload);
     setCurrentRecordId(recordId || "");
-    if (Object.entries(data).length > 0) {
-      update(record);
+
+    if (isEdit) {
+      update(recordPayload);
     } else {
-      save(record);
+      save(recordPayload);
     }
   };
 
@@ -169,13 +185,20 @@ export function WorksheetRenderer({
   };
 
   useEffect(() => {
+    if (data) {
+      console.log("[WorksheetRenderer] Prop data changed:", data);
+      setFormData(data);
+    }
+  }, [data]);
+
+  useEffect(() => {
     try {
-      const sheetData = getItem(storageKeys.copied);
-      if (worksheet?.worksheet_id && sheetData[worksheet.worksheet_id]) {
+      const copiedData = getItem(storageKeys.copied);
+      if (worksheet?.worksheet_id && copiedData?.[worksheet.worksheet_id]) {
         setShowPasteBtn(true);
       }
     } catch (error) {
-      console.log(error);
+      console.log("[WorksheetRenderer] Copy/Paste check error:", error);
     }
   }, [worksheet?.worksheet_id]);
 
@@ -266,29 +289,12 @@ export function WorksheetRenderer({
 
       case "autocomplete":
         return (
-          <Select
+          <Autocomplete
+            options={field.options?.map(opt => ({ id: opt.option_id, label: opt.value })) || []}
+            onSelect={(opt) => handleFieldChange(field.field_id, opt.label)}
+            placeholder={`Search ${field.name}...`}
             value={value || ""}
-            onValueChange={(val) => handleFieldChange(field.field_id, val)}
-            required={field.required}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={`Select ${field.name}`} />
-            </SelectTrigger>
-            <SelectContent>
-              {field.options?.length ? (
-                field.options.map((option) => (
-                  <SelectItem
-                    key={option?.option_id}
-                    value={option?.value || " "}
-                  >
-                    {option.value || " "}
-                  </SelectItem>
-                ))
-              ) : (
-                <SelectItem value={"No values"}>No values </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
+          />
         );
 
       case "autocomplete-chips":
@@ -608,7 +614,7 @@ export function WorksheetRenderer({
               className="flex-1"
             >
               <Save className="h-4 w-4 mr-2" />
-              {currentRecordId ? "Update" : "Save"}
+              {isEdit ? "Update" : "Save"}
             </Button>
             <Button onClick={handleReset} variant="outline" className="flex-1">
               <RotateCcw className="h-4 w-4 mr-2" />
@@ -636,3 +642,5 @@ export function WorksheetRenderer({
     </>
   );
 }
+
+export default WorksheetRenderer;

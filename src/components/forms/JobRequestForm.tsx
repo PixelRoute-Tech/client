@@ -3,13 +3,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import {
-  CalendarIcon,
-  Plus,
-  Trash2,
-  Eye,
-  Upload,
-} from "lucide-react";
+import { CalendarIcon, Plus, Trash2, Eye, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,7 +55,14 @@ import { useNavigate } from "react-router-dom";
 import { Badge } from "../ui/badge";
 import { baseURL } from "@/config/network.config";
 
-export const jobStatus = ["Pending", "Approved", "Completed", "Rejected"];
+export const jobStatus = [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CANCELLED",
+];
 const initializationData = {
   startDate: new Date(),
   lastDate: new Date(),
@@ -167,63 +168,121 @@ export function JobRequestForm({
   const [openFileUpload, setOpenFileUpload] = useState<boolean>(false);
   const [uploadedFiles, setUploadedFiles] = useState<Array<File>>([]);
   const [oldFiles, setOldFiles] = useState<Array<JobRequestFileList>>(
-    initialData && 'files' in initialData && Array.isArray(initialData.files) ? initialData.files : []
+    initialData && "files" in initialData && Array.isArray(initialData.files)
+      ? initialData.files
+      : [],
   );
   const [isDragging, setIsDragging] = useState(false);
   const [deletedFiles, setDeletedFiles] = useState<string[]>([]);
-  
+
   const form = useForm<JobRequestFormData>({
     resolver: zodResolver(jobRequestSchema),
     defaultValues: initialData
       ? (() => {
-        const initialOhs: Record<string, boolean> = { swms: false, jsa: false, safetyBoots: false };
-        if (Array.isArray((initialData as any).ohs_requirements)) {
-          (initialData as any).ohs_requirements.forEach((req: any) => {
-            const key = req.type.toLowerCase() === "swms" ? "swms" : req.type.toLowerCase() === "jsa" ? "jsa" : "safetyBoots";
-            initialOhs[key] = req.is_checked;
-          });
-        }
+          const initialOhs: Record<string, boolean> = {
+            swms: false,
+            jsa: false,
+            safetyBoots: false,
+          };
+          if (Array.isArray((initialData as any).ohs_requirements)) {
+            (initialData as any).ohs_requirements.forEach((req: any) => {
+              const key =
+                req.type.toLowerCase() === "swms"
+                  ? "swms"
+                  : req.type.toLowerCase() === "jsa"
+                    ? "jsa"
+                    : "safetyBoots";
+              initialOhs[key] = req.is_checked;
+            });
+          }
 
-        const initialPpe: Record<string, boolean> = {
-          hardhat: false, bumpGap: false, highVis: false, longSleeve: false, safetyGlasses: false, safetyBoots: false,
-          faceShield: false, weldGlass: false, hearingProtection: false, electricalProtection: false, respiratoryProtection: false,
-        };
-        if (Array.isArray((initialData as any).ppe_requirements)) {
-          (initialData as any).ppe_requirements.forEach((req: any) => {
-             const keyMatches = Object.keys(initialPpe).find(k => k.toLowerCase() === (req.type || "").toLowerCase().replace(/ /g, ''));
-             if (keyMatches) initialPpe[keyMatches] = req.is_checked;
-             else initialPpe[req.type] = req.is_checked;
-          });
-        }
+          const initialPpe: Record<string, boolean> = {
+            hardhat: false,
+            bumpGap: false,
+            highVis: false,
+            longSleeve: false,
+            safetyGlasses: false,
+            safetyBoots: false,
+            faceShield: false,
+            weldGlass: false,
+            hearingProtection: false,
+            electricalProtection: false,
+            respiratoryProtection: false,
+          };
+          if (Array.isArray((initialData as any).ppe_requirements)) {
+            (initialData as any).ppe_requirements.forEach((req: any) => {
+              const keyMatches = Object.keys(initialPpe).find(
+                (k) =>
+                  k.toLowerCase() ===
+                  (req.type || "").toLowerCase().replace(/ /g, ""),
+              );
+              if (keyMatches) initialPpe[keyMatches] = req.is_checked;
+              else initialPpe[req.type] = req.is_checked;
+            });
+          }
 
-        const initialTestRows = Array.isArray((initialData as any).test_methods) 
-          ? (initialData as any).test_methods.map((method: any) => ({
-              testMethod: method.worksheet_form_id || "",
-              testSpec: method.spec || "",
-              acceptanceSpec: method.acceptance || "",
-              toTable: method.to_table || "",
-              testProcedure: method.procedure || "",
-              tech: method.assigned_user_id ? method.assigned_user_id.toString() : "",
-            }))
-          : initializationData.testRows;
-          
-        return {
-          ...initialData,
-          startDate: moment((initialData as any).startDate || (initialData as any).from_date).toDate(),
-          lastDate: moment((initialData as any).lastDate || (initialData as any).to_date).toDate(),
-          timeRequired: (initialData as any).time_required || (initialData as any).timeRequired || "",
-          purchaseOrder: (initialData as any).purchase_order || (initialData as any).purchaseOrder || "",
-          detailsProvided: (initialData as any).details_provided || (initialData as any).detailsProvided || "",
-          safetyReference: (initialData as any).safety_reference || (initialData as any).safetyReference || "",
-          siteInduction: (initialData as any).induction_details || (initialData as any).siteInduction || "",
-          status: (initialData as any).status ? (initialData as any).status.charAt(0).toUpperCase() + (initialData as any).status.slice(1).toLowerCase() : "Pending",
-          ohsRequirements: initialOhs,
-          ppeRequired: initialPpe,
-          testRows: initialTestRows,
-          equipmentList: Array.isArray((initialData as any).equipment) ? (initialData as any).equipment.map((eq: any) => ({ value: eq.name })) : [],
-          hseProcedures: Array.isArray((initialData as any).hse_procedures) ? (initialData as any).hse_procedures.map((hse: any) => ({ value: hse.detail })) : [],
-        };
-      })()
+          const initialTestRows = Array.isArray(
+            (initialData as any).test_methods,
+          )
+            ? (initialData as any).test_methods.map((method: any) => ({
+                testMethod: method.worksheet_form_id || "",
+                testSpec: method.spec || "",
+                acceptanceSpec: method.acceptance || "",
+                toTable: method.to_table || "",
+                testProcedure: method.procedure || "",
+                tech: method.assigned_user_id
+                  ? method.assigned_user_id.toString()
+                  : "",
+              }))
+            : initializationData.testRows;
+
+          return {
+            ...initialData,
+            startDate: moment(
+              (initialData as any).startDate || (initialData as any).from_date,
+            ).toDate(),
+            lastDate: moment(
+              (initialData as any).lastDate || (initialData as any).to_date,
+            ).toDate(),
+            timeRequired:
+              (initialData as any).time_required ||
+              (initialData as any).timeRequired ||
+              "",
+            purchaseOrder:
+              (initialData as any).purchase_order ||
+              (initialData as any).purchaseOrder ||
+              "",
+            detailsProvided:
+              (initialData as any).details_provided ||
+              (initialData as any).detailsProvided ||
+              "",
+            safetyReference:
+              (initialData as any).safety_reference ||
+              (initialData as any).safetyReference ||
+              "",
+            siteInduction:
+              (initialData as any).induction_details ||
+              (initialData as any).siteInduction ||
+              "",
+            status: (initialData as any).status
+              ? (initialData as any).status.charAt(0).toUpperCase() +
+                (initialData as any).status.slice(1).toLowerCase()
+              : "Pending",
+            ohsRequirements: initialOhs,
+            ppeRequired: initialPpe,
+            testRows: initialTestRows,
+            equipmentList: Array.isArray((initialData as any).equipment)
+              ? (initialData as any).equipment.map((eq: any) => ({
+                  value: eq.name,
+                }))
+              : [],
+            hseProcedures: Array.isArray((initialData as any).hse_procedures)
+              ? (initialData as any).hse_procedures.map((hse: any) => ({
+                  value: hse.detail,
+                }))
+              : [],
+          };
+        })()
       : initializationData,
   });
 
@@ -256,7 +315,7 @@ export function JobRequestForm({
 
   const { data: usersList } = useQuery({
     queryKey: ["usersList"],
-    queryFn: () => getUsers({ skip: 0, take: 100, }),
+    queryFn: () => getUsers({ skip: 0, take: 100 }),
     refetchOnWindowFocus: false,
   });
 
@@ -324,13 +383,14 @@ export function JobRequestForm({
   };
 
   const handleSubmit = (data: JobRequestFormData) => {
+    console.log(data);
     if (!selectedClient) return;
     const requestData = {
       client_id: selectedClient.id,
       from_date: moment(data.startDate).format("YYYY-MM-DD"),
       to_date: moment(data.lastDate).format("YYYY-MM-DD"),
       time_required: data.timeRequired,
-      status: data.status.toLowerCase(),
+      status: data.status,
       purchase_order: data.purchaseOrder || "",
       summary: data.summary,
       details_provided: data.detailsProvided,
@@ -338,11 +398,11 @@ export function JobRequestForm({
       induction_details: data.siteInduction || "",
       ohs_requirements: Object.entries(data.ohsRequirements).map(([k, v]) => ({
         type: k.toUpperCase(),
-        is_checked: Boolean(v)
+        is_checked: Boolean(v),
       })),
       ppe_requirements: Object.entries(data.ppeRequired).map(([k, v]) => ({
         type: k,
-        is_checked: Boolean(v)
+        is_checked: Boolean(v),
       })),
       test_methods: data.testRows.map((row, index) => ({
         worksheet_form_id: row.testMethod,
@@ -351,18 +411,20 @@ export function JobRequestForm({
         acceptance: row.acceptanceSpec,
         to_table: row.toTable,
         procedure: row.testProcedure,
-        order_index: index
+        order_index: index,
       })),
-      equipment: data.equipmentList?.map((eq, index) => ({
-        name: eq.value,
-        order_index: index
-      })) || [],
-      hse_procedures: data.hseProcedures?.map((hse, index) => ({
-        detail: hse.value,
-        order_index: index
-      })) || []
+      equipment:
+        data.equipmentList?.map((eq, index) => ({
+          name: eq.value,
+          order_index: index,
+        })) || [],
+      hse_procedures:
+        data.hseProcedures?.map((hse, index) => ({
+          detail: hse.value,
+          order_index: index,
+        })) || [],
     };
-      if (!isEditing) {
+    if (!isEditing) {
       save(requestData);
     } else {
       update({ ...requestData, id: (initialData as any).id });
@@ -418,7 +480,11 @@ export function JobRequestForm({
 
   const handleViewFile = (file: File | JobRequestFileList) => {
     if ((file as JobRequestFileList)?.fileName) {
-      window.open(`${baseURL}${(file as JobRequestFileList)?.url}`, "_blank", "noopener,noreferrer");
+      window.open(
+        `${baseURL}${(file as JobRequestFileList)?.url}`,
+        "_blank",
+        "noopener,noreferrer",
+      );
     } else {
       const fileURL = URL.createObjectURL(file as File);
       window.open(fileURL, "_blank");
@@ -429,6 +495,7 @@ export function JobRequestForm({
   const fileListData = useMemo(() => {
     return [...uploadedFiles, ...oldFiles];
   }, [oldFiles, uploadedFiles]);
+  
 
   return (
     <div className="w-full max-w-6xl space-y-6">
@@ -445,7 +512,9 @@ export function JobRequestForm({
                 <span className="font-medium text-muted-foreground">
                   Business Name:
                 </span>
-                <p className="text-foreground">{selectedClient.business_name}</p>
+                <p className="text-foreground">
+                  {selectedClient.business_name}
+                </p>
               </div>
               <div>
                 <span className="font-medium text-muted-foreground">
@@ -504,7 +573,7 @@ export function JobRequestForm({
                               variant="outline"
                               className={cn(
                                 "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
+                                !field.value && "text-muted-foreground",
                               )}
                             >
                               {field.value
@@ -541,7 +610,7 @@ export function JobRequestForm({
                               variant="outline"
                               className={cn(
                                 "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
+                                !field.value && "text-muted-foreground",
                               )}
                             >
                               {field.value
@@ -677,15 +746,18 @@ export function JobRequestForm({
                   <div>
                     <h4 className="font-semibold mb-2">OHS Requirements</h4>
                     <div className="flex flex-col gap-2">
-                      {['swms', 'jsa', 'safetyBoots'].map((key) => (
+                      {["swms", "jsa", "safetyBoots"].map((key) => (
                         <FormField
                           key={key}
                           control={form.control}
-                          name={`ohsRequirements.${key as keyof JobRequestFormData['ohsRequirements']}`}
+                          name={`ohsRequirements.${key as keyof JobRequestFormData["ohsRequirements"]}`}
                           render={({ field }) => (
                             <FormItem className="flex flex-row items-center gap-2 space-y-0">
                               <FormControl>
-                                <Checkbox checked={field.value as boolean} onCheckedChange={field.onChange} />
+                                <Checkbox
+                                  checked={field.value as boolean}
+                                  onCheckedChange={field.onChange}
+                                />
                               </FormControl>
                               <FormLabel className="uppercase">{key}</FormLabel>
                             </FormItem>
@@ -697,21 +769,28 @@ export function JobRequestForm({
                   <div>
                     <h4 className="font-semibold mb-2">PPE Required</h4>
                     <div className="grid grid-cols-2 gap-2">
-                      {Object.keys(initializationData.ppeRequired).map((key) => (
-                        <FormField
-                          key={key}
-                          control={form.control}
-                          name={`ppeRequired.${key as keyof (typeof initializationData)['ppeRequired']}`}
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-center gap-2 space-y-0">
-                              <FormControl>
-                                <Checkbox checked={field.value as boolean} onCheckedChange={field.onChange} />
-                              </FormControl>
-                              <FormLabel className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</FormLabel>
-                            </FormItem>
-                          )}
-                        />
-                      ))}
+                      {Object.keys(initializationData.ppeRequired).map(
+                        (key) => (
+                          <FormField
+                            key={key}
+                            control={form.control}
+                            name={`ppeRequired.${key as keyof (typeof initializationData)["ppeRequired"]}`}
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center gap-2 space-y-0">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value as boolean}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                                <FormLabel className="capitalize">
+                                  {key.replace(/([A-Z])/g, " $1").trim()}
+                                </FormLabel>
+                              </FormItem>
+                            )}
+                          />
+                        ),
+                      )}
                     </div>
                   </div>
                 </div>
@@ -720,7 +799,12 @@ export function JobRequestForm({
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-semibold">Equipment List</h4>
-                      <Button type="button" variant="outline" size="sm" onClick={() => appendEquipment({ value: "" })}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => appendEquipment({ value: "" })}
+                      >
                         <Plus className="h-4 w-4" /> Add
                       </Button>
                     </div>
@@ -732,11 +816,19 @@ export function JobRequestForm({
                             name={`equipmentList.${index}.value`}
                             render={({ field }) => (
                               <FormControl>
-                                <Input {...field} placeholder="Equipment name" />
+                                <Input
+                                  {...field}
+                                  placeholder="Equipment name"
+                                />
                               </FormControl>
                             )}
                           />
-                          <Button type="button" variant="ghost" size="sm" onClick={() => removeEquipment(index)}>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeEquipment(index)}
+                          >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
@@ -746,7 +838,12 @@ export function JobRequestForm({
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-semibold">HSE Procedures</h4>
-                      <Button type="button" variant="outline" size="sm" onClick={() => appendHse({ value: "" })}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => appendHse({ value: "" })}
+                      >
                         <Plus className="h-4 w-4" /> Add
                       </Button>
                     </div>
@@ -758,11 +855,19 @@ export function JobRequestForm({
                             name={`hseProcedures.${index}.value`}
                             render={({ field }) => (
                               <FormControl>
-                                <Input {...field} placeholder="Procedure detail" />
+                                <Input
+                                  {...field}
+                                  placeholder="Procedure detail"
+                                />
                               </FormControl>
                             )}
                           />
-                          <Button type="button" variant="ghost" size="sm" onClick={() => removeHse(index)}>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeHse(index)}
+                          >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
@@ -880,11 +985,14 @@ export function JobRequestForm({
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                      {usersList?.data?.list?.map((t: any) => (
-                                        <SelectItem key={t.id} value={t.id.toString()}>
-                                          {t.first_name} {t.last_name}
-                                        </SelectItem>
-                                      ))}
+                                    {usersList?.data?.list?.map((t: any) => (
+                                      <SelectItem
+                                        key={t.id}
+                                        value={t.id.toString()}
+                                      >
+                                        {t.first_name} {t.last_name}
+                                      </SelectItem>
+                                    ))}
                                   </SelectContent>
                                 </Select>
                               )}
@@ -892,14 +1000,15 @@ export function JobRequestForm({
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-1">
-                               <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => removeTestRow(index)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                              <Button type="button" onClick={()=>{navigate(`${routes.worksheetDetails}?jobid=${(initialData as any)?.id || ""}&sheetid=${field.testMethod}&clientId=${selectedClient?.id || ""}`)}}>Edit</Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeTestRow(index)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -908,11 +1017,11 @@ export function JobRequestForm({
                   </Table>
                 </div>
               </div>
-              
+
               <div className="flex justify-end pt-4">
-                 <Button type="submit" loading={saveLoading || updateLoading}>
-                    {isEditing ? "Update Job" : "Create Job"}
-                 </Button>
+                <Button type="submit" loading={saveLoading || updateLoading}>
+                  {isEditing ? "Update Job" : "Create Job"}
+                </Button>
               </div>
             </form>
           </Form>
@@ -927,7 +1036,7 @@ export function JobRequestForm({
           <div
             className={cn(
               "border-2 border-dashed rounded-lg p-8 text-center",
-              isDragging ? "border-primary bg-primary/10" : "border-muted"
+              isDragging ? "border-primary bg-primary/10" : "border-muted",
             )}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -941,9 +1050,13 @@ export function JobRequestForm({
                 multiple
                 className="hidden"
                 id="file-upload"
-                onChange={(e) => e.target.files && processFiles(Array.from(e.target.files))}
+                onChange={(e) =>
+                  e.target.files && processFiles(Array.from(e.target.files))
+                }
               />
-              <Button onClick={() => document.getElementById("file-upload")?.click()}>
+              <Button
+                onClick={() => document.getElementById("file-upload")?.click()}
+              >
                 Browse Files
               </Button>
             </div>
@@ -951,7 +1064,10 @@ export function JobRequestForm({
           {fileListData.length > 0 && (
             <div className="space-y-4 max-h-[300px] overflow-y-auto mt-4 pr-2">
               {fileListData.map((file, index) => (
-                <div key={index} className="flex items-center justify-between p-2 border rounded">
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-2 border rounded"
+                >
                   <div className="flex items-center gap-2 overflow-hidden">
                     <span className="text-sm truncate font-medium">
                       {(file as any).fileName || (file as File).name}

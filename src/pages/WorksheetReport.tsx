@@ -52,8 +52,8 @@ export default function WorksheetReport() {
 
   const createReportNo = () => {
     if (client?.id && jobData?.id && jobData?.from_date) {
-      const set1 = parseInt(client.id.replace(/\D/g, "") || "0", 10);
-      const set2 = parseInt(jobData.id.replace(/\D/g, "") || "0", 10);
+      const set1 = parseInt(String(client.id).replace(/\D/g, "") || "0", 10);
+      const set2 = parseInt(String(jobData.id).replace(/\D/g, "") || "0", 10);
       const set3 = moment(jobData.from_date).format("DD_YY");
       return `${set3}/${set1}_${set2}`;
     }
@@ -224,7 +224,7 @@ export default function WorksheetReport() {
               <div className="text-right text-xs text-gray-700 col-span-3">
                 <p className="font-semibold">{user?.company?.lisenceNo}</p>
                 <p className="text-blue-600">{user?.company?.email}</p>
-                <p>{user.company.contactNo}</p>
+                <p>{user?.company?.contactNo}</p>
               </div>
             </div>
 
@@ -318,7 +318,7 @@ export default function WorksheetReport() {
                   Technician
                 </div>
                 <div className="col-span-2 text-gray-700 break-words">
-                  : {user.userName}
+                  : {user?.userName}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm avoid-break">

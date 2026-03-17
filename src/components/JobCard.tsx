@@ -44,15 +44,14 @@ export function JobCard({ job }: JobCardProps) {
   };
 
   const handleEdit = () => {
-    console.log(job);
     navigate(
-      `${routes.worksheetDetails}?sheetid=${job.testMethod}&jobid=${job?.jobId}&clientId=${job.jobDetails.clientId}`
+      `${routes.worksheetDetails}?sheetid=${job.testMethod}&jobid=${job?._id}&clientId=${job.jobDetails.clientId}`
     );
   };
 
   const handleReport = () => {
     navigate(
-      `${routes.worksheetReport}/record_${job.jobId}_${job.testMethod}`
+      `${routes.worksheetReport}/record_${job._id}_${job.testMethod}`
     );
   };
 

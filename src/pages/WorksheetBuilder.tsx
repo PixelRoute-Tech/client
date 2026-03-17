@@ -6,10 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SectionBuilder } from "@/components/worksheet/SectionBuilder";
 import { Plus, Save, ArrowLeft } from "lucide-react";
-import { Worksheet, WorksheetSection } from "@/types/worksheet.type";
+import { Worksheet, WorksheetSection, SectionLayout } from "@/types/worksheet.type";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
-import { saveWorkSheet, updateWorkSheet } from "@/services/worksheet.services";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { getWorkSheet, saveWorkSheet, updateWorkSheet } from "@/services/worksheet.services";
 import routes from "@/routes/routeList";
 import { createRandomId } from "@/utils/cryptog";
 
@@ -17,12 +17,20 @@ export default function WorksheetBuilder() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const location = useLocation()
-  const worksheet = location.state as Worksheet
+  const id = location.state as string
+  // const worksheet = location.state as Worksheet
   const [worksheetName, setWorksheetName] = useState("");
   const [description, setDescription] = useState("");
   const [sections, setSections] = useState<WorksheetSection[]>([]);
-  const isEditMode = Boolean(worksheet);
 
+  const { data: worksheetResponse } = useQuery({
+    queryKey: ["worksheet", id],
+    queryFn: () => getWorkSheet(id),
+    enabled: !!id,
+  });
+
+  const worksheet = worksheetResponse?.data;
+  const isEditMode = Boolean(id);
   const workSheetSave = useMutation({
     mutationFn: saveWorkSheet,
     onSuccess: (result) => {
@@ -61,17 +69,41 @@ export default function WorksheetBuilder() {
     },
   });
 
+  const cleanSection = (section: any): WorksheetSection => ({
+    section_id: section.section_id,
+    name: section.name || "",
+    layout: (section.layout || 1) as SectionLayout,
+    fields: (section.fields || []).map((field: any) => ({
+      field_id: field.field_id,
+      name: field.name || "",
+      type: field.type || "textfield",
+      required: Boolean(field.required),
+      in_report: field.in_report !== false,
+      options: (field.options || []).map((opt: any) => ({
+        option_id: opt.option_id,
+        value: opt.value || "",
+      })),
+      table_columns: (field.table_columns || []).map((col: any) => ({
+        column_id: col.column_id,
+        name: col.name || "",
+        type: col.type || "textfield",
+        options: (col.options || []).map((opt: any) => ({
+          option_id: opt.option_id,
+          value: opt.value || "",
+        })),
+      })),
+      table_actions: field.table_actions || { edit: false, view: false, delete: false },
+    })),
+  });
+
   useEffect(() => {
-    if (isEditMode && worksheet?.worksheet_id) {
-      setWorksheetName(worksheet.name);
+    if (isEditMode && worksheet) {
+      setWorksheetName(worksheet.name || "");
       setDescription(worksheet.description || "");
-      const sectionsWithLayout = worksheet.sections.map((section) => ({
-        ...section,
-        layout: section?.layout || 1,
-      }));
-      setSections(sectionsWithLayout);
+      const cleanedSections = (worksheet.sections || []).map(cleanSection);
+      setSections(cleanedSections);
     }
-  }, [worksheet?.worksheet_id, isEditMode]);
+  }, [worksheet, isEditMode]);
 
   const addSection = () => {
     const newSection: WorksheetSection = {
@@ -137,11 +169,11 @@ export default function WorksheetBuilder() {
 
     // Prepare payload without createdAt/updatedAt to avoid NestJS validation errors
     const workSheet: any = {
-      worksheet_id: worksheet?.worksheet_id || null,
+      worksheet_id: id || null,
       name: worksheetName,
       description,
       sections,
-      is_active: true,
+      is_active: worksheet ? worksheet.is_active : true,
     };
 
     console.log("worksheet data=====> ", workSheet);
@@ -152,6 +184,16 @@ export default function WorksheetBuilder() {
       workSheetSave.mutate(workSheet);
     }
   };
+
+  if (isEditMode && !worksheet) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="text-center">
+          <p className="text-muted-foreground animate-pulse">Loading worksheet data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background">
@@ -175,9 +217,13 @@ export default function WorksheetBuilder() {
                 </p>
               </div>
             </div>
-            <Button onClick={handleSave} size="lg">
+            <Button 
+              onClick={handleSave} 
+              size="lg" 
+              disabled={workSheetSave.isPending || workSheetUpdate.isPending || (isEditMode && !worksheet)}
+            >
               <Save className="h-4 w-4 mr-2" />
-              Save Worksheet
+              {workSheetSave.isPending || workSheetUpdate.isPending ? "Saving..." : "Save Worksheet"}
             </Button>
           </div>
 
