@@ -56,23 +56,28 @@ export default function JobListing() {
     select: (response: any) => {
       const flatList = Array.isArray(response?.data) ? response.data : [];
       
-      const transformJob = (jr: any): Job => ({
-        _id: jr.id,
-        jobId: jr.purchase_order || "N/A",
-        status: jr.status === "PENDING" ? "Pending" : 
-                jr.status === "IN_PROGRESS" ? "In progress" : 
-                jr.status === "COMPLETED" ? "Completed" : "Pending",
-        tech: jr.technician?.userName || "N/A",
-        testMethod: "Magnetic Particles", // Placeholder or from data if available
-        jobDetails: {
-          clientId: jr.client_id?.toString(),
-          createdAt: jr.created_at,
-          clientName: jr.client?.business_name || "Unknown Client",
-          lastDate: jr.to_date,
-        },
-        worksheetName: jr.summary || "Inspection Job",
-        technician: jr.technician?.userName || "N/A",
-      });
+      const transformJob = (jr: any): Job => {
+        const testMethod = jr.test_methods?.find((m: any) => m.worksheet_form_id) || jr.test_methods?.[0];
+        const sheetId = testMethod?.worksheet_form_id || "7c7a2a17-abc2-419c-9970-567d5a49e3a4";
+        
+        return {
+          _id: jr.id,
+          jobId: jr.purchase_order || "N/A",
+          status: jr.status === "PENDING" ? "Pending" : 
+                  jr.status === "IN_PROGRESS" ? "In progress" : 
+                  jr.status === "COMPLETED" ? "Completed" : "Pending",
+          tech: jr.technician?.userName || "N/A",
+          testMethod: sheetId,
+          jobDetails: {
+            clientId: jr.client_id?.toString(),
+            createdAt: jr.created_at,
+            clientName: jr.client?.business_name || "Unknown Client",
+            lastDate: jr.to_date,
+          },
+          worksheetName: jr.summary || "Inspection Job",
+          technician: jr.technician?.userName || "N/A",
+        };
+      };
 
       const pending = flatList
         .filter((j: any) => j.status === "PENDING")
