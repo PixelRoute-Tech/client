@@ -26,7 +26,7 @@ import { getJobByUser, updateJobData } from "@/services/job.services";
 const statusCheck = {
   Pending: "pending",
   "In progress": "inProgress",
-  Completed: "inProgress",
+  Completed: "completed",
 };
 function DroppableColumn({ id, children }: any) {
   const { setNodeRef } = useDroppable({ id });
@@ -50,31 +50,64 @@ export default function JobListing() {
     })
   );
 
-  const { data: userJobList,refetch,isLoading } = useQuery({
+  const { data: userJobList, refetch, isLoading } = useQuery({
     queryKey: ["joblistbyuserid", user?.id],
     queryFn: async () => getJobByUser(user?.id?.toString() || ""),
+    select: (response: any) => {
+      const flatList = Array.isArray(response?.data) ? response.data : [];
+      
+      const transformJob = (jr: any): Job => ({
+        _id: jr.id,
+        jobId: jr.purchase_order || "N/A",
+        status: jr.status === "PENDING" ? "Pending" : 
+                jr.status === "IN_PROGRESS" ? "In progress" : 
+                jr.status === "COMPLETED" ? "Completed" : "Pending",
+        tech: jr.technician?.userName || "N/A",
+        testMethod: "Magnetic Particles", // Placeholder or from data if available
+        jobDetails: {
+          clientId: jr.client_id?.toString(),
+          createdAt: jr.created_at,
+          clientName: jr.client?.business_name || "Unknown Client",
+          lastDate: jr.to_date,
+        },
+        worksheetName: jr.summary || "Inspection Job",
+        technician: jr.technician?.userName || "N/A",
+      });
+
+      const pending = flatList
+        .filter((j: any) => j.status === "PENDING")
+        .map(transformJob);
+      const inProgress = flatList
+        .filter((j: any) => j.status === "IN_PROGRESS")
+        .map(transformJob);
+      const completed = flatList
+        .filter((j: any) => j.status === "COMPLETED")
+        .map(transformJob);
+
+      return {
+        ...response,
+        data: { pending, inProgress, completed }
+      };
+    }
   });
 
   const { mutate: statusChange } = useMutation({
     mutationFn: updateJobData,
     onSuccess: (result) => {
       if (result.success) {
-        queryClient.setQueryData(
-          [`joblistbyuserid${user?.id}`, user?.id],
-          (prev: any) => result
-        );
+        queryClient.invalidateQueries(["joblistbyuserid", user?.id]);
         toast({
           title: "Status Updated",
-          description: `Job moved to ${result.message}`,
+          description: "Job status has been updated successfully",
         });
       }
     },
     onError: (e: any) => {
-      refetch()
+      refetch();
       toast({
         title: "Error",
         description: e?.message || "Something went wrong",
-        className:"bg-red-500 text-white"
+        className: "bg-red-500 text-white"
       });
     },
   });
@@ -83,81 +116,55 @@ export default function JobListing() {
     const containerId = event?.active?.data.current?.sortable?.containerId;
     let job = null;
     if (containerId == "Pending") {
-      job = userJobList?.data?.pending?.find((j) => j._id === event.active.id);
+      job = userJobList?.data?.pending?.find((j: Job) => j._id === event.active.id);
     }
     if (containerId == "In progress") {
       job = userJobList?.data?.inProgress?.find(
-        (j) => j._id === event.active.id
+        (j: Job) => j._id === event.active.id
       );
     }
     if (containerId == "Completed") {
       job = userJobList?.data?.completed?.find(
-        (j) => j._id === event.active.id
+        (j: Job) => j._id === event.active.id
       );
     }
     setActiveJob(job);
-    console.log("Dragging:", event.active);
   };
 
   const handleDragChange = (newStatus: keyof typeof statusCheck, obj: Job) => {
-    let pending = [...userJobList.data.pending];
-    let inProgress = [...userJobList.data.inProgress];
-    let completed = [...userJobList.data.completed];
-    if (newStatus == "Pending") {
-      pending = [obj, ...pending];
-      inProgress = inProgress.filter((i) => i._id != obj._id);
-      completed = completed.filter((i) => i._id != obj._id);
-    }
-    if (newStatus == "In progress") {
-      pending = pending.filter((i) => i._id != obj._id);
-      inProgress = [obj, ...inProgress];
-      completed = completed.filter((i) => i._id != obj._id);
-    }
-    if (newStatus == "Completed") {
-      pending = pending.filter((i) => i._id != obj._id);
-      inProgress = inProgress.filter((i) => i._id != obj._id);
-      completed = [obj, ...completed];
-    }
-
-    queryClient.setQueryData(["joblistbyuserid", user?.id], (prev: any) => ({
-      ...userJobList,
-      data: { pending, inProgress, completed },
-    }));
+    // We can rely on query invalidation for status changes to be simpler, 
+    // or manually update cache if immediate feedback is needed.
+    // For now, let's keep it simple with invalidation on success.
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveJob(null);
     if (!over) return;
-    let activeJob = null;
+    
+    const containerId = active?.data.current?.sortable?.containerId;
+    let activeJob: Job | undefined;
 
-    if (active?.data.current?.sortable?.containerId == "Pending") {
-      activeJob = userJobList?.data?.pending?.find((j) => j._id === active.id);
-    }
-    if (active?.data.current?.sortable?.containerId == "In progress") {
-      activeJob = userJobList?.data?.inProgress?.find(
-        (j) => j._id === active.id
-      );
-    }
-    if (active?.data.current?.sortable?.containerId == "Completed") {
-      activeJob = userJobList?.data?.completed?.find(
-        (j) => j._id === active.id
-      );
-    }
+    if (containerId === "Pending") activeJob = userJobList?.data?.pending?.find((j: Job) => j._id === active.id);
+    else if (containerId === "In progress") activeJob = userJobList?.data?.inProgress?.find((j: Job) => j._id === active.id);
+    else if (containerId === "Completed") activeJob = userJobList?.data?.completed?.find((j: Job) => j._id === active.id);
 
     if (!activeJob) return;
-    const newStatus = over.id as Job["status"];
+    
+    const newStatusLabel = over.id as "Pending" | "In progress" | "Completed";
+    const apiStatus = newStatusLabel === "Pending" ? "PENDING" : 
+                    newStatusLabel === "In progress" ? "IN_PROGRESS" : "COMPLETED";
 
-    if (activeJob.status !== newStatus && statusCheck[newStatus]) {
-      activeJob = { ...activeJob, status: newStatus };
-      statusChange(activeJob);
-      handleDragChange(newStatus, activeJob);
+    if (activeJob.status !== newStatusLabel) {
+      // Map back to API format for the mutation
+      const updatedJob = { ...activeJob, status: apiStatus as any };
+      statusChange(updatedJob);
     }
   };
 
-  const handleRefresh = ()=>{
-     refetch()
-  }
+  const handleRefresh = () => {
+    refetch();
+  };
 
   const columns: { id: Job["status"]; color: string }[] = [
     {

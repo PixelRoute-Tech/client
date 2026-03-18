@@ -32,17 +32,9 @@ interface TableRenderData {
 
 export default function WorksheetReport() {
   const { id } = useParams();
-  const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement>(null);
-
-  const [worksheet, setWorkSheet] = useState<Worksheet>();
-  const [images, setImages] = useState<ImageRecord[]>([]);
-  const [technician, setTechnician] = useState<UserType>();
-  const [jobData, setJobData] = useState<JobRequestTemp>();
-  const [record, setRecord] = useState<WorksheetRecord>();
-  const [client, setClient] = useState<ClientType>();
   const [signature, setSignature] = useState<string | ArrayBuffer>("");
 
   const handlePrint = useReactToPrint({
@@ -60,31 +52,18 @@ export default function WorksheetReport() {
     return "N/A";
   };
 
-  const { isLoading: loadingData } = useQuery({
+  const { data: result, isLoading: loadingData } = useQuery({
     queryKey: [`${id}forworksheetreport`, id],
     queryFn: async () => getRecordData(id!),
-    onSuccess: (result) => {
-      try {
-        if (result?.data?.length > 0) {
-          const data = result.data[0];
-          if (data) {
-            setRecord(data?.record);
-            setWorkSheet(data?.worksheet);
-            setClient(data?.client);
-            setJobData(data.job);
-            setTechnician(data.technician);
-            setImages(data.images);
-          }
-        }
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Oops! Something went wrong while loading data",
-          className: "bg-red-500 text-white",
-        });
-      }
-    },
   });
+
+  const reportData = result?.data?.[0];
+  const record = reportData?.record;
+  const worksheet = reportData?.worksheet;
+  const client = reportData?.client;
+  const jobData = reportData?.job;
+  const technician = reportData?.technician;
+  const images = reportData?.images || [];
 
   const sigRef = useRef<any>(null);
 
@@ -104,29 +83,33 @@ export default function WorksheetReport() {
     }
   };
 
-  if (
-    loadingData ||
-    !worksheet ||
-    !record ||
-    !client ||
-    !jobData ||
-    !technician
-  ) {
-    if (!loadingData) {
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-foreground mb-4">
-              Report Data Missing or Not Found
-            </h2>
-            <Button onClick={() => navigate(-1)}>Go Back</Button>
-          </div>
+  if (loadingData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/30">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-lg font-medium text-muted-foreground animate-pulse">
+            Loading Report...
+          </p>
         </div>
-      );
-    }
+      </div>
+    );
+  }
+
+  if (!worksheet || !record || !client || !jobData || !technician) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Loading Report...
+        <div className="text-center glass-panel p-12 max-w-md">
+          <h2 className="text-2xl font-bold text-foreground mb-4">
+            Report Data Missing or Not Found
+          </h2>
+          <p className="text-muted-foreground mb-8">
+            We couldn't retrieve the data for this report. It might have been deleted or the link is invalid.
+          </p>
+          <Button onClick={() => navigate(-1)} className="w-full">
+            Go Back
+          </Button>
+        </div>
       </div>
     );
   }

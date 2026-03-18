@@ -59,99 +59,119 @@ function PreviousReports() {
     }
   };
 
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-lg font-medium text-muted-foreground animate-pulse">
+            Retrieving records...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const handleNavigate = () => navigate(-1);
 
   const renderRecords = () => {
     return records.map((record) => (
       <div
         key={record?.record_id ?? Math.random()}
-        className="bg-white rounded-xl border border-slate-200 shadow-sm mb-8 overflow-hidden"
+        className="glass-panel hover-lift mb-8 overflow-hidden group"
       >
         {/* Record Header */}
-        <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center text-xs">
-          <div className="flex items-center gap-2 font-semibold text-slate-700">
-            <Calendar size={14} />
+        <div className="bg-primary/5 px-6 py-4 border-b border-[var(--glass-border)] flex justify-between items-center">
+          <div className="flex items-center gap-3 text-sm font-semibold text-[var(--text-primary)]">
+            <Calendar size={16} className="text-primary" />
             {record?.created_at 
               ? moment(record.created_at).format("DD MMM YYYY | HH:mm A") 
               : "Date Unknown"}
           </div>
-          <span className="font-mono bg-white px-2 py-0.5 rounded border tracking-tighter">
-            REF: {record?.record_id ?? "N/A"}
-          </span>
-          <Button
-            variant="ghost"
-            className="h-fit p-0 flex gap-1 items-center text-blue-600 hover:text-blue-800"
-            onClick={() => handleCopyValue(record)}
-          >
-            copy <Copy size={12} />
-          </Button>
+          
+          <div className="flex items-center gap-4">
+            <span className="font-mono text-[10px] bg-[var(--glass-input-bg)] px-3 py-1 rounded-full border border-[var(--glass-border)] tracking-wider text-[var(--text-muted)]">
+              REF: {record?.record_id?.slice(0, 8) ?? "N/A"}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-2 bg-[var(--glass-input-bg)] hover:bg-primary hover:text-white border-[var(--glass-border)] transition-all"
+              onClick={() => handleCopyValue(record)}
+            >
+              <Copy size={14} />
+              <span className="text-xs">Copy Data</span>
+            </Button>
+          </div>
         </div>
 
-        <div className="p-5">
-          {/* Ensure sections exist before mapping */}
+        <div className="p-6">
           {(worksheet?.sections ?? []).map((section) => (
-            <div key={section?.section_id ?? Math.random()} className="mb-6 last:mb-0">
+            <div key={section?.section_id ?? Math.random()} className="mb-8 last:mb-0">
               {/* Section Header */}
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-4 w-1 bg-blue-500 rounded-full" />
-                <h3 className="text-xs font-bold uppercase text-slate-500 tracking-wider">
+              <div className="flex items-center gap-3 mb-5 border-b border-[var(--glass-border)] pb-2">
+                <div className="h-4 w-1 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary),0.5)]" />
+                <h3 className="text-xs font-bold uppercase text-[var(--text-muted)] tracking-[0.2em] section-label">
                   {section?.name ?? "Unnamed Section"}
                 </h3>
               </div>
 
-              {/* Layout Safety: Fallback to 1 column if layout is undefined */}
               <div
-                className={`grid gap-x-6 gap-y-2 grid-cols-1 sm:grid-cols-${section?.layout ?? 1}`}
+                className={`grid gap-x-8 gap-y-4 grid-cols-1 sm:grid-cols-${section?.layout ?? 2}`}
               >
                 {(section?.fields ?? []).map((field) => {
                   if (!field) return null;
 
                   if (field.type === "table") {
-                    // Safe access to table data
                     const tableRows = record?.data?.[field.field_id] ?? [];
                     const columns = field.table_columns ?? [];
 
                     return (
-                      <div key={field.field_id} className="col-span-full mt-2">
-                        <span className="text-[11px] font-bold text-slate-400 uppercase">
-                          {field.name ?? "Table"}
+                      <div key={field.field_id} className="col-span-full mt-4">
+                        <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 block">
+                          {field.name ?? "Table Data"}
                         </span>
-                        <div className="mt-1 border rounded-lg overflow-x-auto">
-                          <table className="w-full text-[11px] border-collapse">
-                            <thead className="bg-slate-50 border-b">
-                              <tr>
-                                {columns.map((col) => (
-                                  <th
-                                    key={col?.column_id ?? Math.random()}
-                                    className="p-2 text-left border-r last:border-0 font-bold text-slate-600 whitespace-nowrap"
-                                  >
-                                    {col?.name ?? "-"}
-                                  </th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {tableRows.length > 0 ? (
-                                tableRows.map((row: any, i: number) => (
-                                  <tr key={i} className="border-b last:border-0 hover:bg-slate-50/50">
-                                    {columns.map((col) => (
-                                      <td key={col?.column_id} className="p-2 border-r last:border-0">
-                                        {col?.type === "checkbox"
-                                          ? (row?.[col.column_id] ? "Yes" : "No")
-                                          : (row?.[col.column_id] ?? "-")}
-                                      </td>
-                                    ))}
-                                  </tr>
-                                ))
-                              ) : (
-                                <tr>
-                                  <td colSpan={columns.length} className="p-4 text-center text-slate-300">
-                                    No table data provided
-                                  </td>
+                        <div className="rounded-xl border border-[var(--glass-border)] bg-[var(--glass-input-bg)] overflow-hidden shadow-sm">
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-[12px] border-collapse">
+                              <thead>
+                                <tr className="bg-primary/10 border-b border-[var(--glass-border)]">
+                                  {columns.map((col) => (
+                                    <th
+                                      key={col?.column_id ?? Math.random()}
+                                      className="p-3 text-left font-bold text-[var(--text-primary)] whitespace-nowrap border-r border-[var(--glass-border)] last:border-r-0"
+                                    >
+                                      {col?.name ?? "-"}
+                                    </th>
+                                  ))}
                                 </tr>
-                              )}
-                            </tbody>
-                          </table>
+                              </thead>
+                              <tbody>
+                                {tableRows.length > 0 ? (
+                                  tableRows.map((row: any, i: number) => (
+                                    <tr key={i} className="border-b border-[var(--glass-border)] last:border-b-0 hover:bg-white/5 transition-colors">
+                                      {columns.map((col) => (
+                                        <td key={col?.column_id} className="p-3 text-[var(--text-body)] border-r border-[var(--glass-border)] last:border-r-0">
+                                          {col?.type === "checkbox"
+                                            ? (row?.[col.column_id] ? 
+                                                <span className="text-success font-bold">Yes</span> : 
+                                                <span className="text-destructive font-bold">No</span>)
+                                            : (row?.[col.column_id] ?? "-")}
+                                        </td>
+                                      ))}
+                                    </tr>
+                                  ))
+                                ) : (
+                                  <tr>
+                                    <td colSpan={columns.length} className="p-6 text-center text-[var(--text-muted)] italic">
+                                      No data recorded for this table
+                                    </td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
                       </div>
                     );
@@ -161,12 +181,12 @@ function PreviousReports() {
                   return (
                     <div
                       key={field.field_id}
-                      className="flex flex-row py-1 border-b border-slate-50 gap-2 items-baseline"
+                      className="flex flex-col py-2 border-b border-[var(--glass-border)] last:border-b-0 group/field"
                     >
-                      <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-tight shrink-0">
-                        {field.name ?? "Field"}:
+                      <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">
+                        {field.name ?? "Field"}
                       </label>
-                      <div className="text-xs text-slate-800 font-medium truncate">
+                      <div className="text-sm text-[var(--text-primary)] font-medium leading-relaxed">
                         {renderFieldValue(field, record?.data ?? {})}
                       </div>
                     </div>
@@ -180,46 +200,58 @@ function PreviousReports() {
     ));
   };
 
-  if (isLoading)
-    return (
-      <div className="p-20 text-center text-slate-400 animate-pulse font-medium">
-        Retrieving records...
-      </div>
-    );
-
   return (
-    <div className="bg-slate-100 min-h-screen pt-1 pb-10 px-4">
-      <div className="max-w-5xl mx-auto pt-2">
-        <Button 
-          className="my-4 gap-2" 
-          size="sm" 
-          variant="outline" 
-          onClick={handleNavigate}
-        >
-          <ArrowLeft size={16} /> Back
-        </Button>
-
-        <div className="flex justify-between items-end mb-8 border-b border-slate-300 pb-4">
-          <div>
-            <h1 className="text-2xl font-black text-slate-900 leading-tight">
-              {worksheet?.name ?? "Worksheet Report"}
-            </h1>
-            <p className="text-slate-500 text-sm">
-              {worksheet?.description ?? "No description provided"}
+    <div className="pb-20">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 mt-2">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <Button 
+                className="h-9 w-9 p-0 rounded-full border-[var(--glass-border)] bg-[var(--glass-input-bg)] hover:bg-primary hover:text-white transition-all shadow-sm"
+                variant="outline" 
+                onClick={handleNavigate}
+              >
+                <ArrowLeft size={18} />
+              </Button>
+              <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+                {worksheet?.name ?? "Worksheet Report"}
+              </h1>
+            </div>
+            <p className="text-[var(--text-muted)] text-sm max-w-2xl ml-12">
+              {worksheet?.description ?? "Review previous inspection and worksheet records."}
             </p>
           </div>
-          <div className="text-right text-[10px] text-slate-400 font-bold uppercase">
-            Total Records: {records.length}
+          
+          <div className="flex items-center gap-4 ml-12 md:ml-0 bg-[var(--glass-input-bg)] px-5 py-3 rounded-2xl border border-[var(--glass-border)] backdrop-blur-sm self-start">
+            <div className="text-center border-r border-[var(--glass-border)] pr-4">
+              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tighter mb-1">Items</p>
+              <p className="text-xl font-bold text-primary">{records.length}</p>
+            </div>
+            <div className="text-center pl-1">
+              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tighter mb-1">ID</p>
+              <p className="text-xs font-mono text-[var(--text-primary)]">{id?.slice(0, 8)}</p>
+            </div>
           </div>
         </div>
 
-        {records.length > 0 ? (
-          renderRecords()
-        ) : (
-          <div className="bg-white rounded-xl p-10 text-center border-2 border-dashed border-slate-300 text-slate-400">
-            No previous records found for this worksheet.
-          </div>
-        )}
+        <div className="space-y-2">
+          {records.length > 0 ? (
+            renderRecords()
+          ) : (
+            <div className="glass-panel p-20 text-center flex flex-col items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
+                <Copy size={32} />
+              </div>
+              <h2 className="text-xl font-bold text-[var(--text-primary)]">No Records Found</h2>
+              <p className="text-[var(--text-muted)] max-w-sm">
+                This worksheet doesn't have any saved records yet. All future submissions will appear here.
+              </p>
+              <Button onClick={handleNavigate} variant="outline" className="mt-4">
+                Return to Worksheet
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

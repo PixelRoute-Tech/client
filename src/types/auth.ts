@@ -9,6 +9,7 @@ export type UserType = {
   first_name: string;
   last_name: string;
   short_name: string;
+  userName?: string; // Add this as it's used in WorksheetReport
   phone: string;
   avatar_url: string | null;
   designation: MasterResult | null;
@@ -17,9 +18,10 @@ export type UserType = {
   department_id: number | null;
   user_role: MasterResult | null;
   user_role_id: number | null;
-  company: string | null;
+  company: Company | null;
   company_id: number | null;
   address: string | null;
+  qualification?: string; // Add this as it's used in WorksheetReport
   is_active: boolean;
   created_at: string;
   updated_at: string;
