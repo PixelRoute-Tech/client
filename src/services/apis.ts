@@ -18,6 +18,7 @@ reportRecordData:"/worksheet/record-data",
 notification:"/notification",
 reportImages:"/report/report-image",
 previousData:"/worksheet/previous-data",
+dashboardStats:"/dashboard/stats",
 }
 
 export default apis 
