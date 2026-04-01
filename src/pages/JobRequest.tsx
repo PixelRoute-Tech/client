@@ -25,6 +25,7 @@ import { JobRequest } from "@/types/job.type";
 import { getJobRequests, deleteJobRequest, getJobDetails } from "@/services/job.services";
 import { getWorkSheetslList } from "@/services/worksheet.services";
 import { useToast } from "@/hooks/use-toast";
+import { SkeletonLoader, skeletonConfigs } from "@/components/ui/skeleton-loader";
 
 export default function JobRequestPage() {
   const [clientQueryParams, setClientQueryParams] = useState({
@@ -228,7 +229,7 @@ export default function JobRequestPage() {
             />
           ) : currentView === "edit" ? (
             isJobDetailsLoading ? (
-               <div className="flex justify-center p-8">Loading job details...</div>
+               <SkeletonLoader config={skeletonConfigs.form} />
             ) : jobDetails?.data ? (
               <JobRequestForm
                 onSubmit={handleEditSubmit}

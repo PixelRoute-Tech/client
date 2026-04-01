@@ -11,6 +11,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { JobRequest } from "@/types/job.type";
 import moment from "moment";
 
+import { useAuth } from "@/hooks/useAuth";
+import { ShieldCheck } from "lucide-react";
+
 interface JobRequestsTableProps {
   jobRequests: JobRequest[];
   onEdit: (jobRequest: JobRequest) => void;
@@ -20,26 +23,25 @@ interface JobRequestsTableProps {
 
 export function JobRequestsTable({ jobRequests, onEdit, onDelete,deleteLoading }: JobRequestsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  // const { toast } = useToast();
+  const { user, checkPermission } = useAuth();
+  const isAdmin = user?.user_role?.name === "Admin";
 
   const handleDelete = (jobRequest:JobRequest) => {
     onDelete(jobRequest);
-    // toast({
-    //   title: "Job request deleted",
-    //   description: `Job request "${summary}" has been removed from the system.`,
-    // });
   };
 
   const getStatusBadgeVariant = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "completed":
+    switch (status.toUpperCase()) {
+      case "COMPLETED":
         return "default";
-      case "in-progress":
+      case "IN_PROGRESS":
         return "secondary";
-      case "pending":
+      case "PENDING":
         return "outline";
-      case "cancelled":
+      case "CANCELLED":
         return "destructive";
+      case "SIGNED":
+        return "success";
       default:
         return "outline";
     }
@@ -84,92 +86,108 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete,deleteLoading }
             <TableBody>
               {jobRequests?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                     {searchTerm ? "No job requests found matching your search." : "No job requests available."}
                   </TableCell>
                 </TableRow>
               ) : (
-                jobRequests?.map((job) => (
-                  <TableRow key={job.id}>
-                    <TableCell className="font-mono text-xs">#{job.id.substring(0, 8)}</TableCell>
-                    <TableCell className="font-medium">{job.client?.business_name}</TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium">{truncateText(job.summary)}</div>
-                        {job.comment && (
-                          <div className="text-sm text-muted-foreground flex items-center gap-1">
-                            <FileText className="h-3 w-3" />
-                            {truncateText(job.comment, 30)}
+                jobRequests?.map((job) => {
+                  const isSigned = job.status === "SIGNED";
+                  const editPerm = checkPermission("jobRequest", 'write');
+                  const deletePerm = checkPermission("jobRequest", 'delete');
+                  const canEdit = editPerm && (!isSigned || isAdmin);
+                  const canDelete = deletePerm && (!isSigned || isAdmin);
+
+                  return (
+                    <TableRow key={job.id} className={isSigned ? "bg-muted/20" : ""}>
+                      <TableCell className="font-mono text-xs">#{job.id.substring(0, 8)}</TableCell>
+                      <TableCell className="font-medium">{job.client?.business_name}</TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="font-medium">{truncateText(job.summary)}</div>
+                          {job.comment && (
+                            <div className="text-sm text-muted-foreground flex items-center gap-1">
+                              <FileText className="h-3 w-3" />
+                              {truncateText(job.comment, 30)}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1 text-sm">
+                            <Calendar className="h-3 w-3" />
+                            {job.from_date ? format(new Date(job.from_date), "PPP") : "N/A"}
                           </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-sm">
-                          <Calendar className="h-3 w-3" />
-                          {job.from_date ? format(new Date(job.from_date), "PPP") : "N/A"}
+                          <div className="text-xs text-muted-foreground">
+                            Due: {job.to_date ? format(new Date(job.to_date), "PPP") : "N/A"}
+                          </div>
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          Due: {job.to_date ? format(new Date(job.to_date), "PPP") : "N/A"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadgeVariant(job.status)} className={isSigned ? "bg-success/20 text-success border-success/30" : ""}>
+                          {isSigned && <ShieldCheck className="h-3 w-3 mr-1" />}
+                          {job.status.charAt(0).toUpperCase() + job.status.slice(1).replace('_', ' ')}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {job?.test_methods?.length || 0} method{job?.test_methods?.length !== 1 ? 's' : ''}
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(job.status)}>
-                        {job.status.charAt(0).toUpperCase() + job.status.slice(1).replace('_', ' ')}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {job?.test_methods?.length || 0} method{job?.test_methods?.length !== 1 ? 's' : ''}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">{truncateText(job.details_provided || "", 20)}</div>
-                    </TableCell>
-                    <TableCell>{moment(job.created_at).format("MMMM Do, YYYY")}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                       
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onEdit(job)}
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button loading={deleteLoading} variant="outline" size="sm">
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Delete
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the job request
-                                "{truncateText(job.id, 8)}" from the system.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(job)}
-                                className="bg-destructive text-destructive-foreground"
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">{truncateText(job.details_provided || "", 20)}</div>
+                      </TableCell>
+                      <TableCell>{moment(job.created_at).format("MMMM Do, YYYY")}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onEdit(job)}
+                            disabled={!canEdit}
+                            title={!canEdit ? "Signed jobs can only be edited by Admin" : ""}
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                loading={deleteLoading} 
+                                variant="outline" 
+                                size="sm" 
+                                disabled={!canDelete}
+                                title={!canDelete ? "No delete permission or job is signed" : ""}
                               >
+                                <Trash2 className="h-4 w-4 mr-1" />
                                 Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete the job request
+                                  "{truncateText(job.id, 8)}" from the system.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(job)}
+                                  className="bg-destructive text-destructive-foreground"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>

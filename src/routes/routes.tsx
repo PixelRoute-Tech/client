@@ -33,6 +33,7 @@ const WorksheetListing = lazy(() => import("@/pages/WorksheetListing"));
 const WorksheetBuilder = lazy(() => import("@/pages/WorksheetBuilder"));
 const UserProfile = lazy(() => import("@/pages/UserProfile"));
 const HealthCheck = lazy(() => import("@/pages/HealthCheck"));
+const PrivilegeManagement = lazy(() => import("@/pages/PrivilegeManagement"));
 
 const router = createBrowserRouter([
   {
@@ -308,6 +309,22 @@ const router = createBrowserRouter([
     element: (
       <Suspense fallback={<SkeletonLoader config={skeletonConfigs.form} />}>
         <JobRequestDetails />
+      </Suspense>
+    ),
+  },
+  {
+    path: routes.previousReport,
+    element: (
+      <Suspense fallback={<SkeletonLoader config={skeletonConfigs.table} />}>
+        <PreviousReports />
+      </Suspense>
+    ),
+  },
+  {
+    path: routes.privileges,
+    element: (
+      <Suspense fallback={<SkeletonLoader config={skeletonConfigs.table} />}>
+        <PrivilegeManagement />
       </Suspense>
     ),
   },

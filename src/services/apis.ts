@@ -7,6 +7,7 @@ clientApi:"/clients",
 jobRequest:"/job",
 jobRequestDetails:"/job",
 jobsByUserId:"/job/user-jobs",
+jobsStatusUpdate:"/job/",
 worksheet:"/worksheet",
 worksheetRecord:"/worksheet/record",
 designationMaster:"/master/designations",
@@ -17,6 +18,7 @@ reportRecordData:"/worksheet/record-data",
 notification:"/notification",
 reportImages:"/report/report-image",
 previousData:"/worksheet/previous-data",
+dashboardStats:"/dashboard/stats",
 }
 
 export default apis 

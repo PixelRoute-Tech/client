@@ -1,70 +1,76 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { 
   TrendingUp, 
-  TrendingDown, 
   Users, 
-  ShoppingCart, 
-  DollarSign, 
+  Briefcase,
   Activity,
   ArrowUpRight,
-  MoreHorizontal
+  Eye,
+  MoreVertical
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import dashboardService from "@/services/dashboard.services";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  PieChart,
+  Pie
+} from 'recharts';
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { SkeletonLoader, skeletonConfigs } from "@/components/ui/skeleton-loader";
 
 const Dashboard = () => {
+  const { user } = useAuth() || {};
+  const navigate = useNavigate();
+
+  const { data: response, isLoading: loading } = useQuery({
+    queryKey: ["dashboardStats"],
+    queryFn: dashboardService.getStats,
+  });
+
+  const data = response?.data;
+
   const stats = [
     {
-      title: "Total Users",
-      value: "78,250",
-      change: "+70.5%",
-      trend: "up",
+      title: "Total Clients",
+      value: data?.totalClients || 0,
       icon: Users,
       color: "text-primary"
     },
     {
-      title: "Total Orders",
-      value: "18,800",
-      change: "-27.4%",
-      trend: "down", 
-      icon: ShoppingCart,
+      title: "Total Jobs",
+      value: data?.totalJobs || 0,
+      icon: Briefcase,
       color: "text-warning"
     },
     {
-      title: "Total Sales",
-      value: "$35,078",
-      change: "+27.4%",
-      trend: "up",
-      icon: DollarSign,
+      title: "Total Users",
+      value: data?.totalUsers || 0,
+      icon: Users,
       color: "text-success"
     },
     {
-      title: "Total Marketing",
-      value: "$1,12,083",
-      change: "+70.5%",
-      trend: "up",
+      title: "Total Reports",
+      value: data?.totalReports || 0,
       icon: Activity,
       color: "text-info"
     }
   ];
 
-  const recentActivities = [
-    { user: "John Smith", action: "Created new project", time: "2 hours ago", status: "completed" },
-    { user: "Sarah Davis", action: "Updated user profile", time: "4 hours ago", status: "pending" },
-    { user: "Mike Johnson", action: "Deleted old records", time: "6 hours ago", status: "completed" },
-    { user: "Lisa Wang", action: "Generated report", time: "8 hours ago", status: "in-progress" },
-  ];
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
-  const projects = [
-    { name: "Website Redesign", progress: 85, status: "In Progress", priority: "High" },
-    { name: "Mobile App", progress: 60, status: "In Progress", priority: "Medium" },
-    { name: "API Integration", progress: 30, status: "Planning", priority: "Low" },
-    { name: "Database Migration", progress: 95, status: "Review", priority: "High" },
-  ];
+  if (loading) {
+    return <SkeletonLoader config={skeletonConfigs.dashboard} />;
+  }
 
-  const { user } = useAuth() || {};
-  
   return (
     <div className="p-6 space-y-6 page-transition">
       {/* Welcome Section */}
@@ -76,8 +82,11 @@ const Dashboard = () => {
             <p className="text-body-white max-w-2xl mb-6">
               Welcome to VeriCore Inspections. Here's what's happening in your workspace today.
             </p>
-            <Button className="bg-primary/85 hover:bg-primary text-white rounded-full border border-primary/50 shadow-[0_0_15px_hsl(var(--primary)_/_0.4)] transition-all">
-              View Full Statistics
+            <Button 
+              onClick={() => navigate('/job-listing')}
+              className="bg-primary/85 hover:bg-primary text-white rounded-full border border-primary/50 shadow-[0_0_15px_hsl(var(--primary)_/_0.4)] transition-all"
+            >
+              Manage Jobs
               <ArrowUpRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -95,26 +104,13 @@ const Dashboard = () => {
         {stats.map((stat, index) => (
           <div key={index} className="glass-panel p-6 hover-lift relative group transition-all duration-300 hover:border-primary/30 overflow-hidden">
             <div className="flex flex-row items-center justify-between pb-4">
-              <h3 className="section-label text-muted-white">
+              <h3 className="section-label text-muted-white uppercase tracking-wider text-[10px]">
                 {stat.title}
               </h3>
               <stat.icon className={`h-5 w-5 ${stat.color} group-hover:scale-110 transition-transform`} />
             </div>
             <div>
               <div className="text-3xl stat-number text-primary-white">{stat.value}</div>
-              <div className="flex items-center mt-3">
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                  stat.trend === "up" ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"
-                }`}>
-                  {stat.trend === "up" ? (
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 mr-1" />
-                  )}
-                  {stat.change}
-                </span>
-                <span className="text-xs text-muted-white ml-2">vs last month</span>
-              </div>
             </div>
             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-[var(--glass-input-bg)] to-transparent -translate-x-[150%] skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite]"></div>
           </div>
@@ -122,143 +118,139 @@ const Dashboard = () => {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Income Overview Chart */}
-        <div className="glass-panel p-6">
+        {/* Job Status Chart */}
+        <div className="glass-panel p-6 min-h-[400px]">
           <div className="mb-4">
-            <h3 className="text-lg font-medium text-primary-white">Income Overview</h3>
-            <p className="text-sm text-body-white mt-1">
-              <span className="text-destructive font-medium bg-destructive/15 px-2 py-0.5 rounded-full">$112,900 (45.67%)</span>
-              <span className="ml-2 text-muted-white">Compare to: 01 Dec 2021-08 Jan 2022</span>
-            </p>
+            <h3 className="text-lg font-medium text-primary-white">Job Status Distribution</h3>
+            <p className="text-sm text-body-white mt-1">Overview of all inspection jobs by their current status</p>
           </div>
-          <div className="h-64 mt-6 flex items-end justify-center p-4 relative border-b border-l border-[var(--glass-border)]">
-            {/* Grid lines */}
-            <div className="absolute inset-0 flex flex-col justify-between pt-4 pb-0 pointer-events-none">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <div key={i} className="w-full h-[1px] bg-[var(--glass-border)]"></div>
-              ))}
-            </div>
-            <div className="flex items-end gap-3 h-full w-full max-w-sm relative z-10 mx-auto justify-between px-2">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="bg-gradient-to-t from-primary/80 to-primary/40 rounded-t-sm w-full group transition-all duration-300 opacity-60 hover:opacity-100 cursor-pointer"
-                  style={{ height: `${Math.random() * 80 + 20}%` }}
+          <div className="h-[300px] w-full mt-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data?.jobDistribution || []}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <XAxis 
+                  dataKey="status" 
+                  stroke="rgba(255,255,255,0.5)" 
+                  fontSize={12}
+                  tickFormatter={(val) => val.charAt(0) + val.slice(1).toLowerCase()}
                 />
-              ))}
-            </div>
+                <YAxis stroke="rgba(255,255,255,0.5)" fontSize={12} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'rgba(23, 23, 23, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                  itemStyle={{ color: '#fff' }}
+                />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                  {(data?.jobDistribution || []).map((entry: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Page Views Chart */}
+        {/* User Status Details */}
         <div className="glass-panel p-6">
-          <div className="mb-4">
-            <h3 className="text-lg font-medium text-primary-white">Page Views</h3>
-            <p className="text-sm text-muted-white mt-1">Last 7 days performance</p>
-          </div>
-          <div className="h-64 mt-6 flex items-center justify-center relative border-b border-l border-[var(--glass-border)] p-4">
-            {/* Grid lines */}
-            <div className="absolute inset-0 flex flex-col justify-between pt-4 pb-0 pointer-events-none">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <div key={i} className="w-full h-[1px] bg-[var(--glass-border)]"></div>
-              ))}
-            </div>
-            <div className="w-full h-full relative z-10 flex items-center">
-              <svg className="w-full h-full preserve-3d" viewBox="0 0 300 100" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(var(--primary) / 0.2)" />
-                    <stop offset="100%" stopColor="hsl(var(--primary) / 0)" />
-                  </linearGradient>
-                </defs>
-                <polygon
-                  fill="url(#areaGradient)"
-                  points="0,100 0,80 50,60 100,70 150,40 200,50 250,20 300,30 300,100"
-                />
-                <polyline
-                  fill="none"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth="3"
-                  points="0,80 50,60 100,70 150,40 200,50 250,20 300,30"
-                  className="drop-shadow-[0_0_8px_hsl(var(--primary)_/_0.6)]"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Recent Activities */}
-        <div className="glass-panel p-6 lg:col-span-2">
-          <div className="flex flex-row items-center justify-between mb-6">
+          <div className="mb-6 flex justify-between items-center">
             <div>
-              <h3 className="text-lg font-medium text-[var(--text-primary)]">Recent Activities</h3>
-              <p className="text-sm text-[var(--text-muted)] mt-1">Latest system activities and updates</p>
+              <h3 className="text-lg font-medium text-primary-white">User Overview</h3>
+              <p className="text-sm text-muted-white mt-1">Status of system users</p>
             </div>
-            <Button variant="ghost" size="icon" className="hover:bg-[var(--glass-input-bg)] text-[var(--text-primary)]">
-              <MoreHorizontal className="h-5 w-5" />
-            </Button>
+            <Button variant="ghost" onClick={() => navigate('/user-profile')} className="text-xs text-primary">View All</Button>
           </div>
-          <div className="space-y-3">
-            {recentActivities.map((activity, index) => (
-              <div key={index} className="flex items-start gap-4 p-4 rounded-xl hover:bg-[var(--glass-input-bg)] transition-colors border border-transparent hover:border-[var(--glass-border)]">
-                <div className="w-2.5 h-2.5 rounded-full bg-primary mt-1.5 flex-shrink-0 shadow-[0_0_8px_hsl(var(--primary)_/_0.6)]" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-[var(--text-primary)]">{activity.user}</p>
-                    <span className="text-xs text-[var(--text-muted)]">{activity.time}</span>
+          <div className="space-y-4">
+            {data?.users?.map((u: any, index: number) => (
+              <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs uppercase">
+                    {u.first_name?.[0]}{u.last_name?.[0]}
                   </div>
-                  <p className="text-sm text-[var(--text-body)] mt-1">{activity.action}</p>
-                  <div className="mt-2">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
-                      activity.status === 'completed' ? 'border-success/30 bg-success/10 text-success' : 
-                      activity.status === 'pending' ? 'border-warning/30 bg-warning/10 text-warning' : 
-                      'border-info/30 bg-info/10 text-info'
-                    }`}>
-                      {activity.status}
-                    </span>
+                  <div>
+                    <p className="text-sm font-medium text-primary-white leading-none">{u.first_name} {u.last_name}</p>
+                    <p className="text-xs text-muted-white mt-1">{u.email}</p>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Projects Progress */}
-        <div className="glass-panel p-6">
-          <div className="mb-6">
-            <h3 className="text-lg font-medium text-[var(--text-primary)]">Projects</h3>
-            <p className="text-sm text-[var(--text-muted)] mt-1">Current project status</p>
-          </div>
-          <div className="space-y-6">
-            {projects.map((project, index) => (
-              <div key={index} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-[var(--text-primary)]">{project.name}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    project.priority === 'High' ? 'bg-destructive/20 text-destructive border border-destructive/30' : 
-                    project.priority === 'Medium' ? 'bg-warning/20 text-warning border border-warning/30' : 
-                    'bg-[var(--glass-input-bg)] text-[var(--text-body)] border border-[var(--glass-border)]'
-                  }`}>
-                    {project.priority}
-                  </span>
-                </div>
-                <div className="h-1.5 w-full bg-[var(--glass-bg)] rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-primary to-info rounded-full" 
-                    style={{ width: `${project.progress}%` }}
-                  ></div>
-                </div>
-                <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
-                  <span>{project.status}</span>
-                  <span>{project.progress}%</span>
-                </div>
+                <Badge variant={u.is_active ? "success" : "destructive"} className="text-[10px]">
+                  {u.is_active ? "Active" : "Inactive"}
+                </Badge>
               </div>
             ))}
           </div>
         </div>
       </div>
+
+      {/* Recent Jobs with Action Area */}
+      <div className="glass-panel p-6">
+        <div className="flex flex-row items-center justify-between mb-6">
+          <div>
+            <h3 className="text-lg font-medium text-primary-white">Recent Job Requests</h3>
+            <p className="text-sm text-muted-white mt-1">Manage and view details of recent inspection requests</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => navigate('/job-listing')} className="border-white/10 hover:bg-white/5">
+            See All Jobs
+          </Button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-white/10">
+                <th className="pb-3 text-xs font-semibold text-muted-white uppercase tracking-wider">Client</th>
+                <th className="pb-3 text-xs font-semibold text-muted-white uppercase tracking-wider">Duration</th>
+                <th className="pb-3 text-xs font-semibold text-muted-white uppercase tracking-wider">Status</th>
+                <th className="pb-3 text-xs font-semibold text-muted-white uppercase tracking-wider text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {data?.recentJobs?.map((job: any) => (
+                <tr key={job.id} className="group hover:bg-white/5 transition-colors">
+                  <td className="py-4">
+                    <div className="text-sm font-medium text-primary-white">{job.client?.business_name || 'N/A'}</div>
+                    <div className="text-xs text-muted-white">PO: {job.purchase_order || 'N/A'}</div>
+                  </td>
+                  <td className="py-4">
+                    <div className="text-xs text-primary-white">{new Date(job.from_date).toLocaleDateString()} - {new Date(job.to_date).toLocaleDateString()}</div>
+                  </td>
+                  <td className="py-4">
+                    <Badge variant="outline" className={`text-[10px] uppercase ${
+                      job.status === 'SIGNED' ? 'border-success bg-success/10 text-success' :
+                      job.status === 'COMPLETED' ? 'border-success text-success' : 
+                      job.status === 'PENDING' ? 'border-warning text-warning' : 
+                      'border-primary text-primary'
+                    }`}>
+                      {job.status}
+                    </Badge>
+                  </td>
+                  <td className="py-4 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                       {/* Full Details Button */}
+                       <Button 
+                        size="sm" 
+                        variant="secondary" 
+                        className="h-8 px-3 text-[10px] bg-primary/20 hover:bg-primary/30 text-white border-transparent"
+                        onClick={() => navigate(`/job-details/${job.id}`)}
+                      >
+                        <Eye className="w-3 h-3 mr-1" />
+                        Full Details
+                      </Button>
+                      
+                      {/* Reserved Space for future buttons */}
+                      <div className="w-8 h-8 flex items-center justify-center rounded-md border border-dashed border-white/20 text-muted-white hover:text-white transition-colors cursor-help" title="Reserved for future actions">
+                        <MoreVertical className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {(!data?.recentJobs || data?.recentJobs.length === 0) && (
+                <tr>
+                  <td colSpan={4} className="py-8 text-center text-muted-white text-sm">No recent jobs found</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <style>{`
         @keyframes shimmer {
           100% {

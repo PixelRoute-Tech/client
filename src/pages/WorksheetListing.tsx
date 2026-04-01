@@ -27,11 +27,13 @@ import routes from "@/routes/routeList";
 import { useQuery } from "@tanstack/react-query";
 import { getWorkSheets } from "@/services/worksheet.services";
 
+import { SkeletonLoader, skeletonConfigs } from "@/components/ui/skeleton-loader";
+
 export default function WorksheetListing() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const { data: worksheets, refetch } = useQuery({
+  const { data: worksheets, refetch, isLoading } = useQuery({
     queryKey: ["worksheetlist"],
     queryFn: getWorkSheets,
     refetchOnWindowFocus: true
@@ -54,6 +56,10 @@ export default function WorksheetListing() {
       description: "Toggling status is not fully implemented in service yet.",
     });
   };
+
+  if (isLoading) {
+    return <SkeletonLoader config={skeletonConfigs.table} />;
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">

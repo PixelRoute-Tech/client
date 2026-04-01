@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, FileText, User, Clock, Briefcase, AlertCircle } from "lucide-react";
+import { ArrowLeft, Calendar, FileText, User, Clock, Briefcase, AlertCircle, ShieldCheck } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -11,10 +11,16 @@ import { useQuery } from "@tanstack/react-query";
 import { getJobDetails } from "@/services/job.services";
 
 
+import { SkeletonLoader, skeletonConfigs } from "@/components/ui/skeleton-loader";
+
 export default function JobRequestDetails() {
   const {id = ""} = useParams()
   const navigate = useNavigate();
-  const {data:jobRequest} = useQuery({queryKey:["jobdetailsdataforpage",id],queryFn:async ()=>getJobDetails(id)})
+  const {data:jobRequest, isLoading} = useQuery({queryKey:["jobdetailsdataforpage",id],queryFn:async ()=>getJobDetails(id)})
+
+  if (isLoading) {
+    return <SkeletonLoader config={skeletonConfigs.form} />;
+  }
 
   if (!jobRequest?.data) {
     return (
@@ -35,31 +41,39 @@ export default function JobRequestDetails() {
   }
 
   const getStatusBadgeVariant = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "completed":
+    switch (status.toUpperCase()) {
+      case "COMPLETED":
         return "default";
-      case "in-progress":
+      case "IN_PROGRESS":
         return "secondary";
-      case "pending":
+      case "PENDING":
         return "outline";
-      case "cancelled":
+      case "CANCELLED":
         return "destructive";
+      case "SIGNED":
+        return "success";
       default:
         return "outline";
     }
   };
+
+  const isSigned = jobRequest?.data?.status === "SIGNED";
 
   return (
     <div className="container mx-auto px-6 py-8 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
           <div>
             <h1 className="text-3xl font-bold text-foreground">Job Request Details</h1>
             <p className="text-muted-foreground mt-1">Complete information about this job request</p>
           </div>
         </div>
-      <Badge variant={getStatusBadgeVariant(jobRequest?.data.status)} className="text-base px-4 py-2">
+      <Badge variant={getStatusBadgeVariant(jobRequest?.data.status)} className={`text-base px-4 py-2 ${isSigned ? 'bg-success/20 text-success border-success/30' : ''}`}>
+        {isSigned && <ShieldCheck className="h-4 w-4 mr-2" />}
         {jobRequest?.data.status?.charAt(0).toUpperCase() + jobRequest?.data.status?.slice(1).replace('_', ' ')}
       </Badge>
       </div>
