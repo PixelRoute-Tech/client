@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import { getMyPrivileges } from "@/services/privilege.services";
+import ModuleLoading from "@/components/ui/module-loading";
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -29,26 +30,30 @@ const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const [user, setUser] = useState<UserType | null>(null);
   const [privileges, setPrivileges] = useState<UserPrivilegeType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(false);
 
-  const signin = (data: {
+  const signin = async (data: {
     access_token: string;
     user: UserType;
     privileges?: UserPrivilegeType[];
   }) => {
-    setUser({ ...data.user });
+    // 1. Save core auth data immediately
     setItem(storageKeys.user, { ...data.user });
     setItem(storageKeys.accessToken, data.access_token);
+    setUser({ ...data.user });
     
-    if (data.privileges) {
-        setPrivileges(data.privileges);
-        setItem(storageKeys.privileges, data.privileges);
-    }
+    // 2. Start software initialization sequence
+    setIsInitializing(true);
     
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      router.navigate(routes.root, { replace: true });
-    }, 2000);
+    // 3. Load privileges (minimum load time for aesthetics)
+    await Promise.all([
+        loadPrivileges(),
+        new Promise(resolve => setTimeout(resolve, 3000)) // Professional feel
+    ]);
+    
+    // 4. Finalize
+    setIsInitializing(false);
+    router.navigate(routes.root, { replace: true });
   };
 
   const signout = (isLogout?: boolean) => {
@@ -121,6 +126,7 @@ const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
         checkPermission,
       }}
     >
+      {isInitializing && <ModuleLoading message="Initializing secure modules..." />}
       {children}
     </AuthContext.Provider>
   );
