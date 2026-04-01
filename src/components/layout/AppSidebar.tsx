@@ -14,9 +14,14 @@ import {
   FileSpreadsheet,
   Database,
   Briefcase,
-  Diamond
+  Diamond,
+  Shield,
+  ShieldCheck,
+  Lock
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import routes from "@/routes/routeList";
+import { useAuth } from "@/hooks/useAuth";
 
 import {
   Sidebar,
@@ -44,15 +49,17 @@ const mainItems = [
   { title: "Users", url: "/users", icon: Users },
 ];
 
-const settingsItems = [
-  { title: "Theme Settings", url: "/theme-settings", icon: Palette, devOnly: true },
-  { title: "Settings", url: "/settings", icon: Settings, devOnly: true },
+const systemItems = [
+  { title: "User Privileges", url: "/privileges", icon: Shield },
+  { title: "Theme Settings", url: "/theme-settings", icon: Palette },
+  { title: "Settings", url: "/settings", icon: Settings },
   { title: "Login", url: "/login", icon: LogIn },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
+  const auth = useAuth();
   const currentPath = location.pathname;
 
   const isActive = (path: string) => {
@@ -98,50 +105,56 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild 
-                    className={`w-full justify-start ${getNavCls(item.url)} transition-colors duration-200`}
-                  >
-                    <NavLink to={item.url} end={item.url === "/"}>
-                      <item.icon className={`h-5 w-5 ${state === "collapsed" ? 'mx-auto' : 'mr-3'}`} />
-                      {state !== "collapsed" && <span className="font-medium">{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {mainItems.map((item) => {
+                // Find matching route key to check permission
+                const routeKey = Object.keys(routes).find(key => (routes as any)[key] === item.url);
+                if (routeKey && !auth?.checkPermission(routeKey, 'read')) return null;
+
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton 
+                      asChild 
+                      className={`w-full justify-start ${getNavCls(item.url)} transition-colors duration-200`}
+                    >
+                      <NavLink to={item.url} end={item.url === "/"}>
+                        <item.icon className={`h-5 w-5 ${state === "collapsed" ? 'mx-auto' : 'mr-3'}`} />
+                        {state !== "collapsed" && <span className="font-medium">{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {import.meta.env.DEV && (
-          <SidebarGroup className="mt-8">
-            <SidebarGroupLabel className={state === "collapsed" ? 'hidden' : 'section-label text-[var(--text-muted)] mb-2'}>
-              System
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {settingsItems.map((item) => {
-                  if (item.devOnly && !import.meta.env.DEV) return null;
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton 
-                        asChild 
-                        className={`w-full justify-start ${getNavCls(item.url)} transition-colors duration-200`}
-                      >
-                        <NavLink to={item.url}>
-                          <item.icon className={`h-5 w-5 ${state === "collapsed" ? 'mx-auto' : 'mr-3'}`} />
-                          {state !== "collapsed" && <span className="font-medium">{item.title}</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel className={state === "collapsed" ? 'hidden' : 'section-label text-[var(--text-muted)] mb-2'}>
+            System Admin
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {systemItems.map((item) => {
+                const routeKey = Object.keys(routes).find(key => (routes as any)[key] === item.url);
+                if (routeKey && !auth?.checkPermission(routeKey, 'read')) return null;
+
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton 
+                      asChild 
+                      className={`w-full justify-start ${getNavCls(item.url)} transition-colors duration-200`}
+                    >
+                      <NavLink to={item.url}>
+                        <item.icon className={`h-5 w-5 ${state === "collapsed" ? 'mx-auto' : 'mr-3'}`} />
+                        {state !== "collapsed" && <span className="font-medium">{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
     </Sidebar>
   );

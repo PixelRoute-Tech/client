@@ -24,7 +24,8 @@ const routes = {
     healthCheck:"/health-check",
     joblisting:"/job-listing",
     reportImages:"/report-images",
-    previousReport:"/previous-reports"
+    previousReport:"/previous-reports",
+    privileges: "/privileges"
 }
 
 export default routes

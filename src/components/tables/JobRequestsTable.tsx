@@ -23,7 +23,7 @@ interface JobRequestsTableProps {
 
 export function JobRequestsTable({ jobRequests, onEdit, onDelete,deleteLoading }: JobRequestsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const { user } = useAuth();
+  const { user, checkPermission } = useAuth();
   const isAdmin = user?.user_role?.name === "Admin";
 
   const handleDelete = (jobRequest:JobRequest) => {
@@ -93,7 +93,10 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete,deleteLoading }
               ) : (
                 jobRequests?.map((job) => {
                   const isSigned = job.status === "SIGNED";
-                  const canEdit = !isSigned || isAdmin;
+                  const editPerm = checkPermission("jobRequest", 'write');
+                  const deletePerm = checkPermission("jobRequest", 'delete');
+                  const canEdit = editPerm && (!isSigned || isAdmin);
+                  const canDelete = deletePerm && (!isSigned || isAdmin);
 
                   return (
                     <TableRow key={job.id} className={isSigned ? "bg-muted/20" : ""}>
@@ -154,8 +157,8 @@ export function JobRequestsTable({ jobRequests, onEdit, onDelete,deleteLoading }
                                 loading={deleteLoading} 
                                 variant="outline" 
                                 size="sm" 
-                                disabled={!canEdit}
-                                title={!canEdit ? "Signed jobs can only be deleted by Admin" : ""}
+                                disabled={!canDelete}
+                                title={!canDelete ? "No delete permission or job is signed" : ""}
                               >
                                 <Trash2 className="h-4 w-4 mr-1" />
                                 Delete

@@ -3,6 +3,7 @@ export const storageKeys = {
   token: "TOKEN",
   accessToken:"ACCESS_TOKEN",
   copied: "COPY",
+  privileges: "PRIVILEGES",
 };
 
 export const setItem = (

@@ -53,12 +53,22 @@ export type UserProfileType = {
   updated_at: string;
 };
 
+export type UserPrivilegeType = {
+  menu_id: string;
+  can_read: boolean;
+  can_write: boolean;
+  can_delete: boolean;
+};
+
 export type AuthContextType = {
   user: UserType | null;
   setUser: Dispatch<SetStateAction<UserType | null>>;
-  signin: (data: { access_token: string; user: UserType }) => void;
+  privileges: UserPrivilegeType[];
+  setPrivileges: Dispatch<SetStateAction<UserPrivilegeType[]>>;
+  signin: (data: { access_token: string; user: UserType; privileges?: UserPrivilegeType[] }) => void;
   signout: (isLogout?: boolean) => void;
   loading: boolean;
   startLoading: () => void;
   stopLoading: () => void;
+  checkPermission: (menuId: string, action: 'read' | 'write' | 'delete') => boolean;
 };

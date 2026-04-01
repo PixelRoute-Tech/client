@@ -51,7 +51,7 @@ export const getUsers = async (params: {
   role?: string;
   department_id?: number;
   is_active?: boolean;
-}): ApiResponseType<UserType[]> => {
+}): ApiResponseType<{ list: UserType[]; count: number }> => {
   try {
     const { skip, take, role, department_id, is_active } = params;
     let url = `${apis.usersApi}?skip=${skip}&take=${take}`;
