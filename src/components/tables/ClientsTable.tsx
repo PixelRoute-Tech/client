@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Edit, Trash2, Search, Phone, Mail } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -106,13 +107,27 @@ export function ClientsTable({
                </TableRow>
              </TableHeader>
              <TableBody>
-               {loading ? (
-                 <TableRow>
-                   <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
-                     Loading clients...
-                   </TableCell>
-                 </TableRow>
-               ) : filteredClients?.length === 0 || !Boolean(filteredClients?.length) ? (
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-full" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-full" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-full" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Skeleton className="h-8 w-16" />
+                          <Skeleton className="h-8 w-16" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : 
+filteredClients?.length === 0 || !Boolean(filteredClients?.length) ? (
                  <TableRow>
                    <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                      {searchTerm ? "No clients found matching your search." : "No clients available."}

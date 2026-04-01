@@ -45,6 +45,8 @@ export const masterQueryKey = {
   designation:"masterdesignation",
   userRole:"masteruserroles"
 }
+import { SkeletonLoader, skeletonConfigs } from "@/components/ui/skeleton-loader";
+
 const MasterData = () => {
   const { toast } = useToast();
   const [designationInput, setDesignationInput] = useState("");
@@ -83,6 +85,8 @@ const MasterData = () => {
       },
     ],
   });
+
+  const isLoading = designation.isLoading || department.isLoading || userRole.isLoading;
 
   const handleOnSuccess = ()=>{
       setDesignationInput("")
@@ -142,6 +146,10 @@ const MasterData = () => {
       deleteMutations[itemToDelete.type].mutate(itemToDelete.id);
     }
   };
+
+  if (isLoading) {
+    return <SkeletonLoader config={skeletonConfigs.table} />;
+  }
 
   return (
     <div className="p-6 space-y-6">

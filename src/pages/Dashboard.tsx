@@ -25,6 +25,7 @@ import {
 } from 'recharts';
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { SkeletonLoader, skeletonConfigs } from "@/components/ui/skeleton-loader";
 
 const Dashboard = () => {
   const { user } = useAuth() || {};
@@ -67,7 +68,7 @@ const Dashboard = () => {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-[400px]">Loading Dashboard...</div>;
+    return <SkeletonLoader config={skeletonConfigs.dashboard} />;
   }
 
   return (
@@ -211,6 +212,7 @@ const Dashboard = () => {
                   </td>
                   <td className="py-4">
                     <Badge variant="outline" className={`text-[10px] uppercase ${
+                      job.status === 'SIGNED' ? 'border-success bg-success/10 text-success' :
                       job.status === 'COMPLETED' ? 'border-success text-success' : 
                       job.status === 'PENDING' ? 'border-warning text-warning' : 
                       'border-primary text-primary'

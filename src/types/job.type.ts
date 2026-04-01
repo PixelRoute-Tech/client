@@ -67,7 +67,7 @@ export interface JobRequest {
   uploaded_files?: string[];
 }
 
-export type JobStatus = "Pending" | "Completed" | "In progress"
+export type JobStatus = "PENDING" | "COMPLETED" | "IN_PROGRESS" | "APPROVED" | "REJECTED" | "CANCELLED" | "SIGNED";
 
 export interface Job {
   _id: string;
