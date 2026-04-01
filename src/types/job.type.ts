@@ -67,11 +67,13 @@ export interface JobRequest {
   uploaded_files?: string[];
 }
 
+export type JobStatus = "Pending" | "Completed" | "In progress"
+
 export interface Job {
   _id: string;
   jobId: string;
   tech: string;
-  status: "Pending" | "Completed" | "In progress";
+  status: JobStatus;
   testMethod: string;
   jobDetails: {
     clientId: string;

@@ -1,339 +1,171 @@
 import { useState } from "react";
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-
-import { JobCard } from "@/components/JobCard";
-import { Button } from "@/components/ui/button";
-import { RotateCw } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useDroppable } from "@dnd-kit/core";
-import { Job } from "@/types/job.type";
+import { RotateCw, Trash2, Eye } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
-import { getJobByUser, updateJobData } from "@/services/job.services";
-const statusCheck = {
-  Pending: "pending",
-  "In progress": "inProgress",
-  Completed: "completed",
-};
-function DroppableColumn({ id, children }: any) {
-  const { setNodeRef } = useDroppable({ id });
 
-  return (
-    <div ref={setNodeRef} className="h-full">
-      {children}
-    </div>
-  );
-}
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
+import { getJobByUser, updateStatus } from "@/services/job.services";
+import { JobStatus } from "@/types/job.type";
+
 export default function JobListing() {
-  const [activeJob, setActiveJob] = useState<Job | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
 
+  // 1. Fetch Data
   const { data: userJobList, refetch, isLoading } = useQuery({
     queryKey: ["joblistbyuserid", user?.id],
     queryFn: async () => getJobByUser(user?.id?.toString() || ""),
     select: (response: any) => {
       const flatList = Array.isArray(response?.data) ? response.data : [];
-      
-      const transformJob = (jr: any): Job => {
-        const testMethod = jr.test_methods?.find((m: any) => m.worksheet_form_id) || jr.test_methods?.[0];
-        const sheetId = testMethod?.worksheet_form_id || "7c7a2a17-abc2-419c-9970-567d5a49e3a4";
-        
-        return {
-          _id: jr.id,
-          jobId: jr.purchase_order || "N/A",
-          status: jr.status === "PENDING" ? "Pending" : 
-                  jr.status === "IN_PROGRESS" ? "In progress" : 
-                  jr.status === "COMPLETED" ? "Completed" : "Pending",
-          tech: jr.technician?.userName || "N/A",
-          testMethod: sheetId,
-          jobDetails: {
-            clientId: jr.client_id?.toString(),
-            createdAt: jr.created_at,
-            clientName: jr.client?.business_name || "Unknown Client",
-            lastDate: jr.to_date,
-          },
-          worksheetName: jr.summary || "Inspection Job",
-          technician: jr.technician?.userName || "N/A",
-        };
-      };
-
-      const pending = flatList
-        .filter((j: any) => j.status === "PENDING")
-        .map(transformJob);
-      const inProgress = flatList
-        .filter((j: any) => j.status === "IN_PROGRESS")
-        .map(transformJob);
-      const completed = flatList
-        .filter((j: any) => j.status === "COMPLETED")
-        .map(transformJob);
-
-      return {
-        ...response,
-        data: { pending, inProgress, completed }
-      };
-    }
+      return flatList.map((jr: any) => ({
+        _id: jr.id,
+        jobId: jr.purchase_order || "N/A",
+        status: jr.status, // Keeping API raw status for easier logic
+        tech: jr.technician?.userName || "N/A",
+        clientName: jr.client?.business_name || "Unknown Client",
+        clientCode: jr.client?.client_code || "",
+        fromDate: jr.from_date,
+        toDate: jr.to_date,
+        summary: jr.summary || "No summary provided",
+      }));
+    },
   });
 
-  const { mutate: statusChange } = useMutation({
-    mutationFn: updateJobData,
+  // 2. Status Change Mutation
+  const { mutate: statusChange, isPending: isUpdating } = useMutation({
+    mutationFn: updateStatus,
     onSuccess: (result) => {
-      if (result.success) {
-        queryClient.invalidateQueries(["joblistbyuserid", user?.id]);
-        toast({
-          title: "Status Updated",
-          description: "Job status has been updated successfully",
-        });
-      }
+      queryClient.invalidateQueries({ queryKey: ["joblistbyuserid", user?.id] });
+      toast({
+        title: "Success",
+        description: "Job status updated successfully",
+      });
     },
     onError: (e: any) => {
-      refetch();
       toast({
+        variant: "destructive",
         title: "Error",
-        description: e?.message || "Something went wrong",
-        className: "bg-red-500 text-white"
+        description: e?.message || "Failed to update status",
       });
     },
   });
 
-  const handleDragStart = (event: DragStartEvent) => {
-    const containerId = event?.active?.data.current?.sortable?.containerId;
-    let job = null;
-    if (containerId == "Pending") {
-      job = userJobList?.data?.pending?.find((j: Job) => j._id === event.active.id);
-    }
-    if (containerId == "In progress") {
-      job = userJobList?.data?.inProgress?.find(
-        (j: Job) => j._id === event.active.id
-      );
-    }
-    if (containerId == "Completed") {
-      job = userJobList?.data?.completed?.find(
-        (j: Job) => j._id === event.active.id
-      );
-    }
-    setActiveJob(job);
+  const handleStatusChange = (jobId: string, newStatus: JobStatus) => {
+    statusChange({ id: jobId, status: newStatus });
   };
 
-  const handleDragChange = (newStatus: keyof typeof statusCheck, obj: Job) => {
-    // We can rely on query invalidation for status changes to be simpler, 
-    // or manually update cache if immediate feedback is needed.
-    // For now, let's keep it simple with invalidation on success.
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveJob(null);
-    if (!over) return;
-    
-    const containerId = active?.data.current?.sortable?.containerId;
-    let activeJob: Job | undefined;
-
-    if (containerId === "Pending") activeJob = userJobList?.data?.pending?.find((j: Job) => j._id === active.id);
-    else if (containerId === "In progress") activeJob = userJobList?.data?.inProgress?.find((j: Job) => j._id === active.id);
-    else if (containerId === "Completed") activeJob = userJobList?.data?.completed?.find((j: Job) => j._id === active.id);
-
-    if (!activeJob) return;
-    
-    const newStatusLabel = over.id as "Pending" | "In progress" | "Completed";
-    const apiStatus = newStatusLabel === "Pending" ? "PENDING" : 
-                    newStatusLabel === "In progress" ? "IN_PROGRESS" : "COMPLETED";
-
-    if (activeJob.status !== newStatusLabel) {
-      // Map back to API format for the mutation
-      const updatedJob = { ...activeJob, status: apiStatus as any };
-      statusChange(updatedJob);
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "PENDING": return "secondary";
+      case "IN_PROGRESS": return "default";
+      case "COMPLETED": return "outline"; // Or a custom green success variant
+      default: return "secondary";
     }
   };
-
-  const handleRefresh = () => {
-    refetch();
-  };
-
-  const columns: { id: Job["status"]; color: string }[] = [
-    {
-      id: "Pending",
-      color: "glass-panel",
-    },
-    {
-      id: "In progress",
-      color: "glass-panel border-primary/30 shadow-[0_0_30px_hsl(var(--primary)_/_0.1)]",
-    },
-    {
-      id: "Completed",
-      color: "glass-panel",
-    },
-  ];
 
   return (
-    <>
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex justify-between items-center w-full">
-           <div>
-             <h1 className="text-3xl font-bold">Job Listing</h1> 
-            <p className="text-muted-foreground">Manage and track your jobs</p>
-           </div>
-
-            <Button loading={isLoading} size="sm" onClick={handleRefresh}>Refresh <RotateCw /></Button>
-          </div>
- 
-          {/* <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Job
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Job</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleAddJob} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="workName">Work Name</Label>
-                  <Input
-                    id="workName"
-                    name="workName"
-                    placeholder="Enter work name"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="assignedDate">Assigned Date</Label>
-                  <Input
-                    id="assignedDate"
-                    name="assignedDate"
-                    type="date"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastDate">Due Date</Label>
-                  <Input id="lastDate" name="lastDate" type="date" required />
-                </div>
-                <Button type="submit" className="w-full">
-                  Create Job
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog> */}
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Jobs</h1>
+          <p className="text-muted-foreground">Manage and track your active jobs</p>
         </div>
-
-        <DndContext
-          sensors={sensors}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          //   onDragOver={handleDragOver}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {columns.map((column) => (
-              <DroppableColumn key={column.id} id={column.id}>
-                <div
-                  key={column.id}
-                  className={`rounded-lg border-2 ${column.color} p-4 space-y-4`}
-                >
-                  <div className="flex items-center justify-between">
-                    <h2 className="font-semibold text-lg">{column.id}</h2>
-                    <span className="text-sm text-muted-foreground">
-                      {column.id == "Pending" &&
-                        `${userJobList?.data?.pending?.length || 0} ${
-                          userJobList?.data?.pending?.length > 1
-                            ? "Jobs"
-                            : "Job"
-                        }`}
-                      {column.id == "In progress" &&
-                        `${userJobList?.data?.inProgress?.length || 0} ${
-                          userJobList?.data?.inProgress?.length > 1
-                            ? "Jobs"
-                            : "Job"
-                        }`}
-                      {column.id == "Completed" &&
-                        `${userJobList?.data?.completed?.length || 0} ${
-                          userJobList?.data?.completed?.length > 1
-                            ? "Jobs"
-                            : "Job"
-                        }`}
-                    </span>
-                  </div>
-
-                  <SortableContext
-                    items={[]}
-                    strategy={verticalListSortingStrategy}
-                    id={column.id}
-                  >
-                    <ScrollArea className="h-[calc(100vh-280px)]">
-                      <div className="space-y-3 pr-4">
-                        {column.id == "Pending" &&
-                          userJobList?.data?.pending?.map((job) => (
-                            <JobCard key={job._id} job={job} />
-                          ))}
-                        {column.id == "In progress" &&
-                          userJobList?.data?.inProgress?.map((job) => (
-                            <JobCard key={job._id} job={job} />
-                          ))}
-                        {column.id == "Completed" &&
-                          userJobList?.data?.completed?.map((job) => (
-                            <JobCard key={job._id} job={job} />
-                          ))}
-                        {Boolean(
-                          userJobList?.data?.pending?.length === 0 &&
-                            column.id == "Pending"
-                        ) && (
-                          <div className="text-center py-8 text-muted-foreground text-sm">
-                            No jobs in {column.id}
-                          </div>
-                        )}
-                        {Boolean(
-                          userJobList?.data?.inProgress?.length === 0 &&
-                            column.id == "In progress"
-                        ) && (
-                          <div className="text-center py-8 text-muted-foreground text-sm">
-                            No jobs in {column.id}
-                          </div>
-                        )}
-                        {Boolean(
-                          userJobList?.data?.completed?.length === 0 &&
-                            column.id == "Completed"
-                        ) && (
-                          <div className="text-center py-8 text-muted-foreground text-sm">
-                            No jobs in {column.id}
-                          </div>
-                        )}
-                      </div>
-                    </ScrollArea>
-                  </SortableContext>
-                </div>
-              </DroppableColumn>
-            ))}
-          </div>
-
-          <DragOverlay>
-            {activeJob ? <JobCard job={activeJob} /> : null}
-          </DragOverlay>
-        </DndContext>
+        <Button disabled={isLoading} size="sm" onClick={() => refetch()}>
+          Refresh <RotateCw className={`ml-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+        </Button>
       </div>
-    </>
+
+      <div className="rounded-md border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[150px]">Job ID / PO</TableHead>
+              <TableHead>Client</TableHead>
+              <TableHead>Dates</TableHead>
+              <TableHead>Summary</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  Loading jobs...
+                </TableCell>
+              </TableRow>
+            ) : userJobList?.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  No jobs found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              userJobList?.map((job: any) => (
+                <TableRow key={job._id}>
+                  <TableCell className="font-mono font-medium text-primary">
+                    {job.jobId}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{job.clientName}</span>
+                      <span className="text-xs text-muted-foreground">{job.clientCode}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {job.fromDate} <span className="text-muted-foreground">to</span> {job.toDate}
+                  </TableCell>
+                  <TableCell className="max-w-[200px] truncate">
+                    {job.summary}
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      disabled={isUpdating}
+                      defaultValue={job.status}
+                      onValueChange={(value) => handleStatusChange(job._id, value as JobStatus)}
+                    >
+                      <SelectTrigger className="w-[140px] h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PENDING">Pending</SelectItem>
+                        <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                        <SelectItem value="COMPLETED">Completed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell className="text-right space-x-2">
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   );
 }
